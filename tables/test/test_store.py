@@ -1,8 +1,8 @@
 from io import StringIO
 from textwrap import dedent
 
-from foundation_core.tables import TableBundle
-from foundation_core.tables.readers.read_csv import read_stream_csv
+from tables import TableBundle
+from tables.readers.read_csv import read_stream_csv
 
 
 def test_bundle_from_csv():
