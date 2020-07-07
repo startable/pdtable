@@ -18,7 +18,7 @@ from .. import pdtable
 from ..store import StarBlockType, BlockGenerator
 
 
-_TF_values = {"0": False, "1": True}
+_TF_values = {"0": False, "1": True, "-": False}
 
 
 def _parse_onoff_column(values):
@@ -29,13 +29,33 @@ def _parse_onoff_column(values):
     return np.array(as_bool, dtype=np.bool)
 
 
+_cnv_flt = {
+    "{": lambda v: str(v),
+    "N": lambda v: np.nan,
+    "n": lambda v: np.nan,
+    " ": lambda v: float(v),
+    "-": lambda v: np.nan if (len(v) == 1) else float(v),
+}
+for ch in "+0123456789":
+    _cnv_flt[ch] = lambda v: float(v)
+
+_cnv_datetime = lambda v: pd.NaT if (v == "-") else pd.to_datetime(v, dayfirst=True)
+
+
 def _parse_float_column(values):
-    return np.array(values, dtype=np.float)
+    fvalues = [_cnv_flt[vv[0]](vv.strip()) for vv in values]
+    return np.array(fvalues)
+
+
+def _parse_datetime_column(values):
+    dtvalues = [_cnv_datetime(vv.strip()) for vv in values]
+    return np.array(dtvalues)
 
 
 _column_dtypes = {
     "text": lambda values: np.array(values, dtype=np.str),
     "onoff": _parse_onoff_column,
+    "datetime": _parse_datetime_column,
 }
 
 
@@ -47,8 +67,11 @@ def make_table(
     column_names = list(
         itertools.takewhile(lambda s: len(s.strip()) > 0, lines[2].split(sep))
     )
+    column_names = [el.strip() for el in column_names]
+
     n_col = len(column_names)
     units = lines[3].split(sep)[:n_col]
+    units = [el.strip() for el in units]
 
     column_data = [l.split(";")[:n_col] for l in lines[4:]]
     column_dtype = [_column_dtypes.get(u, _parse_float_column) for u in units]
