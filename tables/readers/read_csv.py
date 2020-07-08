@@ -43,12 +43,12 @@ _cnv_datetime = lambda v: pd.NaT if (v == "-") else pd.to_datetime(v, dayfirst=T
 
 
 def _parse_float_column(values):
-    fvalues = [_cnv_flt[vv[0]](vv.strip()) for vv in values]
+    fvalues = [_cnv_flt[vv[0]](vv) for vv in values]
     return np.array(fvalues)
 
 
 def _parse_datetime_column(values):
-    dtvalues = [_cnv_datetime(vv.strip()) for vv in values]
+    dtvalues = [_cnv_datetime(vv) for vv in values]
     return np.array(dtvalues)
 
 
@@ -74,6 +74,8 @@ def make_table(
     units = [el.strip() for el in units]
 
     column_data = [l.split(";")[:n_col] for l in lines[4:]]
+    column_data = [[el.strip() for el in col] for col in column_data]
+
     column_dtype = [_column_dtypes.get(u, _parse_float_column) for u in units]
 
     # build dictionary of columns iteratively to allow meaningful error messages
