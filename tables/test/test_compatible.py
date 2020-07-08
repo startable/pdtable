@@ -75,3 +75,4 @@ def test_read_csv_compatible2():
     assert table.test_input.onoffs[0] == False
     assert table.test_input.dates[0].year == 2020
     assert table.test_input.numerical[0] == 123
+

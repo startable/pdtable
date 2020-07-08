@@ -73,7 +73,7 @@ def make_table(
     units = lines[3].split(sep)[:n_col]
     units = [el.strip() for el in units]
 
-    column_data = [l.split(";")[:n_col] for l in lines[4:]]
+    column_data = [l.split(sep)[:n_col] for l in lines[4:]]
     column_data = [[el.strip() for el in col] for col in column_data]
 
     column_dtype = [_column_dtypes.get(u, _parse_float_column) for u in units]
