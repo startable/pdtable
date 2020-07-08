@@ -30,10 +30,8 @@ def _parse_onoff_column(values):
 
 
 _cnv_flt = {
-    "{": lambda v: str(v),
     "N": lambda v: np.nan,
     "n": lambda v: np.nan,
-    " ": lambda v: float(v),
     "-": lambda v: np.nan if (len(v) == 1) else float(v),
 }
 for ch in "+0123456789":
