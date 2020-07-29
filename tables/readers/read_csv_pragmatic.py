@@ -23,17 +23,23 @@ import sys
 
 from .. import pdtable
 from ..store import StarBlockType, BlockGenerator
-
+from .FixFactory import FixFactory
 
 _TF_values = {"0": False, "1": True, "-": False}
 
+# TBC: wrap in specific reader instance, this is global for all threads
+_myFixFactory = FixFactory()
 
 def _parse_onoff_column(values):
-    try:
-        as_bool = [_TF_values[v.strip()] for v in values]
-    except KeyError:
-        raise ValueError("Entries in onoff columns must be 0 (False) or 1 (True)")
-    return np.array(as_bool, dtype=np.bool)
+    bvalues = []
+    for row,vv in enumerate(values):
+        try:
+            bvalues.append(_TF_values[vv.strip()])
+        except KeyError:
+            _myFixFactory.TableRow = row # TBC: index
+            fix_value = _myFixFactory.fix_illegal_cell_value("onoff",vv)
+            bvalues.append(fix_value)
+    return np.array(bvalues, dtype=np.bool)
 
 
 _cnv_flt = {
@@ -47,21 +53,35 @@ for ch in "+0123456789":
 
 _cnv_datetime = lambda v: pd.NaT if (v == "-") else pd.to_datetime(v, dayfirst=True)
 
-
 def _parse_float_column(values):
     fvalues = []
     for row,vv in enumerate(values):
         if(len(vv) > 0 and (vv[0] in _cnv_flt)):
-            fvalues.append(_cnv_flt[vv[0]](vv))
+            try:
+                fvalues.append(_cnv_flt[vv[0]](vv))
+            except Exception as exc:
+                fix_value = _myFixFactory.fix_illegal_cell_value("float",vv)
+                fvalues.append(fix_value)
         else:
-            print(f"Thingie: illegal value '{vv}' in row: {row}")
-            # TTT mark thingie, info column, table &c.
-            fvalues.append(np.nan)
+                fix_value = _myFixFactory.fix_illegal_cell_value("float",vv)
+                fvalues.append(fix_value)
     return np.array(fvalues)
 
 
 def _parse_datetime_column(values):
-    dtvalues = [_cnv_datetime(vv) for vv in values]
+    dtvalues = []
+    for row,vv in enumerate(values):
+        if(len(vv) > 0 and (vv[0].isdigit() or vv == '-')):
+            try:
+                dtvalues.append(_cnv_datetime(vv))
+            except Exception as exc:
+                # TBC: register exc !?
+                fix_value = _myFixFactory.fix_illegal_cell_value("datetime",vv)
+                dtvalues.append(fix_value)
+        else:
+            fix_value = _myFixFactory.fix_illegal_cell_value("datetime",vv)
+            dtvalues.append(fix_value)
+
     return np.array(dtvalues)
 
 
@@ -76,15 +96,62 @@ def make_table(
     lines: List[str], sep: str, origin: Optional[pdtable.TableOriginCSV] = None
 ) -> pdtable.Table:
     table_name = lines[0].split(sep)[0][2:]
-    destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
-    column_names = list(
-        itertools.takewhile(lambda s: len(s.strip()) > 0, lines[2].split(sep))
-    )
-    column_names = [el.strip() for el in column_names]
 
-    n_col = len(column_names)
-    units = lines[3].split(sep)[:n_col]
-    units = [el.strip() for el in units]
+    _myFixFactory.TableName = table_name
+    destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
+
+    cnames_raw = lines[2].split(sep)
+    # strip empty elements at end of list
+    # Thingie: dbg
+    # print(f"---oOo- column_names raw: {cnames_raw}")
+    n_names_col = len(cnames_raw)
+    for el in reversed(cnames_raw):
+        if(len(el) > 0):
+            break
+        n_names_col -= 1
+
+    # TBC: also forward scan for first empty column (additional comment blocks)
+
+    # handle multiple columns w. same name
+    column_names = []
+    names = {}
+    for cname in [el.strip() for el in cnames_raw[:n_names_col]]:
+        if(cname in names):
+            names[cname] += 1
+            itername = f"{cname}_{names[cname]}"
+            print(f"Thingie: multiple columns names {cname}, fixing ({itername})")
+            column_names.append(itername)
+        else:
+            names[cname] = 0
+            column_names.append(cname)
+
+
+    # Thingie: mark changes
+    # auto filler
+    # TBC: generate unique column names
+    column_names = [el if(len(el) > 0) else "-missing-" for el in column_names]
+
+    units_raw = lines[3].split(sep)
+    n_units_col = len(units_raw)
+    for el in reversed(units_raw):
+        if(len(el) > 0):
+            break
+        n_units_col -= 1
+    # Thingie: dbg
+    # print(f"---oOo- units raw: {units_raw}")
+    units = [el.strip() for el in units_raw[:n_units_col]]
+
+    # Thingie: mark changes
+    # auto filler
+    units = [el if(len(el) > 0) else "-" for el in units]
+
+    n_col = n_names_col
+    if(n_names_col != n_units_col):
+        # Thingie
+        print(f"Thingie: #-coloumn mismatch, n_names: {n_names_col} differ from n_units: {n_units_col}")
+        # TBC: choose larger
+        n_col = max(n_names_col,n_units_col)
+        pass
 
     column_data = [l.split(sep)[:n_col] for l in lines[4:]]
     column_data = [[el.strip() for el in col] for col in column_data]
@@ -94,7 +161,7 @@ def make_table(
     # build dictionary of columns iteratively to allow meaningful error messages
     columns = dict()
 
-    # determine # columns
+    # determine # columns in data
     cols_stat = dict()
     for row in column_data:
         cols = len(row)
@@ -103,30 +170,45 @@ def make_table(
         else:
             cols_stat[cols] = 1
 
-    max = 0
-    num_cols = None
+    maxval = 0
+    num_data_col = 0 #  # columns seen in most rows
     for cnt in cols_stat.keys():
-        if(cols_stat[cnt] > max):
-            max = cols_stat[cnt]
-            num_cols = cnt
+        if(cols_stat[cnt] > maxval):
+            maxval = cols_stat[cnt]
+            num_data_col = cnt
 
-    print(f"-oOo- columns: {num_cols} {cols_stat}")
+#    print(f"-oOo- n_names: {n_names_col}, n_units: {n_units_col}")
+#    print(f"-oOo- num_data columns: {num_data_col}, stat:  {cols_stat}")
+    # here we have num_data_col, n_col, n_units_col
+    if(n_col > num_data_col):
+        # Thingie: register warning / delegate callback
+        # 1) truncate units and column_names
+        #    or:
+        # 2) extend column_data
+        pass
+    elif(n_col < num_data_col):
+        # Thingie: register warning / delegate callback
+        # 1) extend units and column_names
+        #    or:
+        # 2) truncate column_data
+        pass
+
+
     if(len(cols_stat.keys()) > 1):
         for irow,row in enumerate(column_data):
-            if len(row)  < num_cols:
-                print(f"-oOo-fix {irow} {column_data[irow]}")
-                print(f"-oOo-fix {len(row)} {num_cols}")
-                column_data[irow].extend(["NaN" for cc in range(num_cols-len(row))])
+            if len(row)  < num_data_col:
+                print(f"-oOo-Thingie, fix {irow} {column_data[irow]}")
+                print(f"-oOo-fix {len(row)} {num_data_col}")
+                column_data[irow].extend(["NaN" for cc in range(num_data_col-len(row))])
                 print(f"-oOo-fix {irow} {column_data[irow]}")
 
 
-    # TTT
-    print("-oOo- column_data row:",column_data)
-    print("-oOo- column_data col:")
-    for cc in zip(*column_data):
-        print(f"-oOo-{cc}")
-    print("-oOo-\n")
-    # sys.exit(1)
+    # TTT dbg / callback w. dict
+#    print("-oOo- column_data row:",column_data)
+#    print("-oOo- column_data col:")
+#    for cc in zip(*column_data):
+#        print(f"-oOo-{cc}")
+#    print("-oOo-\n")
 
     # zip hides missing data !
     # (zip callback ?!)
@@ -138,7 +220,7 @@ def make_table(
 
     for cvalues in zip(*column_data):
         sz = len(cvalues)
-        print(f"-oOo- col: {col} len: {sz}: {cvalues}")
+#        print(f"-oOo- col: {col} len: {sz}: {cvalues}")
         col += 1
         if(data_len is None):
             data_len = sz
@@ -149,14 +231,8 @@ def make_table(
     for name, dtype, unit, values in zip(
         column_names, column_dtype, units, zip(*column_data)
     ):
-        try:
-            columns[name] = dtype(values)
-        except ValueError as e:
-            print(
-                f"Thingie: Unable to parse value in column {name} of table {table_name} as {unit}"
-            )
-#        except Exception as exc:
-#            print(f"Thingie: {exc}")
+        _myFixFactory.TableColumn = name
+        columns[name] = dtype(values)
 
     return pdtable.Table(
         pdtable.make_pdtable(
@@ -178,7 +254,7 @@ def make_token(token_type, lines, sep, origin) -> Tuple[StarBlockType, Any]:
 
 
 def read_stream_csv_pragmatic(
-    f: TextIO, sep: str, origin: Optional[str] = None
+    f: TextIO, sep: str = ";", origin: Optional[str] = None, fixFactory = None
 ) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
@@ -187,6 +263,16 @@ def read_stream_csv_pragmatic(
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
     if origin is None:
         origin = "Stream"
+
+    global _myFixFactory
+    if(not fixFactory is None):
+        if(type(fixFactory) is type):
+            _myFixFactory = fixFactory()
+        else:
+            _myFixFactory = fixFactory
+    assert(_myFixFactory != None)
+
+    _myFixFactory.FileName = origin
 
     def is_blank(s):
         """
@@ -231,10 +317,14 @@ def read_stream_csv_pragmatic(
     if lines:
         yield make_token(block, lines, sep, pdtable.TableOriginCSV(origin, block_line))
 
+    _myFixFactory = FixFactory()
 
-def read_file_csv_pragmatic(file: PathLike, sep: str = ";") -> BlockGenerator:
+
+def read_file_csv_pragmatic(file: PathLike,sep = ";",fixFactory = None) -> BlockGenerator:
     """
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
+
     with open(file) as f:
-        yield from read_stream_csv_pragmatic(f, sep)
+        yield from read_stream_csv_pragmatic(f, sep, origin=file, fixFactory=fixFactory)
+
