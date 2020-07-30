@@ -114,22 +114,24 @@ def make_table(
 
     # handle multiple columns w. same name
     column_names = []
+    cnames_all = [el.strip() for el in cnames_raw[:n_names_col]]
     names = {}
-    for cname in [el.strip() for el in cnames_raw[:n_names_col]]:
-        if(cname in names):
-            names[cname] += 1
-            itername = f"{cname}_{names[cname]}"
-            print(f"Thingie: multiple columns names {cname}, fixing ({itername})")
-            column_names.append(itername)
+    for icol,cname in enumerate(cnames_all):
+        if(not cname in names and len(cname) > 0):
+            names[cname] = 0
+            column_names.append(cname)
         else:
+            _myFixFactory.TableColumn = icol
+            _myFixFactory.TableColumNames = column_names # so far
+            if(len(cname) == 0):
+                cname = _myFixFactory.fix_missing_column_name(col=icol,input_columns=cnames_all)
+            elif(cname in names):
+                cname = _myFixFactory.fix_duplicate_column_name(col=icol,input_columns=cnames_all)
+            assert not cname in names
             names[cname] = 0
             column_names.append(cname)
 
-
-    # Thingie: mark changes
-    # auto filler
-    # TBC: generate unique column names
-    column_names = [el if(len(el) > 0) else "-missing-" for el in column_names]
+    _myFixFactory.TableColumNames = column_names # final
 
     units_raw = lines[3].split(sep)
     n_units_col = len(units_raw)
@@ -197,10 +199,8 @@ def make_table(
     if(len(cols_stat.keys()) > 1):
         for irow,row in enumerate(column_data):
             if len(row)  < num_data_col:
-                print(f"-oOo-Thingie, fix {irow} {column_data[irow]}")
-                print(f"-oOo-fix {len(row)} {num_data_col}")
-                column_data[irow].extend(["NaN" for cc in range(num_data_col-len(row))])
-                print(f"-oOo-fix {irow} {column_data[irow]}")
+                fix_row = _myFixFactory.fix_missing_rows_in_column_data(row=irow,row_data=row,num_columns=num_data_col)
+                column_data[irow] = fix_row
 
 
     # TTT dbg / callback w. dict

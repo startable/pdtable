@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Any, TextIO
+from typing import List, Tuple, Any, Dict
 import pandas as pd
 import numpy as np
 
@@ -6,19 +6,30 @@ import sys
 
 
 class FixFactory:
-    """ base class for auto-correcting input files
+    """ base class for auto-correcting startable.csv input files
+
+        * Possible specialization:
+
+        class fixErrors(FixFactory):
+            # augment existing method
+            def fix_illegal_cell_value(self, vtype, value):
+                db_store(self.TableName,(self.TableColumn,self.TableRow))
+                dfval = FixFactory.fix_illegal_cell_value(self, vtype, value)
+                return dfval
+
+
 
     """
 
     # Store legend of what's fixed + API
     def __init__(self):
         self.ctx = {}
-        self.dbg = False
+        self._dbg = False
 
     @property
     def FileName(self):
         """
-           Position context, origin / input filename
+           Position context, current origin / input filename
         """
         return self.ctx.get("FileName")
 
@@ -29,7 +40,7 @@ class FixFactory:
     @property
     def TableName(self):
         """
-           Position context in current table
+           Position context, current table
         """
         return self.ctx.get("TableName")
 
@@ -40,7 +51,7 @@ class FixFactory:
     @property
     def TableColumn(self):
         """
-           Position context in current table
+           Position context, current column
         """
         return self.ctx.get("TableColumn")
 
@@ -51,7 +62,7 @@ class FixFactory:
     @property
     def TableRow(self):
         """
-           Position context in current table
+           Position context, current row
         """
         return self.ctx.get("TableRow")
 
@@ -59,12 +70,63 @@ class FixFactory:
     def TableRow(self, val):
         self.ctx["TableRow"] = val
 
-    # named parameters w. type kwargs
-    def fix_illegal_cell_value(self, vtype, value) -> bool:
+    @property
+    def Verbose(self):
         """
-            Handle illegal value in cell
+        if Verbose: print debug info in fix_* methods
+        """
+        return self._dbg
 
-            vtype in { "onoff", "datetime", "-" }
+    @Verbose.setter
+    def Verbose(self,value : bool):
+        self._dbg = value
+
+    def fix_duplicate_column_name(self, col: int, input_columns: List[str]) -> str:
+        """
+            The column_name: input_columns[col] alreadt exists
+            This method should provide a unique replacement name
+
+        """
+        if(self.Verbose):
+            print(
+                f'FixFacory: fix duplicate column ({col}) {input_columns[col]} in table: {self.TableName}'
+            )
+        # TTT : check
+        return "-fix-"
+
+    def fix_missing_column_name(self, col: int, input_columns: List[str]) -> str:
+        """
+            The column_name: input_columns[col] is empty
+            This method should provide a unique replacement name
+        """
+        if(self.Verbose):
+            print(
+                f'FixFacory: fix missing column ({col}) {input_columns} in table: {self.TableName}'
+            )
+        # TTT : check
+        return "-missing-"
+
+
+    def fix_missing_rows_in_column_data(self, row: int, row_data: List[str], num_columns: int) -> List[str]:
+        """
+            The row is expected to have num_columns values
+            This method should return the entire row of length num_columns
+            by providing the missing default values
+        """
+        if(self.Verbose):
+            print(
+                f'FixFacory: fix missing data in row ({irow}) in table: {self.TableName}'
+            )
+        row_data.extend(["NaN" for cc in range(num_columns-len(row_data))])
+        return row_data
+
+
+    def fix_illegal_cell_value(self, vtype : str , value : str) -> Any:
+        """
+            The string value can not be converted to type vtype
+            This method should return a suitable default value of type vtype
+
+            Supported vtypes in { "onoff", "datetime", "-", "float" }
         """
         defaults = {
             "onoff": False,
@@ -72,7 +134,7 @@ class FixFactory:
             "float": np.NaN,
             "-": np.NaN
             }
-        if self.dbg:
+        if self.Verbose:
             print(
                 f'FixFacory: illegal {vtype} value "{value}" in table {self.TableName}'
             )
