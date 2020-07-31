@@ -86,7 +86,7 @@ t['a'].unit = 'm'
 t
 
 # %%
-t.columns
+t.column_names
 
 # %%
 # Each column has associated metadata object that can be manipulated:
