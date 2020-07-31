@@ -55,11 +55,11 @@ from pathlib import Path
 
 if Path.cwd().name == "doc":
     # Maybe we're in a notebook in the /reporting/doc folder
-    repo_root_dir = str(Path.cwd().parent.parent)
+    repo_root_dir = str(Path.cwd().parent)
     if repo_root_dir not in sys.path:
         sys.path.append(repo_root_dir)
         print(f"Added repo root dir to sys.path: {repo_root_dir}")
-        
+
 # %% [markdown]
 # ## The `Table` aspect
 #
