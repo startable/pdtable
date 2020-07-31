@@ -7,8 +7,8 @@ from ..csv_writer import _table_to_csv
 
 def test_table_to_csv():
     t = Table(name='foo')
-    t['place'] = ['home', 'work', 'beach']
-    t.add_column('distance', range(3), 'km')
+    t['place'] = ['home', 'work', 'beach', 'wonderland']
+    t.add_column('distance', list(range(3)) + [float('nan')], 'km')
 
     out = io.StringIO()
     _table_to_csv(t, out)
@@ -17,9 +17,10 @@ def test_table_to_csv():
         all
         place;distance
         text;km
-        home;0
-        work;1
-        beach;2
-        
+        home;0.0
+        work;1.0
+        beach;2.0
+        wonderland;nan
+
         """)
 
