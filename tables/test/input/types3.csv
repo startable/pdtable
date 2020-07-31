@@ -1,0 +1,13 @@
+
+**farm_types3;;;
+your_farm my_farm farms_galore;;;
+species;         dt;  num;  flt;    log;         dt2;  flt2;    log2;
+text;      datetime;    -;   kg;  onoff;    datetime;    kg;  onoff;
+chicken; 2020-jl-01;    2;     ;      a;  2020-07-01;      ;      x;
+pig;     2020-07-02;    4;   39;      0;  2020-07-02;    39;      0;
+goat;             -;    a;    -;      1;           -;     b;      1;
+zybra;            a;    4;    -;      0;           a;     -;      3;
+cow;              -;  NaN;  200;      1;           -;   200;      1;
+goose;             ;    2;    9;       ;            ;     9;       ;
+
+# error/handle: missing/illegal values in multiple columns of different types
