@@ -16,7 +16,7 @@ def test_make_table():
     15373;20190516T104445;PISA_Library\results\check_Soil_Plastic_ULS1-PISA_C1.csv;1;
     15326;20190516T104445;PISA_Library\results\check_Soil_Plastic_ULS1-PISA_C2.csv;1;
     """).strip().split('\n')
-    t = make_table(lines, ';').pdtable
+    t = make_table(lines, ';').df
     assert t.file_bytes[0] == 15373
 
     tt = pdtable.Table(t)
@@ -34,7 +34,7 @@ def test_parse_onoff():
     15373;a;0;
     15326;b;1;
     """).strip().split('\n')
-    t = make_table(lines, ';').pdtable
+    t = make_table(lines, ';').df
     assert t.file_bytes[0] == 15373
     assert t.has_table[0] == False
     assert t.has_table[1] == True
@@ -52,7 +52,7 @@ def test_no_trailing_sep():
     text;%;-;mm;
     bar;10;10;10;
     """).strip().split('\n')
-    t = make_table(lines, ';').pdtable
+    t = make_table(lines, ';').df
     assert t.column[0] == 'bar'
     assert t.dash[0] == 10
 

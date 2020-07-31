@@ -114,7 +114,7 @@ t2
 
 # %%
 # After getting a reference to the dataframe backing t, it is safe to delete t:
-df = t.pdtable
+df = t.df
 del t
 Table(df)
 

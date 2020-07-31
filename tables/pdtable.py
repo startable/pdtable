@@ -530,7 +530,7 @@ class Table:
         self._df = df
 
     @property
-    def pdtable(self) -> PandasTable:
+    def df(self) -> PandasTable:
         """
         Return a pandas dataframe with all table information stored as metadata (a PandasTable object).
 
