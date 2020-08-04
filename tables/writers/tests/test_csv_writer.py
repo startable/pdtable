@@ -35,18 +35,19 @@ def test_table_to_csv():
     t['place'] = ['home', 'work', 'beach', 'wonderland']
     t.add_column('distance', list(range(3)) + [float('nan')], 'km')
     t.add_column('ETA', pd.to_datetime(['2020-08-04 08:00', '2020-08-04 09:00', '2020-08-04 17:00', pd.NaT]), 'datetime')
+    t.add_column('is_hot', [True, False, True, False], 'onoff')
 
     out = io.StringIO()
     _table_to_csv(t, out)
     assert out.getvalue() == dedent("""\
         **foo
         all
-        place;distance;ETA
-        text;km;datetime
-        home;0.0;2020-08-04 08:00:00
-        work;1.0;2020-08-04 09:00:00
-        beach;2.0;2020-08-04 17:00:00
-        wonderland;-;-
+        place;distance;ETA;is_hot
+        text;km;datetime;onoff
+        home;0.0;2020-08-04 08:00:00;1
+        work;1.0;2020-08-04 09:00:00;0
+        beach;2.0;2020-08-04 17:00:00;1
+        wonderland;-;-;0
 
         """)
 
