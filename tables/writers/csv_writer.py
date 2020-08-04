@@ -1,33 +1,43 @@
 import pandas as pd
-from typing import Optional, TextIO
+from typing import Iterable, TextIO
 
 from ..pdtable import Table
 
 
-def _table_to_csv(table: Table, stream: TextIO, sep: str = ';') -> None:
+def _table_to_csv(table: Table, stream: TextIO, sep: str = ';', nan: str = '-') -> None:
     """
     Write Table to stream in CSV format.
     :param stream: Output stream, usually something returned by open()
     :param sep: CSV column separator character
     """
-    df = table.df
-    # df = _prepare_df_for_write(df)
+    units = table.units
     stream.write(f'**{table.name}\n')
     stream.write(' '.join(str(x) for x in table.metadata.destinations) + '\n')
     stream.write(sep.join(str(x) for x in table.column_names) + '\n')
-    stream.write(sep.join(str(x) for x in table.units) + '\n')
-    for row in df.itertuples(index=False, name=None):
-        # TODO: ensure NaNs, NaTs get converted to valid StarTable NaN marker
+    stream.write(sep.join(str(x) for x in units) + '\n')
+    for row in table.df.itertuples(index=False, name=None):
         # TODO: apply format string specified in ColumnMetadata
-        # TODO: ensure onoff converted to 0's and 1's
-        stream.write(sep.join(map(str, row)) + '\n')
+        stream.write(sep.join(_format_row_elements(row, units, nan)) + '\n')
     stream.write('\n')
 
 
-# def _prepare_df_for_write(df: pd.DataFrame) -> pd.DataFrame:
-#     df = self.df.fillna(NO_DATA_MARKER_ON_WRITE)
-#     for col, col_spec in self._col_specs.items():
-#         if col_spec.format_str:
-#             df[col] = df[col].apply(
-#                 lambda x: x if x == NO_DATA_MARKER_ON_WRITE else col_spec.format_str.format(x))
-#     return df
+def _format_row_elements(row: Iterable, col_units: Iterable, nan: str = '-'):
+    for col, (val, unit) in enumerate(zip(row, col_units)):
+        if unit != 'text' and pd.isna(val):
+            # Format NaN-like things, except leave them be in text columns
+            yield nan
+        elif unit == 'onoff':
+            # Format obvious booleans as 0's and 1's
+            if val in [True, 1]:
+                yield '1'
+            elif val in [False, 0]:
+                yield '0'
+            else:
+                # If it isn't an obvious boolean, leave it be
+                yield str(val)
+        elif unit == 'text' and val == '' and col == 0:
+            # Prevent illegal empty string in first column
+            yield '-'  # some reasonable placeholder non-empty string
+        else:
+            # Leave everything else be as it is
+            yield str(val)
