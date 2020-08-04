@@ -50,7 +50,7 @@ class TableBundle:
     """
 
     def __init__(self, ts: BlockGenerator):
-        self._tables = {token.name: token.pdtable for token_type, token in ts
+        self._tables = {token.name: token.df for token_type, token in ts
                         if token is not None and token_type == StarBlockType.TABLE}
 
     def __getattr__(self, name: str) -> TableType:
