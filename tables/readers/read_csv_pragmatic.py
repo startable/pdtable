@@ -60,9 +60,11 @@ def _parse_float_column(values):
             try:
                 fvalues.append(_cnv_flt[vv[0]](vv))
             except Exception as exc:
+                _myFixFactory.TableRow = row # TBC: index
                 fix_value = _myFixFactory.fix_illegal_cell_value("float",vv)
                 fvalues.append(fix_value)
         else:
+                _myFixFactory.TableRow = row # TBC: index
                 fix_value = _myFixFactory.fix_illegal_cell_value("float",vv)
                 fvalues.append(fix_value)
     return np.array(fvalues)
@@ -76,9 +78,11 @@ def _parse_datetime_column(values):
                 dtvalues.append(_cnv_datetime(vv))
             except Exception as exc:
                 # TBC: register exc !?
+                _myFixFactory.TableRow = row # TBC: index
                 fix_value = _myFixFactory.fix_illegal_cell_value("datetime",vv)
                 dtvalues.append(fix_value)
         else:
+            _myFixFactory.TableRow = row # TBC: index
             fix_value = _myFixFactory.fix_illegal_cell_value("datetime",vv)
             dtvalues.append(fix_value)
 
