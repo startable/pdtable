@@ -32,31 +32,19 @@ def write_csv(
         # For convenience, pack single table in an iterable
         tables = [tables]
 
-    # TODO Surely there's a better pattern than this? This one forces duplicate code... which I've packed away in a dummy function
+    # TODO Surely there's a better pattern than this? This one forces duplicate code...
     if isinstance(out, str) or isinstance(out, Path):
         # out is a file path. Open a stream and close it when done.
         with open(out, "w") as f:
-            _tables_to_csv_propagator(tables, f, sep, na_rep)
+            for table in tables:
+                _table_to_csv(table, f, sep, na_rep)
     else:
         # out is a stream opened by caller. Leave it open.
-        _tables_to_csv_propagator(tables, out, sep, na_rep)
+        for table in tables:
+            _table_to_csv(table, out, sep, na_rep)
 
 
-def _tables_to_csv_propagator(
-    tables: Union[Table, Iterable[Table], TableBundle],
-    stream: TextIO,
-    sep: str = ";",
-    na_rep: str = "-",
-) -> None:
-    """Serves no purpose other than housing the duplicate code from the isinstance(out,...) conditional above
-    """
-    for table in tables:
-        _table_to_csv(table, stream, sep, na_rep)
-
-
-def _table_to_csv(
-    table: Table, stream: TextIO, sep: str = ";", na_rep: str = "-"
-) -> None:
+def _table_to_csv(table: Table, stream: TextIO, sep: str = ";", na_rep: str = "-") -> None:
     """Writes a single Table to stream as CSV. 
     """
     units = table.units

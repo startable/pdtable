@@ -12,9 +12,7 @@ def test__format_row_elements():
     units = ["text", "km", "datetime", "onoff"]
     # Standard stuff
     assert list(
-        _format_row_elements(
-            ("foo", 123, pd.to_datetime("2020-08-04 08:00"), True), units
-        )
+        _format_row_elements(("foo", 123, pd.to_datetime("2020-08-04 08:00"), True), units)
     ) == ["foo", "123", "2020-08-04 08:00:00", "1"]
 
     # With NaN-like things
@@ -31,9 +29,11 @@ def test__format_row_elements():
     ) == ["foo", "NaN", "NaN", "0"]
 
     # Empty strings: replace illegal in first column, leave others
-    assert list(
-        _format_row_elements(("", "", float("nan")), ["text", "text", "text"])
-    ) == ["-", "", "nan"]
+    assert list(_format_row_elements(("", "", float("nan")), ["text", "text", "text"])) == [
+        "-",
+        "",
+        "nan",
+    ]
 
 
 def test__table_to_csv():
@@ -42,9 +42,7 @@ def test__table_to_csv():
     t.add_column("distance", list(range(3)) + [float("nan")], "km")
     t.add_column(
         "ETA",
-        pd.to_datetime(
-            ["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]
-        ),
+        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
         "datetime",
     )
     t.add_column("is_hot", [True, False, True, False], "onoff")
@@ -72,9 +70,7 @@ def test_write_csv__writes_two_tables():
     t.add_column("distance", list(range(3)) + [float("nan")], "km")
     t.add_column(
         "ETA",
-        pd.to_datetime(
-            ["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]
-        ),
+        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
         "datetime",
     )
     t.add_column("is_hot", [True, False, True, False], "onoff")
