@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Iterable, TextIO, Union
 from pathlib import Path
 
-from ._formatting import _represent_row_elements
+from ._represent import _represent_row_elements
 from ..pdtable import Table
 
 

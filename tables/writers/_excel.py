@@ -26,7 +26,7 @@ from typing import Iterable, Union
 import os
 
 from ..pdtable import Table
-from ._formatting import _represent_row_elements
+from ._represent import _represent_row_elements
 
 
 def write_excel(
