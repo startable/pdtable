@@ -1,3 +1,11 @@
+"""Machinery to write Tables to an Excel workbook. 
+
+The only Excel I/O engine supported right now is 'openpyxl', but this module can
+be extended to support others such as 'xlsxwriter'. 
+
+openpyxl (and eventually other engines) are not required at install time; 
+only when write_excel() is called for the first time. 
+"""
 try:
     import openpyxl
 
@@ -14,33 +22,41 @@ except ImportError as err:
     )
 
 from tables.store import TableBundle
-import pandas as pd
-from typing import Iterable, TextIO, Union
-from pathlib import Path
+from typing import Iterable, Union
+import os
 
 from ..pdtable import Table
 from ._formatting import _represent_row_elements
 
-# def to_excel(self, path, header: str = '', header_sep: str = ';') -> None:
-#     '''
-#     :param path: Path to the location to save excel file to.
-#     :param header: Text to be shown before the bundle of tables. If the text contains a newline (\n) and/or the
-#             header_sep, the text will span over multiple rows and/or columns, respectively, in the excel
-#             sheet.  Header will have one line of separation to the bundle tables.
-#     :param header_sep: Separator to control header text to be split onto multiple columns
-#     '''
-#     wb = openpyxl.Workbook()
-#     ws = wb.active
 
-#     if header:
-#         for row in header.rstrip().split('\n'):
-#             ws.append(row.split(header_sep))
-#         ws.append([])
+def write_excel(
+    tables: Union[Table, Iterable[Table], TableBundle],
+    out: Union[str, os.PathLike],
+    na_rep: str = "-",
+):
+    """Writes one or more tables to an Excel workbook.
 
-#     for t in self._tables:
-#         t.to_excel(ws)
-#         ws.append([])  # blank line after table block
-#     wb.save(path)
+    Writes table blocks to an Excel workbook file. 
+    Values are formatted to comply with the StarTable standard where necessary and possible. 
+
+    Args:
+        tables: 
+            Table(s) to write. Can be a single Table or an iterable of Tables. 
+        out:
+            File path to which to write. 
+        na_rep:
+            Optional; String representation of missing values (NaN, None, NaT). If overriding the default '-', it is recommended to use another value compliant with the StarTable standard.
+    """
+
+    if isinstance(tables, Table):
+        # For convenience, pack single table in an iterable
+        tables = [tables]
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    for t in tables:
+        _append_table_to_openpyxl_worksheet(t, ws, na_rep)
+    wb.save(out)
 
 
 def _append_table_to_openpyxl_worksheet(
@@ -54,4 +70,4 @@ def _append_table_to_openpyxl_worksheet(
     for row in table.df.itertuples(index=False, name=None):
         # TODO: apply format string specified in ColumnMetadata
         ws.append(_represent_row_elements(row, units, na_rep))
-    ws.append([None])  # empty row marking table end
+    ws.append([])  # blank row marking table end

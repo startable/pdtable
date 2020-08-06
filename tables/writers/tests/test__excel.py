@@ -1,11 +1,4 @@
-import io
-from textwrap import dedent
-
 import pandas as pd
-
-from tables import Table
-from .._excel import _append_table_to_openpyxl_worksheet
-
 import openpyxl
 
 try:
@@ -14,8 +7,12 @@ except ImportError:
     # openpyxl < 2.6
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 
+from tables import Table, write_excel
+from .._excel import _append_table_to_openpyxl_worksheet
+
 
 def test__append_table_to_openpyxl_worksheet():
+    # Make a table with content of various units
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
     t.add_column("distance", list(range(3)) + [float("nan")], "km")
@@ -29,10 +26,10 @@ def test__append_table_to_openpyxl_worksheet():
     wb = openpyxl.Workbook()
     ws = wb.active
 
-    # This is the "act" part:
+    # Act
     _append_table_to_openpyxl_worksheet(t, ws)
-    wb.save("killme.xlsx")
 
+    # Assert worksheet looks as expected:
     # table header by row
     assert ws["A1"].value == "**foo"
     assert ws["A2"].value == "all"
@@ -46,3 +43,27 @@ def test__append_table_to_openpyxl_worksheet():
         x for x in pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00"])
     ] + ["-"]
     assert [ws.cell(r, 4).value for r in range(5, 9)] == [1, 0, 1, 0]
+
+
+def test_write_excel__doesnt_crash(tmp_path):
+    # TODO Not sure how to test for real, except by round-trip; but no read_excel() implementation yet
+
+    # Make a couple of tables
+    t = Table(name="foo")
+    t["place"] = ["home", "work", "beach", "wonderland"]
+    t.add_column("distance", list(range(3)) + [float("nan")], "km")
+    t.add_column(
+        "ETA",
+        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
+        "datetime",
+    )
+    t.add_column("is_hot", [True, False, True, False], "onoff")
+
+    t2 = Table(name="bar")
+    t2.add_column("digit", [1, 6, 42], "-")
+    t2.add_column("spelling", ["one", "six", "forty-two"], "text")
+
+    # Just test that write_excel doesn't crash
+    out_path = tmp_path / "foo.xlsx"
+    write_excel([t, t2], out_path)
+    out_path.unlink()

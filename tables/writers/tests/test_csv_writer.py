@@ -8,6 +8,7 @@ from .._csv import _table_to_csv
 
 
 def test__table_to_csv():
+    # Make a table with content of various units
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
     t.add_column("distance", list(range(3)) + [float("nan")], "km")
@@ -18,8 +19,10 @@ def test__table_to_csv():
     )
     t.add_column("is_hot", [True, False, True, False], "onoff")
 
+    # Write table to stream
     with io.StringIO() as out:
         _table_to_csv(t, out)
+        # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
             **foo
@@ -36,6 +39,7 @@ def test__table_to_csv():
 
 
 def test_write_csv__writes_two_tables():
+    # Make a couple of tables
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
     t.add_column("distance", list(range(3)) + [float("nan")], "km")
@@ -50,8 +54,10 @@ def test_write_csv__writes_two_tables():
     t2.add_column("digit", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
 
+    # Write tables to stream
     with io.StringIO() as out:
         write_csv([t, t2], out)
+        # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
             **foo
@@ -76,10 +82,12 @@ def test_write_csv__writes_two_tables():
 
 
 def test_write_csv__writes_one_table():
+    # Make a table
     t2 = Table(name="bar")
     t2.add_column("digit", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
 
+    # Check write_csv works when given a single table
     with io.StringIO() as out:
         write_csv(t2, out)
         assert out.getvalue() == dedent(
