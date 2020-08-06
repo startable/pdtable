@@ -11,6 +11,10 @@ on:
   schedule:
     - cron: '42 1 * * *'
   workflow_dispatch:
+    inputs:
+      home:
+        description: 'location'
+        required: false    
 
 jobs:
   build:
