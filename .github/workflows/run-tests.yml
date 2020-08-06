@@ -10,11 +10,8 @@ on:
     branches: [ master ]
   schedule:
     - cron: '42 1 * * *'
-  workflow_dispatch:
-    inputs:
-      home:
-        description: 'location'
-        required: false    
+  workflow_dispatch: ""
+
 
 jobs:
   build:
