@@ -5,7 +5,7 @@ import datetime as dt
 import pandas as pd
 
 from tables import write_csv, Table
-from ..csv_writer import _table_to_csv, _format_row_elements
+from .._csv import _table_to_csv, _format_row_elements
 
 
 def test__format_row_elements():
