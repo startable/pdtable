@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Iterable, TextIO, Union
 from pathlib import Path
 
-from ._formatting import _format_row_elements
+from ._formatting import _represent_row_elements
 from ..pdtable import Table
 
 
@@ -55,6 +55,6 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str = ";", na_rep: str = "-
     stream.write(sep.join(str(x) for x in units) + "\n")
     for row in table.df.itertuples(index=False, name=None):
         # TODO: apply format string specified in ColumnMetadata
-        stream.write(sep.join(_format_row_elements(row, units, na_rep)) + "\n")
+        stream.write(sep.join(str(x) for x in _represent_row_elements(row, units, na_rep)) + "\n")
     stream.write("\n")
 
