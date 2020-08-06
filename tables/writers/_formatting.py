@@ -6,8 +6,16 @@ from typing import Iterable
 def _represent_row_elements(row: Iterable, col_units: Iterable, na_rep: str = "-"):
     """Prepares row element representations for writing.
     
-    In preparation for writing, converts row values to representations compliant with 
-    the StarTable standard, in accordance with the values' respective column units. 
+    In preparation for writing, coerce row values to representations compliant with 
+    the StarTable standard, in accordance with the values' respective column units: 
+    
+    - NaN-like things in non-text columns are coerced to the specified nan representation
+    - 'onoff' coumn values are coerced to 0's and 1's (where possible)
+    - 'text' column values are coerced to strings
+    - If the first column is 'text', its empty strings are replaced with an arbitrary but reasonable sealant
+
+    Values are not, in general, converted to strings. If writing to a string format, 
+    stringification must be done by the client code. 
     """
     for col, (val, unit) in enumerate(zip(row, col_units)):
         if unit != "text" and pd.isna(val):
@@ -25,9 +33,9 @@ def _represent_row_elements(row: Iterable, col_units: Iterable, na_rep: str = "-
         elif unit == "text":
             if val == "" and col == 0:
                 # Prevent illegal empty string in first column
-                yield "-"  # some reasonable placeholder non-empty string
+                yield "-"  # some arbitrary but reasonable sealant
             else:
-                # Ensure everything becomes a string, even non-string things
+                # Coerce everything to strings
                 yield str(val)
         else:
             # Leave everything else be as it is

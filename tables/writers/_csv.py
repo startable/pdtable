@@ -57,4 +57,3 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str = ";", na_rep: str = "-
         # TODO: apply format string specified in ColumnMetadata
         stream.write(sep.join(str(x) for x in _represent_row_elements(row, units, na_rep)) + "\n")
     stream.write("\n")
-
