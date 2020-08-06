@@ -5,7 +5,7 @@ name: run-tests
 
 on:
   push:
-    branches: [ master, ci/**, introduce-ci]
+    branches: [ master, ci/**]
   pull_request:
     branches: [ master ]
   schedule:
@@ -40,4 +40,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest
+        pytest --cov
