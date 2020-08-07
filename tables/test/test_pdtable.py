@@ -77,10 +77,10 @@ def test_table_init():
 def test_table(dft):
     t = pdtable.Table(dft)
 
-    assert pdtable.is_pdtable(t.pdtable)
+    assert pdtable.is_pdtable(t.df)
     assert t['cola'].unit == '-'
     t['cola'].unit = 'km'
-    assert pdtable.get_table_data(t.pdtable).columns['cola'].unit == 'km'
+    assert pdtable.get_table_data(t.df).columns['cola'].unit == 'km'
 
     t['colc'] = range(20, 24)
     assert 'colc' in t.column_names

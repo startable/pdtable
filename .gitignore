@@ -8,7 +8,7 @@
 # testing
 .coverage
 
-# office temp files
+# MS Office temp files
 ~$*
 
 # PyCharm
@@ -17,6 +17,10 @@
 
 # vscode
 .vscode/
+
+# Jupyter notebooks must be versioned as jupytext-paired Python scripts
+
+*.ipynb
 
 # -------- Python stuff ------------------
 # Byte-compiled / optimized / DLL files
