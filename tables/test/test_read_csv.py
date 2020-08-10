@@ -4,7 +4,7 @@ from ..readers.read_csv import make_table, read_stream_csv
 from .. import pdtable
 from textwrap import dedent
 
-from ..store import StarBlockType, TableBundle
+from ..store import TableBundle
 
 
 def test_make_table():
