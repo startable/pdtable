@@ -1,0 +1,20 @@
+name: pdtable-dev
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - pandas
+# OPTIONAL
+  - openpyxl
+# TEST
+  - pytest
+  - coverage
+  - pytest-cov
+  - flake8
+  - flake8-comprehensions
+# DEV
+  - black
+  - jupyter
+  - jupyterlab
+  - jupytext
