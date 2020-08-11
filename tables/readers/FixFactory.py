@@ -115,7 +115,7 @@ class FixFactory:
             by providing the missing default values
         """
         if self.Verbose:
-            print(f"FixFacory: fix missing data in row ({irow}) in table: {self.TableName}")
+            print(f"FixFacory: fix missing data in row ({row}) in table: {self.TableName}")
         row_data.extend(["NaN" for cc in range(num_columns - len(row_data))])
         return row_data
 
