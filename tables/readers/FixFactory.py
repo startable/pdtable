@@ -78,7 +78,7 @@ class FixFactory:
         return self._dbg
 
     @Verbose.setter
-    def Verbose(self,value : bool):
+    def Verbose(self, value: bool):
         self._dbg = value
 
     def fix_duplicate_column_name(self, col: int, input_columns: List[str]) -> str:
@@ -87,9 +87,9 @@ class FixFactory:
             This method should provide a unique replacement name
 
         """
-        if(self.Verbose):
+        if self.Verbose:
             print(
-                f'FixFacory: fix duplicate column ({col}) {input_columns[col]} in table: {self.TableName}'
+                f"FixFacory: fix duplicate column ({col}) {input_columns[col]} in table: {self.TableName}"
             )
         # TTT : check
         return "-fix-"
@@ -99,45 +99,36 @@ class FixFactory:
             The column_name: input_columns[col] is empty
             This method should provide a unique replacement name
         """
-        if(self.Verbose):
+        if self.Verbose:
             print(
-                f'FixFacory: fix missing column ({col}) {input_columns} in table: {self.TableName}'
+                f"FixFacory: fix missing column ({col}) {input_columns} in table: {self.TableName}"
             )
         # TTT : check
         return "-missing-"
 
-
-    def fix_missing_rows_in_column_data(self, row: int, row_data: List[str], num_columns: int) -> List[str]:
+    def fix_missing_rows_in_column_data(
+        self, row: int, row_data: List[str], num_columns: int
+    ) -> List[str]:
         """
             The row is expected to have num_columns values
             This method should return the entire row of length num_columns
             by providing the missing default values
         """
-        if(self.Verbose):
-            print(
-                f'FixFacory: fix missing data in row ({irow}) in table: {self.TableName}'
-            )
-        row_data.extend(["NaN" for cc in range(num_columns-len(row_data))])
+        if self.Verbose:
+            print(f"FixFacory: fix missing data in row ({irow}) in table: {self.TableName}")
+        row_data.extend(["NaN" for cc in range(num_columns - len(row_data))])
         return row_data
 
-
-    def fix_illegal_cell_value(self, vtype : str , value : str) -> Any:
+    def fix_illegal_cell_value(self, vtype: str, value: str) -> Any:
         """
             The string value can not be converted to type vtype
             This method should return a suitable default value of type vtype
 
             Supported vtypes in { "onoff", "datetime", "-", "float" }
         """
-        defaults = {
-            "onoff": False,
-            "datetime": pd.NaT,
-            "float": np.NaN,
-            "-": np.NaN
-            }
+        defaults = {"onoff": False, "datetime": pd.NaT, "float": np.NaN, "-": np.NaN}
         if self.Verbose:
-            print(
-                f'FixFacory: illegal {vtype} value "{value}" in table {self.TableName}'
-            )
+            print(f'FixFacory: illegal {vtype} value "{value}" in table {self.TableName}')
         dfval = defaults.get(vtype)
         if not dfval is None:
             return dfval

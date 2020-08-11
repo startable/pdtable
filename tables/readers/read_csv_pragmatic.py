@@ -30,14 +30,15 @@ _TF_values = {"0": False, "1": True, "-": False}
 # TBC: wrap in specific reader instance, this is global for all threads
 _myFixFactory = FixFactory()
 
+
 def _parse_onoff_column(values):
     bvalues = []
-    for row,vv in enumerate(values):
+    for row, vv in enumerate(values):
         try:
             bvalues.append(_TF_values[vv.strip()])
         except KeyError:
-            _myFixFactory.TableRow = row # TBC: index
-            fix_value = _myFixFactory.fix_illegal_cell_value("onoff",vv)
+            _myFixFactory.TableRow = row  # TBC: index
+            fix_value = _myFixFactory.fix_illegal_cell_value("onoff", vv)
             bvalues.append(fix_value)
     return np.array(bvalues, dtype=np.bool)
 
@@ -53,37 +54,38 @@ for ch in "+0123456789":
 
 _cnv_datetime = lambda v: pd.NaT if (v == "-") else pd.to_datetime(v, dayfirst=True)
 
+
 def _parse_float_column(values):
     fvalues = []
-    for row,vv in enumerate(values):
-        if(len(vv) > 0 and (vv[0] in _cnv_flt)):
+    for row, vv in enumerate(values):
+        if len(vv) > 0 and (vv[0] in _cnv_flt):
             try:
                 fvalues.append(_cnv_flt[vv[0]](vv))
             except Exception as exc:
-                _myFixFactory.TableRow = row # TBC: index
-                fix_value = _myFixFactory.fix_illegal_cell_value("float",vv)
+                _myFixFactory.TableRow = row  # TBC: index
+                fix_value = _myFixFactory.fix_illegal_cell_value("float", vv)
                 fvalues.append(fix_value)
         else:
-                _myFixFactory.TableRow = row # TBC: index
-                fix_value = _myFixFactory.fix_illegal_cell_value("float",vv)
-                fvalues.append(fix_value)
+            _myFixFactory.TableRow = row  # TBC: index
+            fix_value = _myFixFactory.fix_illegal_cell_value("float", vv)
+            fvalues.append(fix_value)
     return np.array(fvalues)
 
 
 def _parse_datetime_column(values):
     dtvalues = []
-    for row,vv in enumerate(values):
-        if(len(vv) > 0 and (vv[0].isdigit() or vv == '-')):
+    for row, vv in enumerate(values):
+        if len(vv) > 0 and (vv[0].isdigit() or vv == "-"):
             try:
                 dtvalues.append(_cnv_datetime(vv))
             except Exception as exc:
                 # TBC: register exc !?
-                _myFixFactory.TableRow = row # TBC: index
-                fix_value = _myFixFactory.fix_illegal_cell_value("datetime",vv)
+                _myFixFactory.TableRow = row  # TBC: index
+                fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
                 dtvalues.append(fix_value)
         else:
-            _myFixFactory.TableRow = row # TBC: index
-            fix_value = _myFixFactory.fix_illegal_cell_value("datetime",vv)
+            _myFixFactory.TableRow = row  # TBC: index
+            fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
             dtvalues.append(fix_value)
 
     return np.array(dtvalues)
@@ -110,7 +112,7 @@ def make_table(
     # print(f"---oOo- column_names raw: {cnames_raw}")
     n_names_col = len(cnames_raw)
     for el in reversed(cnames_raw):
-        if(len(el) > 0):
+        if len(el) > 0:
             break
         n_names_col -= 1
 
@@ -120,27 +122,27 @@ def make_table(
     column_names = []
     cnames_all = [el.strip() for el in cnames_raw[:n_names_col]]
     names = {}
-    for icol,cname in enumerate(cnames_all):
-        if(not cname in names and len(cname) > 0):
+    for icol, cname in enumerate(cnames_all):
+        if not cname in names and len(cname) > 0:
             names[cname] = 0
             column_names.append(cname)
         else:
             _myFixFactory.TableColumn = icol
-            _myFixFactory.TableColumNames = column_names # so far
-            if(len(cname) == 0):
-                cname = _myFixFactory.fix_missing_column_name(col=icol,input_columns=cnames_all)
-            elif(cname in names):
-                cname = _myFixFactory.fix_duplicate_column_name(col=icol,input_columns=cnames_all)
+            _myFixFactory.TableColumNames = column_names  # so far
+            if len(cname) == 0:
+                cname = _myFixFactory.fix_missing_column_name(col=icol, input_columns=cnames_all)
+            elif cname in names:
+                cname = _myFixFactory.fix_duplicate_column_name(col=icol, input_columns=cnames_all)
             assert not cname in names
             names[cname] = 0
             column_names.append(cname)
 
-    _myFixFactory.TableColumNames = column_names # final
+    _myFixFactory.TableColumNames = column_names  # final
 
     units_raw = lines[3].split(sep)
     n_units_col = len(units_raw)
     for el in reversed(units_raw):
-        if(len(el) > 0):
+        if len(el) > 0:
             break
         n_units_col -= 1
     # Thingie: dbg
@@ -149,14 +151,16 @@ def make_table(
 
     # Thingie: mark changes
     # auto filler
-    units = [el if(len(el) > 0) else "-" for el in units]
+    units = [el if (len(el) > 0) else "-" for el in units]
 
     n_col = n_names_col
-    if(n_names_col != n_units_col):
+    if n_names_col != n_units_col:
         # Thingie
-        print(f"Thingie: #-coloumn mismatch, n_names: {n_names_col} differ from n_units: {n_units_col}")
+        print(
+            f"Thingie: #-coloumn mismatch, n_names: {n_names_col} differ from n_units: {n_units_col}"
+        )
         # TBC: choose larger
-        n_col = max(n_names_col,n_units_col)
+        n_col = max(n_names_col, n_units_col)
         pass
 
     column_data = [l.split(sep)[:n_col] for l in lines[4:]]
@@ -171,48 +175,48 @@ def make_table(
     cols_stat = dict()
     for row in column_data:
         cols = len(row)
-        if(cols in cols_stat):
+        if cols in cols_stat:
             cols_stat[cols] += 1
         else:
             cols_stat[cols] = 1
 
     maxval = 0
-    num_data_col = 0 #  # columns seen in most rows
+    num_data_col = 0  #  # columns seen in most rows
     for cnt in cols_stat.keys():
-        if(cols_stat[cnt] > maxval):
+        if cols_stat[cnt] > maxval:
             maxval = cols_stat[cnt]
             num_data_col = cnt
 
-#    print(f"-oOo- n_names: {n_names_col}, n_units: {n_units_col}")
-#    print(f"-oOo- num_data columns: {num_data_col}, stat:  {cols_stat}")
+    #    print(f"-oOo- n_names: {n_names_col}, n_units: {n_units_col}")
+    #    print(f"-oOo- num_data columns: {num_data_col}, stat:  {cols_stat}")
     # here we have num_data_col, n_col, n_units_col
-    if(n_col > num_data_col):
+    if n_col > num_data_col:
         # Thingie: register warning / delegate callback
         # 1) truncate units and column_names
         #    or:
         # 2) extend column_data
         pass
-    elif(n_col < num_data_col):
+    elif n_col < num_data_col:
         # Thingie: register warning / delegate callback
         # 1) extend units and column_names
         #    or:
         # 2) truncate column_data
         pass
 
-
-    if(len(cols_stat.keys()) > 1):
-        for irow,row in enumerate(column_data):
-            if len(row)  < num_data_col:
-                fix_row = _myFixFactory.fix_missing_rows_in_column_data(row=irow,row_data=row,num_columns=num_data_col)
+    if len(cols_stat.keys()) > 1:
+        for irow, row in enumerate(column_data):
+            if len(row) < num_data_col:
+                fix_row = _myFixFactory.fix_missing_rows_in_column_data(
+                    row=irow, row_data=row, num_columns=num_data_col
+                )
                 column_data[irow] = fix_row
 
-
     # TTT dbg / callback w. dict
-#    print("-oOo- column_data row:",column_data)
-#    print("-oOo- column_data col:")
-#    for cc in zip(*column_data):
-#        print(f"-oOo-{cc}")
-#    print("-oOo-\n")
+    #    print("-oOo- column_data row:",column_data)
+    #    print("-oOo- column_data col:")
+    #    for cc in zip(*column_data):
+    #        print(f"-oOo-{cc}")
+    #    print("-oOo-\n")
 
     # zip hides missing data !
     # (zip callback ?!)
@@ -224,17 +228,15 @@ def make_table(
 
     for cvalues in zip(*column_data):
         sz = len(cvalues)
-#        print(f"-oOo- col: {col} len: {sz}: {cvalues}")
+        #        print(f"-oOo- col: {col} len: {sz}: {cvalues}")
         col += 1
-        if(data_len is None):
+        if data_len is None:
             data_len = sz
-        elif(data_len != sz):
+        elif data_len != sz:
             # TBD: statistics !!
             print(f"Thingie: Stupid number of data in column '{col}': {sz}, expected {data_len}")
 
-    for name, dtype, unit, values in zip(
-        column_names, column_dtype, units, zip(*column_data)
-    ):
+    for name, dtype, unit, values in zip(column_names, column_dtype, units, zip(*column_data)):
         _myFixFactory.TableColumn = name
         columns[name] = dtype(values)
 
@@ -248,6 +250,7 @@ def make_table(
         )
     )
 
+
 # TTT StarBlockType.TEMPLATE_ROW : make_template
 _token_factory_lookup = {StarBlockType.TABLE: make_table}
 
@@ -258,7 +261,7 @@ def make_token(token_type, lines, sep, origin) -> Tuple[StarBlockType, Any]:
 
 
 def read_stream_csv_pragmatic(
-    f: TextIO, sep: str = ";", origin: Optional[str] = None, fixFactory = None
+    f: TextIO, sep: str = ";", origin: Optional[str] = None, fixFactory=None
 ) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
@@ -269,12 +272,12 @@ def read_stream_csv_pragmatic(
         origin = "Stream"
 
     global _myFixFactory
-    if(not fixFactory is None):
-        if(type(fixFactory) is type):
+    if not fixFactory is None:
+        if type(fixFactory) is type:
             _myFixFactory = fixFactory()
         else:
             _myFixFactory = fixFactory
-    assert(_myFixFactory != None)
+    assert _myFixFactory != None
 
     _myFixFactory.FileName = origin
 
@@ -308,9 +311,7 @@ def read_stream_csv_pragmatic(
             next_block = StarBlockType.BLANK
 
         if next_block is not None:
-            yield make_token(
-                block, lines, sep, pdtable.TableOriginCSV(origin, block_line)
-            )
+            yield make_token(block, lines, sep, pdtable.TableOriginCSV(origin, block_line))
             lines = []
             block = next_block
             block_line = line_number_0based + 1
@@ -324,11 +325,10 @@ def read_stream_csv_pragmatic(
     _myFixFactory = FixFactory()
 
 
-def read_file_csv_pragmatic(file: PathLike,sep = ";",fixFactory = None) -> BlockGenerator:
+def read_file_csv_pragmatic(file: PathLike, sep=";", fixFactory=None) -> BlockGenerator:
     """
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
 
     with open(file) as f:
         yield from read_stream_csv_pragmatic(f, sep, origin=file, fixFactory=fixFactory)
-

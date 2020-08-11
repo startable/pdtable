@@ -6,7 +6,8 @@ from ..readers.read_csv import read_stream_csv
 
 
 def test_bundle_from_csv():
-    lines = dedent(r"""
+    lines = dedent(
+        r"""
     **foo
     all
     column
@@ -24,9 +25,10 @@ def test_bundle_from_csv():
     -;text;onoff;
     15373;a;0;
     15326;b;1;
-    """)
+    """
+    )
 
     with StringIO(lines) as f:
-        table = TableBundle(read_stream_csv(f, sep=';'))
+        table = TableBundle(read_stream_csv(f, sep=";"))
 
-    assert table.foo.column.values[0] == 'bar'
+    assert table.foo.column.values[0] == "bar"
