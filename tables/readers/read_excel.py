@@ -1,6 +1,15 @@
+"""Machinery to read StarTable data from an Excel workbook file.
+
+The only Excel I/O engine supported right now is 'openpyxl', but this module can
+be extended to support others.
+
+openpyxl (and eventually other engines) are not required at install time;
+only when write_excel() (or something else in this module) is called for the first time.
+"""
+
 import itertools
 from os import PathLike
-from typing import List, Tuple, Any, Optional
+from typing import List, Tuple, Any, Optional, Iterable
 
 import numpy as np
 import pandas as pd
@@ -36,6 +45,8 @@ def is_missing_data_marker(x):
     return normalize_if_str(x) in {"-", "nan"}
 
 
+# ================================================================================
+# ====== Parsers for the various column types (as determined by their unit) ======
 _onoff_value_conversions = {0: False, 1: True, False: False, True: True, "0": False, "1": True}
 
 
@@ -69,21 +80,23 @@ _column_parsers = {
     "onoff": _parse_onoff_column,
     "datetime": _parse_datetime_column,
 }
+# ====== End column parsers ======================================================
+# ================================================================================
 
 
-def _make_table(lines: List, origin=None) -> pdtable.Table:
+def _make_table(lines: List[List], origin=None) -> pdtable.Table:
+    """Makes a Table from the cell contents of the lines of a given table block"""
+    # Parse header things
     table_name = lines[0][0][2:]
     destinations = {s.strip() for s in lines[1][0].split(" ")}
     column_names = list(
         itertools.takewhile(lambda s: s is not None and len(s.strip()) > 0, lines[2])
     )
     column_names = [el.strip() for el in column_names]
-
     n_col = len(column_names)
     units = lines[3][:n_col]
 
-    n_row = len(lines) - 4
-    # data_by_column = ((lines[4:][i][j] for i in range(n_row)) for j in range(n_col))
+    # Parse column values
     columns = {}
     for name, values, unit in zip(column_names, zip(*lines[4:]), units):
         try:
@@ -93,6 +106,7 @@ def _make_table(lines: List, origin=None) -> pdtable.Table:
                 f"Unable to parse value in column {name} of table {table_name} as {unit}"
             ) from e
 
+    # Shove it all in a Table
     return pdtable.Table(
         pdtable.make_pdtable(
             pd.DataFrame(columns),
@@ -104,16 +118,16 @@ def _make_table(lines: List, origin=None) -> pdtable.Table:
     )
 
 
-_token_factory_lookup = {StarBlockType.TABLE: _make_table}
+_block_factory_lookup = {StarBlockType.TABLE: _make_table}
 
 
-def make_token(token_type, lines, origin) -> Tuple[StarBlockType, Any]:
-    factory = _token_factory_lookup.get(token_type, None)
-    return token_type, None if factory is None else factory(lines, origin)
+def make_block(block_type: StarBlockType, lines: List[List], origin) -> Tuple[StarBlockType, Any]:
+    factory = _block_factory_lookup.get(block_type, None)
+    return block_type, None if factory is None else factory(lines, origin)
 
 
 def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGenerator:
-
+    """Parses blocks from a single Openpyxl worksheet"""
     block_lines = []
     block_type = StarBlockType.METADATA
     block_start_row = 0
@@ -136,7 +150,7 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
             next_block_type = StarBlockType.BLANK
 
         if next_block_type is not None:
-            yield make_token(
+            yield make_block(
                 block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row)
             )
             block_lines = []
@@ -145,11 +159,22 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
         block_lines.append(row)
 
     if block_lines:
-        yield make_token(block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row))
+        yield make_block(block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row))
 
 
 def read_excel(path: PathLike) -> BlockGenerator:
+    """Reads StarTable blocks from an Excel workbook.
+
+    Reads StarTable blocks from an Excel workbook file at the specified path.
+    Yields them one at a time as a tuple: (block type, block content)
+
+    Args:
+        path:
+            Path of workbook to read.
+
+    Yields:
+        Tuples of the form (block type, block content)
+    """
     wb = openpyxl.load_workbook(path)
-    # TODO cycle through workbook sheets
     for ws in wb.worksheets:
         yield from parse_blocks(ws)
