@@ -15,4 +15,3 @@ dependencies:
   - black
   - jupyter
   - jupyterlab
-  - jupytext

@@ -1,42 +1,14 @@
 import io
 from textwrap import dedent
-import datetime as dt
 
 import pandas as pd
 
 from tables import write_csv, Table
-from ..csv_writer import _table_to_csv, _format_row_elements
-
-
-def test__format_row_elements():
-    units = ["text", "km", "datetime", "onoff"]
-    # Standard stuff
-    assert list(
-        _format_row_elements(("foo", 123, pd.to_datetime("2020-08-04 08:00"), True), units)
-    ) == ["foo", "123", "2020-08-04 08:00:00", "1"]
-
-    # With NaN-like things
-    assert list(_format_row_elements(("foo", float("nan"), pd.NaT, 1), units)) == [
-        "foo",
-        "-",
-        "-",
-        "1",
-    ]
-
-    # Specifying how NaN-like things should be displayed
-    assert list(
-        _format_row_elements(("foo", float("nan"), pd.NaT, False), units, na_rep="NaN")
-    ) == ["foo", "NaN", "NaN", "0"]
-
-    # Empty strings: replace illegal in first column, leave others
-    assert list(_format_row_elements(("", "", float("nan")), ["text", "text", "text"])) == [
-        "-",
-        "",
-        "nan",
-    ]
+from .._csv import _table_to_csv
 
 
 def test__table_to_csv():
+    # Make a table with content of various units
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
     t.add_column("distance", list(range(3)) + [float("nan")], "km")
@@ -47,8 +19,10 @@ def test__table_to_csv():
     )
     t.add_column("is_hot", [True, False, True, False], "onoff")
 
+    # Write table to stream
     with io.StringIO() as out:
         _table_to_csv(t, out)
+        # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
             **foo
@@ -65,6 +39,7 @@ def test__table_to_csv():
 
 
 def test_write_csv__writes_two_tables():
+    # Make a couple of tables
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
     t.add_column("distance", list(range(3)) + [float("nan")], "km")
@@ -79,8 +54,10 @@ def test_write_csv__writes_two_tables():
     t2.add_column("digit", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
 
+    # Write tables to stream
     with io.StringIO() as out:
         write_csv([t, t2], out)
+        # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
             **foo
@@ -105,10 +82,12 @@ def test_write_csv__writes_two_tables():
 
 
 def test_write_csv__writes_one_table():
+    # Make a table
     t2 = Table(name="bar")
     t2.add_column("digit", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
 
+    # Check write_csv works when given a single table
     with io.StringIO() as out:
         write_csv(t2, out)
         assert out.getvalue() == dedent(
