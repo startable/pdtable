@@ -3,8 +3,15 @@ import pytest
 from pytest import raises
 import datetime as dt
 
-from ..read_excel import normalize_if_str, _parse_onoff_column, _parse_float_column, \
-    _parse_datetime_column, is_missing_data_marker, _make_table, parse_blocks
+from ..read_excel import (
+    normalize_if_str,
+    _parse_onoff_column,
+    _parse_float_column,
+    _parse_datetime_column,
+    is_missing_data_marker,
+    _make_table,
+    parse_blocks,
+)
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
@@ -19,22 +26,25 @@ def test_normalize_if_str():
     assert normalize_if_str(None) is None
 
 
-@pytest.mark.parametrize("x,out", [
-    ("-", True),
-    ("NaN", True),
-    ("nan", True),
-    ("NAN", True),
-    ("nAn", True),
-    ("Non!", False),
-    (None, False),
-])
+@pytest.mark.parametrize(
+    "x,out",
+    [
+        ("-", True),
+        ("NaN", True),
+        ("nan", True),
+        ("NAN", True),
+        ("nAn", True),
+        ("Non!", False),
+        (None, False),
+    ],
+)
 def test_is_missing_data_marker(x, out):
     assert is_missing_data_marker(x) == out
 
 
 def test__parse_onoff_column():
     col = _parse_onoff_column([0, 1, False, True, "0", "1", " 0\t", "1 \n "])
-    assert_array_equal(col, np.array([False, True, False, True, False, True, False, True, ]))
+    assert_array_equal(col, np.array([False, True, False, True, False, True, False, True,]))
     assert col.dtype == bool
 
 
@@ -60,8 +70,9 @@ def test__parse_float_column__panics_on_illegal_value():
 
 def test__parse_datetime_column():
     col = _parse_datetime_column([dt.datetime(2020, 8, 11), dt.datetime(2020, 8, 11, 11, 40)])
-    assert_array_equal(col,
-                       np.array([pd.to_datetime("2020-08-11"), pd.to_datetime("2020-08-11 11:40")]))
+    assert_array_equal(
+        col, np.array([pd.to_datetime("2020-08-11"), pd.to_datetime("2020-08-11 11:40")])
+    )
 
     col = _parse_datetime_column(["-", "nan"])
     for v in col:
@@ -87,12 +98,15 @@ def test_make_table():
     assert t.column_names == ["place", "distance", "ETA", "is_hot"]
     assert t.units == ["text", "km", "datetime", "onoff"]
 
-    df = pd.DataFrame([["home", 0.0, dt.datetime(2020, 8, 4, 8, 0, 0), True],
-                       ["work", 1.0, dt.datetime(2020, 8, 4, 9, 0, 0), False],
-                       ["beach", 2.0, dt.datetime(2020, 8, 4, 17, 0, 0), True],
-                       ["wonderland", np.nan, np.nan
-                           , False]],
-                      columns=["place", "distance", "ETA", "is_hot"])
+    df = pd.DataFrame(
+        [
+            ["home", 0.0, dt.datetime(2020, 8, 4, 8, 0, 0), True],
+            ["work", 1.0, dt.datetime(2020, 8, 4, 9, 0, 0), False],
+            ["beach", 2.0, dt.datetime(2020, 8, 4, 17, 0, 0), True],
+            ["wonderland", np.nan, np.nan, False],
+        ],
+        columns=["place", "distance", "ETA", "is_hot"],
+    )
     pd.testing.assert_frame_equal(t.df, df)
 
 
@@ -103,7 +117,7 @@ def test_parse_blocks():
     ws.append(["all"])
     ws.append(["place", "distance"])
     ws.append(["text", "km"])
-    ws.append(['ha', 1.0])
+    ws.append(["ha", 1.0])
     ws.append([])
     ws.append(["**bar"])
     ws.append(["all"])

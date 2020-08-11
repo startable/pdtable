@@ -10,11 +10,12 @@ from .. import pdtable
 
 try:
     import openpyxl
+
     try:
         from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
     except ImportError:
         # openpyxl < 2.6
-        from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet    
+        from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 except ImportError as err:
     raise ImportError(
         "Unable to find a usable Excel engine. "
@@ -50,12 +51,16 @@ def _parse_float_column(values) -> np.ndarray:
     try:
         values = [np.nan if is_missing_data_marker(v) else float(v) for v in values]
     except (ValueError, TypeError):
-        raise ValueError("Entries in numerical columns must be numbers or missing-value markers ('-', 'NaN', 'nan')")
+        raise ValueError(
+            "Entries in numerical columns must be numbers or missing-value markers ('-', 'NaN', 'nan')"
+        )
     return np.array(values)
 
 
 def _parse_datetime_column(values):
-    values = [pd.NaT if is_missing_data_marker(v) else pd.to_datetime(v, dayfirst=True) for v in values]
+    values = [
+        pd.NaT if is_missing_data_marker(v) else pd.to_datetime(v, dayfirst=True) for v in values
+    ]
     return np.array(values)
 
 
@@ -108,12 +113,12 @@ def make_token(token_type, lines, origin) -> Tuple[StarBlockType, Any]:
 
 
 def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGenerator:
-    
+
     block_lines = []
     block_type = StarBlockType.METADATA
     block_start_row = 0
     for irow_0based, row in enumerate(ws.iter_rows(values_only=True)):
-        #TODO iterate on cells instead of rows? because all rows are as wide as the rightmost thing in the sheet
+        # TODO iterate on cells instead of rows? because all rows are as wide as the rightmost thing in the sheet
         next_block_type = None
         first_cell = row[0]
         first_cell_is_str = isinstance(first_cell, str)
@@ -125,9 +130,11 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
                     next_block_type = StarBlockType.TABLE
             elif first_cell.startswith(":"):
                 next_block_type = StarBlockType.TEMPLATE_ROW
-        elif (first_cell is None or (first_cell_is_str and first_cell == "")) and not block_type == StarBlockType.METADATA:
+        elif (
+            first_cell is None or (first_cell_is_str and first_cell == "")
+        ) and not block_type == StarBlockType.METADATA:
             next_block_type = StarBlockType.BLANK
-        
+
         if next_block_type is not None:
             yield make_token(
                 block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row)
@@ -138,10 +145,8 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
         block_lines.append(row)
 
     if block_lines:
-        yield make_token(
-            block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row)
-        )
-    
+        yield make_token(block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row))
+
 
 def read_excel(path: PathLike) -> BlockGenerator:
     wb = openpyxl.load_workbook(path)
