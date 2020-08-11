@@ -5,6 +5,8 @@ channels:
 dependencies:
   - python
   - pandas
+# OPTIONAL
+  - openpyxl
 # TEST
   - pytest
   - coverage
@@ -15,3 +17,4 @@ dependencies:
   - black
   - jupyter
   - jupyterlab
+  - jupytext
