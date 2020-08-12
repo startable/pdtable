@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from .. import pdtable, Table
 import pytest
 
@@ -104,19 +105,21 @@ def test_df_operations(data_ab, data_cd):
 
 
 def test_table__eq__():
-    t_ref = pdtable.Table(pd.DataFrame({'c': [1, 2, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
+    t_ref = pdtable.Table(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
 
     # True if identical
-    assert t_ref == pdtable.Table(pd.DataFrame({'c': [1, 2, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
+    assert t_ref == pdtable.Table(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
 
     # False if different...
-    # column name
-    assert t_ref != pdtable.Table(pd.DataFrame({'level7_GHOUL': [1, 2, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
-    # data value
-    assert t_ref != pdtable.Table(pd.DataFrame({'c': [666, 2, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
     # name
-    assert t_ref != pdtable.Table(pd.DataFrame({'c': [1, 2, 3], 'd': [4, 5, 6]}), name='Esmeralda', units=['m', 'kg'])
-    # unit
-    assert t_ref != pdtable.Table(pd.DataFrame({'c': [1, 2, 3], 'd': [4, 5, 6]}), name='table2', units=['football_fields', 'kg'])
+    assert t_ref != pdtable.Table(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4, 5, 6]}), name='Esmeralda', units=['m', 'kg'])
     # destination
-    assert t_ref != pdtable.Table(pd.DataFrame({'c': [1, 2, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'], destinations={'here', 'there', 'everywhere'})
+    assert t_ref != pdtable.Table(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'], destinations={'here', 'there', 'everywhere'})
+    # unit
+    assert t_ref != pdtable.Table(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['football_fields', 'kg'])
+    # column name
+    assert t_ref != pdtable.Table(pd.DataFrame({'level7_GHOUL': [1, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
+    # data value
+    assert t_ref != pdtable.Table(pd.DataFrame({'c': [666, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
+    # data value (ever so slightly)
+    assert t_ref != pdtable.Table(pd.DataFrame({'c': [1.00000000000001, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])

@@ -643,6 +643,31 @@ class Table:
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.__metadata_comp_key() == other.__metadata_comp_key() \
-                   and numpy.array_equal(self._df.values, other._df.values)
+                   and _df_elements_all_equal_or_same(self._df, other._df)
+            # Had to implement this custom data frame equality checker because, as of pandas 1.1.0,
+            # stupid pandas.DataFrame.equals return False when elements have different dtypes
+            # e.g. 10 and 10.0 are considered 'not equal'. In StarTable, a number is a number,
+            # and no such distinction should be made between data types.
         return False
 
+
+def _equal_or_same(a, b):
+    """Returns True if both values are equal or 'the same thing' (e.g. NaN's).
+
+    Note that np.nan != float('nan') != pd.NA etc., so we collapse all of these
+    missing value things using pd.isna()
+    """
+    return a == b or a is b or (pd.isna(a) and pd.isna(b))
+
+
+def _df_elements(df):
+    """Yields all the values in the data frame serially."""
+    return (x for row in df.itertuples() for x in row)
+
+
+def _df_elements_all_equal_or_same(df1, df2):
+    """Returns True if all corresponding elements are equal or 'the same' in both data frames."""
+    try:
+        return all(_equal_or_same(x1, x2) for x1, x2 in zip(_df_elements(df1), _df_elements(df2)))
+    except:
+        return False
