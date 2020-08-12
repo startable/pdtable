@@ -47,13 +47,11 @@ would the be preferable to the chosen approach.
 """
 
 
-import abc
 from dataclasses import dataclass, field
 import pandas as pd
 import warnings
 from typing import List, Union, Set, Dict, Optional, Iterable
-import numpy  # for types only
-from pathlib import Path
+import numpy
 
 _TABLE_DATA_FIELD_NAME = '_table_data'
 
@@ -637,4 +635,14 @@ class Table:
 
     def __str__(self):
         return repr(self)
+
+    def __metadata_comp_key(self):
+        """Metadata comparison key, for use in __eq__"""
+        return self.name, self.metadata.destinations, self.column_names, self.units
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__metadata_comp_key() == other.__metadata_comp_key() \
+                   and numpy.array_equal(self._df.values, other._df.values)
+        return False
 
