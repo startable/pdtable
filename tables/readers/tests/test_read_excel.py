@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import openpyxl
 import pytest
 from pytest import raises
@@ -10,12 +12,13 @@ from ..read_excel import (
     _parse_datetime_column,
     is_missing_data_marker,
     _make_table,
-    parse_blocks,
+    parse_blocks, read_excel,
 )
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
 
+from ... import Table
 from ...store import StarBlockType
 
 
@@ -136,3 +139,32 @@ def test_parse_blocks():
     assert tables[1].name == "bar"
     assert tables[1].column_names == ["a", "b", "c"]
     assert len(tables[1].df) == 3
+
+
+def test_read_excel():
+
+    # Prepare the expected tables.
+    # Note: not testing datetime columns due to upstream bug in openpyxl:
+    # timestamps are off by one microsecond.
+    # https://foss.heptapod.net/openpyxl/openpyxl/-/issues/1493
+
+    t0 = Table(name="places_to_go")
+    t0["place"] = ["home", "work", "beach", "wonderland"]
+    t0.add_column("distance", list(range(3)) + [float("nan")], "km")
+    t0.add_column("is_hot", [True, False, True, False], "onoff")
+
+    t1 = Table(name="spelling_numbers")
+    t1.add_column("number", [1, 6, 42], "-")
+    t1.add_column("spelling", ["one", "six", "forty-two"], "text")
+
+    expected_tables = [t0, t1]
+
+    # Read tables from file
+    blocks = read_excel(Path(__file__).parent / "input" / "foo.xlsx")
+    tables_read = [block for (block_type, block) in blocks if block_type == StarBlockType.TABLE]
+
+    # Assert read tables are equal to the expected ones
+    for te, tr in zip(expected_tables, tables_read):
+        assert te == tr
+
+
