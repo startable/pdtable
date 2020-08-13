@@ -640,14 +640,29 @@ class Table:
         """Metadata comparison key, for use in __eq__"""
         return self.name, self.metadata.destinations, self.column_names, self.units
 
-    def __eq__(self, other):
+    def equals(self, other):
+        """Checks whether the other Table has the same header and data as this one.
+
+        Checks whether the other Table has the same name, destinations, column names, column units,
+        and data values as this one. Origin is ignored (tables can be equal regardless of where they
+        came from).
+
+        Number equality does not take data type into account, in keeping with the StarTable
+        convention that a number is just a number. For example, float 10.0 equals int 10.
+
+        This is implemented as a method rather than as the __eq__() magic method because a later
+        implementation of __hash__() attempting to live by the rule
+        "a == b implies hash(a) == hash(b)" would have to do a deep dive in the table data
+        to force equal hashes on equal numbers, even when they naturally have different hashes due
+        to having different data types.
+        """
         if isinstance(other, self.__class__):
             return self.__metadata_comp_key() == other.__metadata_comp_key() \
                    and _df_elements_all_equal_or_same(self._df, other._df)
-            # Had to implement this custom data frame equality checker because, as of pandas 1.1.0,
-            # stupid pandas.DataFrame.equals return False when elements have different dtypes
-            # e.g. 10 and 10.0 are considered 'not equal'. In StarTable, a number is a number,
-            # and no such distinction should be made between data types.
+            # Had to implement this custom equality checker for DataFrames because,
+            # as of pandas 1.1.0, stupid pandas.DataFrame.equals return False when elements have
+            # different dtypes e.g. 10 and 10.0 are considered 'not equal'. In StarTable, a number
+            # is just a number, and no such distinction should be made between data types.
         return False
 
 

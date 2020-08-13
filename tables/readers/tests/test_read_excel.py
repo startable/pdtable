@@ -167,6 +167,6 @@ def test_read_excel():
 
     # Assert read tables are equal to the expected ones
     for te, tr in zip(expected_tables, tables_read):
-        assert te == tr
+        assert te.equals(tr)
 
 
