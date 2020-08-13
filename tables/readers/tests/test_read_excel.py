@@ -163,6 +163,8 @@ def test_read_excel():
     blocks = read_excel(Path(__file__).parent / "input" / "foo.xlsx")
     tables_read = [block for (block_type, block) in blocks if block_type == StarBlockType.TABLE]
 
+    assert len(expected_tables) == len(tables_read)
+
     # Assert read tables are equal to the expected ones
     for te, tr in zip(expected_tables, tables_read):
         assert te == tr
