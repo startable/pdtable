@@ -47,13 +47,11 @@ would the be preferable to the chosen approach.
 """
 
 
-import abc
 from dataclasses import dataclass, field
 import pandas as pd
 import warnings
 from typing import List, Union, Set, Dict, Optional, Iterable
-import numpy  # for types only
-from pathlib import Path
+import numpy
 
 _TABLE_DATA_FIELD_NAME = '_table_data'
 
@@ -638,3 +636,53 @@ class Table:
     def __str__(self):
         return repr(self)
 
+    def __metadata_comp_key(self):
+        """Metadata comparison key, for use in __eq__"""
+        return self.name, self.metadata.destinations, self.column_names, self.units
+
+    def equals(self, other):
+        """Checks whether the other Table has the same header and data as this one.
+
+        Checks whether the other Table has the same name, destinations, column names, column units,
+        and data values as this one. Origin is ignored (tables can be equal regardless of where they
+        came from).
+
+        Number equality does not take data type into account, in keeping with the StarTable
+        convention that a number is just a number. For example, float 10.0 equals int 10.
+
+        This is implemented as a method rather than as the __eq__() magic method because a later
+        implementation of __hash__() attempting to live by the rule
+        "a == b implies hash(a) == hash(b)" would have to do a deep dive in the table data
+        to force equal hashes on equal numbers, even when they naturally have different hashes due
+        to having different data types.
+        """
+        if isinstance(other, self.__class__):
+            return self.__metadata_comp_key() == other.__metadata_comp_key() \
+                   and _df_elements_all_equal_or_same(self._df, other._df)
+            # Had to implement this custom equality checker for DataFrames because,
+            # as of pandas 1.1.0, stupid pandas.DataFrame.equals return False when elements have
+            # different dtypes e.g. 10 and 10.0 are considered 'not equal'. In StarTable, a number
+            # is just a number, and no such distinction should be made between data types.
+        return False
+
+
+def _equal_or_same(a, b):
+    """Returns True if both values are equal or 'the same thing' (e.g. NaN's).
+
+    Note that np.nan != float('nan') != pd.NA etc., so we collapse all of these
+    missing value things using pd.isna()
+    """
+    return a == b or a is b or (pd.isna(a) and pd.isna(b))
+
+
+def _df_elements(df):
+    """Yields all the values in the data frame serially."""
+    return (x for row in df.itertuples() for x in row)
+
+
+def _df_elements_all_equal_or_same(df1, df2):
+    """Returns True if all corresponding elements are equal or 'the same' in both data frames."""
+    try:
+        return all(_equal_or_same(x1, x2) for x1, x2 in zip(_df_elements(df1), _df_elements(df2)))
+    except:
+        return False

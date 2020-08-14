@@ -1,7 +1,7 @@
 import datetime
+
 import pandas as pd
 import openpyxl
-from pytest import approx
 
 try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
@@ -10,7 +10,7 @@ except ImportError:
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 
 from tables import Table, write_excel
-from .._excel import _append_table_to_openpyxl_worksheet
+from .._excel_openpyxl import _append_table_to_openpyxl_worksheet
 
 
 def test__append_table_to_openpyxl_worksheet():
@@ -79,7 +79,9 @@ def test_write_excel(tmp_path):
     # - table data by column
     assert [ws.cell(r, 1).value for r in range(5, 9)] == ["home", "work", "beach", "wonderland"]
     assert [ws.cell(r, 2).value for r in range(5, 9)] == [0, 1, 2, "-"]
-    for r, d in zip(range(5,8), pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00"])):
+    for r, d in zip(
+        range(5, 8), pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00"])
+    ):
         # workaround openpyxl bug: https://foss.heptapod.net/openpyxl/openpyxl/-/issues/1493
         # openpyxl adds a spurious microsecond to some datetimes.
         assert abs(ws.cell(r, 3).value - d) <= datetime.timedelta(microseconds=1)
