@@ -5,15 +5,9 @@ import pytest
 from pytest import raises
 import datetime as dt
 
-from ..read_excel import (
-    normalize_if_str,
-    _parse_onoff_column,
-    _parse_float_column,
-    _parse_datetime_column,
-    is_missing_data_marker,
-    _make_table,
-    parse_blocks, read_excel,
-)
+from ..read_excel import read_excel
+from .._read_excel_openpyxl import normalize_if_str, is_missing_data_marker, _parse_onoff_column, \
+    _parse_float_column, _parse_datetime_column, _make_table, parse_blocks
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
