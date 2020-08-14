@@ -1,4 +1,4 @@
-"""Machinery to read StarTable data from an Excel workbook file.
+"""Interface to read StarTable data from an Excel workbook file.
 
 The only Excel I/O engine supported right now is 'openpyxl', but this module can
 be extended to support others.

@@ -1,3 +1,5 @@
+"""Machinery to read Tables from an Excel workbook using openpyxl as engine."""
+
 import itertools
 from typing import List, Tuple, Any, Optional
 
