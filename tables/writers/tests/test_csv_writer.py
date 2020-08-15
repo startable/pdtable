@@ -81,7 +81,7 @@ def test_write_csv__writes_two_tables():
         )
 
 
-def test_write_csv__writes_one_table():
+def test_write_csv__writes_one_table_and_leaves_stream_open():
     # Make a table
     t2 = Table(name="bar")
     t2.add_column("digit", [1, 6, 42], "-")
@@ -90,6 +90,7 @@ def test_write_csv__writes_one_table():
     # Check write_csv works when given a single table
     with io.StringIO() as out:
         write_csv(t2, out)
+        out.write("Fin\n")
         assert out.getvalue() == dedent(
             """\
             **bar
@@ -100,5 +101,33 @@ def test_write_csv__writes_one_table():
             6;six
             42;forty-two
 
+            Fin
             """
         )
+
+
+def test_write_csv__writes_to_file(tmp_path):
+    # Make a table
+    t2 = Table(name="bar")
+    t2.add_column("digit", [1, 6, 42], "-")
+    t2.add_column("spelling", ["one", "six", "forty-two"], "text")
+
+    # Write to file
+    out_path = tmp_path / "write_csv_to_file.csv"
+    write_csv(t2, out_path)
+
+    # Now check file contents
+    assert out_path.read_text() == dedent(
+        """\
+        **bar
+        all
+        digit;spelling
+        -;text
+        1;one
+        6;six
+        42;forty-two
+
+        """
+    )
+    # Teardown
+    out_path.unlink()

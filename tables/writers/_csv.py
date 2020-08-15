@@ -1,4 +1,5 @@
 import os
+from contextlib import nullcontext
 from typing import Iterable, TextIO, Union
 
 from tables.store import TableBundle
@@ -32,16 +33,11 @@ def write_csv(
         # For convenience, pack single table in an iterable
         tables = [tables]
 
-    # TODO Surely there's a better pattern than this? This one forces duplicate code...
-    if isinstance(out, str) or isinstance(out, os.PathLike):
-        # out is a file path. Open a stream and close it when done.
-        with open(out, "w") as f:
-            for table in tables:
-                _table_to_csv(table, f, sep, na_rep)
-    else:
-        # out is a stream opened by caller. Leave it open.
+    # If it looks like a path, open a file and close when done.
+    # Else we assume it's a stream that the caller is responsible for managing; leave it open.
+    with open(out, "w") if isinstance(out, (str, os.PathLike)) else nullcontext(out) as stream:
         for table in tables:
-            _table_to_csv(table, out, sep, na_rep)
+            _table_to_csv(table, stream, sep, na_rep)
 
 
 def _table_to_csv(table: Table, stream: TextIO, sep: str = ";", na_rep: str = "-") -> None:
