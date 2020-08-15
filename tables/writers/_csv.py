@@ -1,15 +1,14 @@
-from tables.store import TableBundle
-import pandas as pd
+import os
 from typing import Iterable, TextIO, Union
-from pathlib import Path
 
+from tables.store import TableBundle
 from ._represent import _represent_row_elements
 from ..pdtable import Table
 
 
 def write_csv(
     tables: Union[Table, Iterable[Table], TableBundle],
-    out: Union[str, Path, TextIO],
+    out: Union[str, os.PathLike, TextIO],
     sep: str = ";",
     na_rep: str = "-",
 ):
@@ -34,7 +33,7 @@ def write_csv(
         tables = [tables]
 
     # TODO Surely there's a better pattern than this? This one forces duplicate code...
-    if isinstance(out, str) or isinstance(out, Path):
+    if isinstance(out, str) or isinstance(out, os.PathLike):
         # out is a file path. Open a stream and close it when done.
         with open(out, "w") as f:
             for table in tables:
