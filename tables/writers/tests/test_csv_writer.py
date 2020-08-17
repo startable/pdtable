@@ -5,6 +5,7 @@ import pandas as pd
 
 from tables import write_csv, Table
 from .._csv import _table_to_csv
+from ...pdtable import TableData, ColumnFormat
 
 
 def test__table_to_csv():
@@ -51,7 +52,7 @@ def test_write_csv__writes_two_tables():
     t.add_column("is_hot", [True, False, True, False], "onoff")
 
     t2 = Table(name="bar")
-    t2.add_column("digit", [1, 6, 42], "-")
+    t2.add_column("number", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
 
     # Write tables to stream
@@ -71,7 +72,7 @@ def test_write_csv__writes_two_tables():
 
             **bar
             all
-            digit;spelling
+            number;spelling
             -;text
             1;one
             6;six
@@ -83,11 +84,10 @@ def test_write_csv__writes_two_tables():
 
 def test_write_csv__writes_one_table_and_leaves_stream_open():
     # Make a table
-    t2 = Table(name="bar")
-    t2.add_column("digit", [1, 6, 42], "-")
-    t2.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t2 = Table(pd.DataFrame({"number": [1, 6, 42], "spelling": ["one", "six", "forty-two"]}),
+               name="bar", units=["-", "text"])
 
-    # Check write_csv works when given a single table
+    # Check write_csv single table and leave stream open for business
     with io.StringIO() as out:
         write_csv(t2, out)
         out.write("Fin\n")
@@ -95,7 +95,7 @@ def test_write_csv__writes_one_table_and_leaves_stream_open():
             """\
             **bar
             all
-            digit;spelling
+            number;spelling
             -;text
             1;one
             6;six
@@ -108,9 +108,8 @@ def test_write_csv__writes_one_table_and_leaves_stream_open():
 
 def test_write_csv__writes_to_file(tmp_path):
     # Make a table
-    t2 = Table(name="bar")
-    t2.add_column("digit", [1, 6, 42], "-")
-    t2.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t2 = Table(pd.DataFrame({"number": [1, 6, 42], "spelling": ["one", "six", "forty-two"]}),
+               name="bar", units=["-", "text"])
 
     # Write to file
     out_path = tmp_path / "write_csv_to_file.csv"
@@ -121,7 +120,7 @@ def test_write_csv__writes_to_file(tmp_path):
         """\
         **bar
         all
-        digit;spelling
+        number;spelling
         -;text
         1;one
         6;six
@@ -131,3 +130,27 @@ def test_write_csv__writes_to_file(tmp_path):
     )
     # Teardown
     out_path.unlink()
+
+
+def test_write_csv__with_precision():
+    # Make a table
+    t2 = Table(pd.DataFrame({"numbers": [1, 6, 42], "same_numbers": [1, 6, 42]}),
+               name="bar", units=["-", "-"])
+
+    t2.column_metadata["numbers"].display_format = ColumnFormat(0)
+    t2.column_metadata["same_numbers"].display_format = ColumnFormat(2)
+
+    with io.StringIO() as out:
+        write_csv(t2, out)
+        assert out.getvalue() == dedent(
+            """\
+            **bar
+            all
+            numbers;same_numbers
+            -;-
+            1;1.00
+            6;6.00
+            42;42.00
+
+            """
+        )
