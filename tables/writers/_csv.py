@@ -48,11 +48,9 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str = ";", na_rep: str = "-
     stream.write(" ".join(str(x) for x in table.metadata.destinations) + "\n")
     stream.write(sep.join(str(x) for x in table.column_names) + "\n")
     stream.write(sep.join(str(x) for x in units) + "\n")
-    precisions = [table.column_metadata[c].display_format.precision for c in table.column_metadata]
+    display_formats = [table.column_metadata[c].display_format for c in table.column_metadata]
     for row in table.df.itertuples(index=False, name=None):
-        stream.write(sep.join(_format(x, p) for x, p in zip(_represent_row_elements(row, units, na_rep), precisions)) + "\n")
+        stream.write(sep.join(f"{{:{f.specifier}}}".format(x) if f else str(x) for x, f in zip(_represent_row_elements(row, units, na_rep), display_formats)) + "\n")
     stream.write("\n")
 
 
-def _format(x, precision: int):
-    return ("{:." + str(precision) + "f}").format(x) if precision else str(x)

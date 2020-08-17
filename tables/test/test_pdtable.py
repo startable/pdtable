@@ -3,6 +3,8 @@ import numpy as np
 from .. import pdtable, Table
 import pytest
 
+from ..pdtable import ColumnFormat
+
 
 @pytest.fixture
 def data_ab():
@@ -123,3 +125,11 @@ def test_table_equals():
     assert not t_ref.equals(pdtable.Table(pd.DataFrame({'c': [666, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg']))
     # data value (ever so slightly)
     assert not t_ref.equals(pdtable.Table(pd.DataFrame({'c': [1.00000000000001, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg']))
+
+
+def test_column_format():
+    assert ColumnFormat(2).specifier == ".2f"
+    assert ColumnFormat("14.2e").specifier == "14.2e"
+
+    assert str(ColumnFormat(2)) == ".2f"
+    assert repr(ColumnFormat(2)) == "ColumnFormat: '.2f'"

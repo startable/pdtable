@@ -132,13 +132,15 @@ def test_write_csv__writes_to_file(tmp_path):
     out_path.unlink()
 
 
-def test_write_csv__with_precision():
+def test_write_csv__with_format_specs():
     # Make a table
-    t2 = Table(pd.DataFrame({"numbers": [1, 6, 42], "same_numbers": [1, 6, 42]}),
-               name="bar", units=["-", "-"])
+    t2 = Table(pd.DataFrame({"numbers": [1, 6, 42],
+                             "same_numbers": [1, 6, 42], "others": [1, 123.456, 42]}),
+               name="bar", units=["-", "-", "-"])
 
-    t2.column_metadata["numbers"].display_format = ColumnFormat(0)
+    # Give formats to some columns, leave some without formats
     t2.column_metadata["same_numbers"].display_format = ColumnFormat(2)
+    t2.column_metadata["others"].display_format = ColumnFormat("14.3e")
 
     with io.StringIO() as out:
         write_csv(t2, out)
@@ -146,11 +148,12 @@ def test_write_csv__with_precision():
             """\
             **bar
             all
-            numbers;same_numbers
-            -;-
-            1;1.00
-            6;6.00
-            42;42.00
-
+            numbers;same_numbers;others
+            -;-;-
+            1;1.00;     1.000e+00
+            6;6.00;     1.235e+02
+            42;42.00;     4.200e+01
+            
             """
         )
+
