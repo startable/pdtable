@@ -1,0 +1,13 @@
+**farm_row2;;;
+your_farm my_farm farms_galore;;;
+species;n_legs;avg_weight;
+text;-;kg;
+chicken;2;3;
+pig;4;39;
+goat;4;-;
+zybra;4;3;2;1
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+
+# error/handle: zybra has two extra columns

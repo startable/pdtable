@@ -62,9 +62,7 @@ def make_table(
 ) -> pdtable.Table:
     table_name = lines[0].split(sep)[0][2:]
     destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
-    column_names = list(
-        itertools.takewhile(lambda s: len(s.strip()) > 0, lines[2].split(sep))
-    )
+    column_names = list(itertools.takewhile(lambda s: len(s.strip()) > 0, lines[2].split(sep)))
     column_names = [el.strip() for el in column_names]
 
     n_col = len(column_names)
@@ -78,9 +76,7 @@ def make_table(
 
     # build dictionary of columns iteratively to allow meaningful error messages
     columns = dict()
-    for name, dtype, unit, values in zip(
-        column_names, column_dtype, units, zip(*column_data)
-    ):
+    for name, dtype, unit, values in zip(column_names, column_dtype, units, zip(*column_data)):
         try:
             columns[name] = dtype(values)
         except ValueError as e:
@@ -107,9 +103,7 @@ def make_token(token_type, lines, sep, origin) -> Tuple[StarBlockType, Any]:
     return token_type, None if factory is None else factory(lines, sep, origin)
 
 
-def read_stream_csv(
-    f: TextIO, sep: str, origin: Optional[str] = None
-) -> BlockGenerator:
+def read_stream_csv(f: TextIO, sep: str, origin: Optional[str] = None) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
     # Template data handling is half-hearted, mostly because of doubts on StarTable syntax
@@ -148,9 +142,7 @@ def read_stream_csv(
             next_block = StarBlockType.BLANK
 
         if next_block is not None:
-            yield make_token(
-                block, lines, sep, pdtable.TableOriginCSV(origin, block_line)
-            )
+            yield make_token(block, lines, sep, pdtable.TableOriginCSV(origin, block_line))
             lines = []
             block = next_block
             block_line = line_number_0based + 1
