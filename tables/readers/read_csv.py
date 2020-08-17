@@ -15,6 +15,7 @@ import pandas as pd
 import numpy as np
 
 from .. import pdtable
+from ..directives import Directive
 from ..store import StarBlockType, BlockGenerator
 
 
@@ -55,6 +56,14 @@ _column_dtypes = {
     "onoff": _parse_onoff_column,
     "datetime": _parse_datetime_column,
 }
+
+
+def make_directive(
+    lines: List[str], sep: str, origin: Optional[str] = None
+) -> Directive:
+    name = lines[0].split(sep)[0][3:]
+    directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
+    return Directive(name, directive_lines, origin)
 
 
 def make_table(
@@ -99,12 +108,15 @@ def make_table(
     )
 
 
-_token_factory_lookup = {StarBlockType.TABLE: make_table}
+_token_factory_lookup = {
+    StarBlockType.TABLE: make_table,
+    StarBlockType.DIRECTIVE: make_directive,
+}
 
 
 def make_token(token_type, lines, sep, origin) -> Tuple[StarBlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
-    return token_type, None if factory is None else factory(lines, sep, origin)
+    return token_type, (None if factory is None else factory(lines, sep, origin))
 
 
 def read_stream_csv(

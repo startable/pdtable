@@ -1,10 +1,21 @@
 from io import StringIO
 
-from ..readers.read_csv import make_table, read_stream_csv
+from ..readers.read_csv import make_directive, make_table, read_stream_csv
 from .. import pdtable
 from textwrap import dedent
 
-from ..store import TableBundle
+from ..store import TableBundle, StarBlockType
+
+
+def test_make_directive():
+    lines = dedent("""\
+    ***foo
+    bar
+    baz
+    """).strip().split("\n")
+    d = make_directive(lines, ";")
+    assert d.name == "foo"
+    assert d.lines == ["bar", "baz"]
 
 
 def test_make_table():
@@ -25,7 +36,7 @@ def test_make_table():
     assert tt.units == ['-', 'text', 'text', 'onoff']
 
 
-def test_parse_onoff():
+def test_make_table__parses_onoff_column():
     lines = dedent(r"""
     **input_files_derived;
     all;
@@ -44,7 +55,7 @@ def test_parse_onoff():
     assert tt.units == ['-', 'text', 'onoff']
 
 
-def test_no_trailing_sep():
+def test_make_table__no_trailing_sep():
     lines=dedent(r"""
     **foo
     all
@@ -57,8 +68,12 @@ def test_no_trailing_sep():
     assert t.dash[0] == 10
 
 
-def test_stream():
+def test_read_stream_csv():
     lines = dedent(r"""
+    ***gunk
+    bar
+    baz
+    
     **foo
     all
     column;pct;dash;mm;
@@ -79,7 +94,13 @@ def test_stream():
 
     with StringIO(lines) as f:
         blocks = [b for b in read_stream_csv(f, sep=';')]
-        assert len(blocks) == 8  # includes four blanks and two template rows
+        assert len(blocks) == 10  # includes 5 blanks and two template rows
+
+    directives = [b for t, b in blocks if t == StarBlockType.DIRECTIVE]
+    assert len(directives) == 1
+    d = directives[0]
+    assert d.name == "gunk"
+    assert d.lines == ["bar", "baz"]
 
     with StringIO(lines) as f:
         table = TableBundle(read_stream_csv(f, sep=';'))
