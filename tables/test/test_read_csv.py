@@ -4,7 +4,7 @@ from ..readers.read_csv import make_directive, make_table, read_stream_csv
 from .. import pdtable
 from textwrap import dedent
 
-from ..store import TableBundle, StarBlockType
+from ..store import TableBundle, BlockType
 
 
 def test_make_directive():
@@ -71,8 +71,8 @@ def test_make_table__no_trailing_sep():
 def test_read_stream_csv():
     lines = dedent(r"""
     ***gunk
-    bar
-    baz
+    grok
+    jiggyjag
     
     **foo
     all
@@ -96,11 +96,11 @@ def test_read_stream_csv():
         blocks = [b for b in read_stream_csv(f, sep=';')]
         assert len(blocks) == 10  # includes 5 blanks and two template rows
 
-    directives = [b for t, b in blocks if t == StarBlockType.DIRECTIVE]
+    directives = [b for t, b in blocks if t == BlockType.DIRECTIVE]
     assert len(directives) == 1
     d = directives[0]
     assert d.name == "gunk"
-    assert d.lines == ["bar", "baz"]
+    assert d.lines == ["grok", "jiggyjag"]
 
     with StringIO(lines) as f:
         table = TableBundle(read_stream_csv(f, sep=';'))

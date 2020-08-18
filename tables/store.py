@@ -16,7 +16,7 @@ from typing import Iterable, Tuple, Any, Iterator, Optional
 from .pdtable import PandasTable
 
 
-class StarBlockType(Enum):
+class BlockType(Enum):
     """
     An enumeration of the tokens types that may be emitted by a reader.
 
@@ -32,7 +32,7 @@ class StarBlockType(Enum):
     BLANK = auto()
 
 
-BlockGenerator = Iterable[Tuple[StarBlockType, Optional[Any]]]
+BlockGenerator = Iterable[Tuple[BlockType, Optional[Any]]]
 
 TableType = PandasTable
 
@@ -51,7 +51,7 @@ class TableBundle:
 
     def __init__(self, ts: BlockGenerator):
         self._tables = {token.name: token.df for token_type, token in ts
-                        if token is not None and token_type == StarBlockType.TABLE}
+                        if token is not None and token_type == BlockType.TABLE}
 
     def __getattr__(self, name: str) -> TableType:
         return self._tables[name]

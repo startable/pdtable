@@ -3,13 +3,13 @@ from typing import Optional, Any, Tuple, Iterable
 
 from .pdtable import Table
 from . import units
-from .store import TableBundle, StarBlockType
+from .store import TableBundle, BlockType
 from .readers.read_csv import read_file_csv
 
 
-def normalized_table_generator(unit_policy, ts: Iterable[Tuple[StarBlockType, Optional[Any]]]):
+def normalized_table_generator(unit_policy, ts: Iterable[Tuple[BlockType, Optional[Any]]]):
     for token_type, token in ts:
-        if token is not None and token_type == StarBlockType.TABLE:
+        if token is not None and token_type == BlockType.TABLE:
             units.normalize_table_in_place(unit_policy, token)  # in place
         yield token_type, token
 

@@ -16,7 +16,7 @@ import numpy as np
 
 from .. import pdtable
 from ..directives import Directive
-from ..store import StarBlockType, BlockGenerator
+from ..store import BlockType, BlockGenerator
 
 
 _TF_values = {"0": False, "1": True, "-": False}
@@ -109,12 +109,12 @@ def make_table(
 
 
 _token_factory_lookup = {
-    StarBlockType.TABLE: make_table,
-    StarBlockType.DIRECTIVE: make_directive,
+    BlockType.TABLE: make_table,
+    BlockType.DIRECTIVE: make_directive,
 }
 
 
-def make_token(token_type, lines, sep, origin) -> Tuple[StarBlockType, Any]:
+def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
     return token_type, (None if factory is None else factory(lines, sep, origin))
 
@@ -145,19 +145,19 @@ def read_stream_csv(
         return not ss or ss.startswith(sep)
 
     lines = []
-    block = StarBlockType.METADATA
+    block = BlockType.METADATA
     block_line = 0
     for line_number_0based, line in enumerate(f):
         next_block = None
         if line.startswith("**"):
             if line.startswith("***"):
-                next_block = StarBlockType.DIRECTIVE
+                next_block = BlockType.DIRECTIVE
             else:
-                next_block = StarBlockType.TABLE
+                next_block = BlockType.TABLE
         elif line.startswith(":"):
-            next_block = StarBlockType.TEMPLATE_ROW
-        elif is_blank(line) and not block == StarBlockType.METADATA:
-            next_block = StarBlockType.BLANK
+            next_block = BlockType.TEMPLATE_ROW
+        elif is_blank(line) and not block == BlockType.METADATA:
+            next_block = BlockType.BLANK
 
         if next_block is not None:
             yield make_token(
