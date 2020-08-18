@@ -1,6 +1,11 @@
+from io import StringIO
+from pathlib import Path
 from textwrap import dedent
 
 from ..directives import Directive
+from ..directive_handlers import handle_includes
+from ..readers.read_csv import read_stream_csv
+from ..store import BlockType
 
 
 def test_directive():
@@ -9,3 +14,26 @@ def test_directive():
         ***foo
         bar
         baz""")
+
+
+def test_handle_includes():
+    # TODO move directive handler stuff to a /demo package or something
+    dat = dedent(r"""
+        ***include
+        incl_1.csv
+        incl_2.csv
+    
+        **t0
+        all
+        place;distance
+        text;km
+        home;0
+        work;14
+        beach;19
+        """)
+
+    bg = handle_includes(read_stream_csv(StringIO(dat), sep=";"), input_dir=Path(__file__).parent / "input")
+    bl = list(bg)
+    tables = [b for t, b in bl if t == BlockType.TABLE]
+    assert len(tables) == 4
+
