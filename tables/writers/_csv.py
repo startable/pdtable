@@ -13,16 +13,19 @@ def write_csv(
     sep: str = ";",
     na_rep: str = "-",
 ):
-    """Writes one or more tables to CSV file or stream.
+    """Writes one or more tables to a CSV file or text stream.
 
-    Writes table blocks in CSV format to a file or stream. Values are formatted to comply with the StarTable standard where necessary and possible; 
-    otherwise they are simply str()'ed. 
+    Writes table blocks in CSV format to a file or text stream. Values are formatted to comply with
+    the StarTable standard where necessary and possible; otherwise they are simply str()'ed.
 
     Args:
         tables: 
             Table(s) to write. Can be a single Table or an iterable of Tables. 
         out:
-            File path or text stream to which to write. 
+            File path or text stream to which to write.
+            If a file path, then this file gets closed after writing.
+            If a stream, then it is left open; it is assumed that the caller owns
+            the stream and is responsible for managing it.
         sep:
             Optional; CSV field delimiter.
         na_rep:
