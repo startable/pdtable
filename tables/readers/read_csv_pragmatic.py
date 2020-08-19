@@ -257,7 +257,7 @@ _token_factory_lookup = {StarBlockType.TABLE: make_table}
 
 def make_token(token_type, lines, sep, origin) -> Tuple[StarBlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
-    return token_type, None if factory is None else factory(lines, sep, origin)
+    return token_type, lines if factory is None else factory(lines, sep, origin)
 
 
 def read_stream_csv_pragmatic(
