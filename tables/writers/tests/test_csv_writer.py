@@ -82,7 +82,7 @@ def test_write_csv__writes_two_tables():
         )
 
 
-def test_write_csv__writes_one_table_and_leaves_stream_open():
+def test_write_csv__leaves_stream_open_if_caller_passes_stream():
     # Make a table
     t2 = Table(pd.DataFrame({"number": [1, 6, 42], "spelling": ["one", "six", "forty-two"]}),
                name="bar", units=["-", "text"])
