@@ -109,8 +109,13 @@ def test_df_operations(data_ab, data_cd):
 def test_table_equals():
     t_ref = pdtable.Table(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg'])
 
-    # True if identical
+    # True if...
+    # identical
     assert t_ref.equals(pdtable.Table(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg']))
+    # itself
+    assert t_ref.equals(t_ref)
+    # same numerical value but different data type (int vs. float)
+    assert t_ref.equals(pdtable.Table(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4.0, 5.0, 6.0]}), name='table2', units=['m', 'kg']))
 
     # False if different...
     # name
@@ -125,6 +130,11 @@ def test_table_equals():
     assert not t_ref.equals(pdtable.Table(pd.DataFrame({'c': [666, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg']))
     # data value (ever so slightly)
     assert not t_ref.equals(pdtable.Table(pd.DataFrame({'c': [1.00000000000001, np.nan, 3], 'd': [4, 5, 6]}), name='table2', units=['m', 'kg']))
+    # thing entirely
+    assert not t_ref.equals("a string")
+    assert not t_ref.equals(42)
+    assert not t_ref.equals(None)
+    assert not t_ref.equals(pd.DataFrame({'c': [1, np.nan, 3], 'd': [4, 5, 6]}))
 
 
 def test_column_format():
