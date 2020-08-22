@@ -6,6 +6,8 @@ from typing import List, Tuple, Any, Optional
 import numpy as np
 import pandas as pd
 
+import tables.origin
+
 try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
 except ImportError:
@@ -135,12 +137,14 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
 
         if next_block_type is not None:
             yield make_block(
-                block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row)
+                block_type, block_lines, tables.origin.TableOriginCSV(origin, block_start_row)
             )
+            # TODO replace TableOriginCSV with one tailored for Excel
             block_lines = []
             block_type = next_block_type
             block_start_row = irow_0based + 1
         block_lines.append(row)
 
     if block_lines:
-        yield make_block(block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row))
+        yield make_block(block_type, block_lines, tables.origin.TableOriginCSV(origin, block_start_row))
+        # TODO replace TableOriginCSV with one tailored for Excel

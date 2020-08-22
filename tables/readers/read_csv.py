@@ -14,6 +14,7 @@ from typing import List, Optional, Tuple, Any, TextIO
 import pandas as pd
 import numpy as np
 
+import tables.origin
 from .. import pdtable
 from ..directives import Directive
 from ..store import BlockType, BlockGenerator
@@ -67,7 +68,7 @@ def make_directive(
 
 
 def make_table(
-    lines: List[str], sep: str, origin: Optional[pdtable.TableOriginCSV] = None
+    lines: List[str], sep: str, origin: Optional[tables.origin.TableOriginCSV] = None
 ) -> pdtable.Table:
     table_name = lines[0].split(sep)[0][2:]
     destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
@@ -161,7 +162,7 @@ def read_stream_csv(
 
         if next_block is not None:
             yield make_token(
-                block, lines, sep, pdtable.TableOriginCSV(origin, block_line)
+                block, lines, sep, tables.origin.TableOriginCSV(origin, block_line)
             )
             lines = []
             block = next_block
@@ -171,7 +172,7 @@ def read_stream_csv(
         lines.append(line)
 
     if lines:
-        yield make_token(block, lines, sep, pdtable.TableOriginCSV(origin, block_line))
+        yield make_token(block, lines, sep, tables.origin.TableOriginCSV(origin, block_line))
 
 
 def read_file_csv(file: PathLike, sep: str = ";") -> BlockGenerator:
