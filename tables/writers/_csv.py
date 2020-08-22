@@ -9,7 +9,7 @@ from ..pdtable import Table
 
 def write_csv(
     tables: Union[Table, Iterable[Table], TableBundle],
-    out: Union[str, os.PathLike, TextIO],
+    to: Union[str, os.PathLike, TextIO],
     sep: str = ";",
     na_rep: str = "-",
 ):
@@ -21,15 +21,16 @@ def write_csv(
     Args:
         tables: 
             Table(s) to write. Can be a single Table or an iterable of Tables. 
-        out:
+        to:
             File path or text stream to which to write.
-            If a file path, then this file gets closed after writing.
-            If a stream, then it is left open; it is assumed that the caller owns
-            the stream and is responsible for managing it.
+            If a file path, then this file gets created/overwritten and then closed after writing.
+            If a stream, then it is left open after writing; the caller is responsible for managing
+            the stream.
         sep:
-            Optional; CSV field delimiter.
+            Optional; CSV field delimiter. Default is ';'.
         na_rep:
-            Optional; String representation of missing values (NaN, None, NaT). If overriding the default '-', it is recommended to use another value compliant with the StarTable standard.
+            Optional; String representation of missing values (NaN, None, NaT). Default is '-'.
+            If overriding this default, use another value compliant with the StarTable standard.
     """
 
     if isinstance(tables, Table):
@@ -38,7 +39,7 @@ def write_csv(
 
     # If it looks like a path, open a file and close when done.
     # Else we assume it's a stream that the caller is responsible for managing; leave it open.
-    with open(out, "w") if isinstance(out, (str, os.PathLike)) else nullcontext(out) as stream:
+    with open(to, "w") if isinstance(to, (str, os.PathLike)) else nullcontext(to) as stream:
         for table in tables:
             _table_to_csv(table, stream, sep, na_rep)
 
