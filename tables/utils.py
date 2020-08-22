@@ -1,8 +1,7 @@
 from os import PathLike
 from typing import Optional, Any, Tuple, Iterable
 
-from .pdtable import Table
-from . import units
+from . import units, Table
 from .store import TableBundle, BlockType
 from .readers.read_csv import read_file_csv
 

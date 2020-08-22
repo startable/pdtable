@@ -67,8 +67,7 @@ if Path.cwd().name == "doc":
 # Data manipulation functions exist, and more are easily added -- but focus is on metadata.
 
 # %%
-from tables import pdtable
-from tables.pdtable import Table
+from tables import pdtable, Table
 
 # %%
 t = Table(name='mytable')

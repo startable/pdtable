@@ -4,7 +4,7 @@ from typing import Iterable, TextIO, Union
 from pathlib import Path
 
 from ._represent import _represent_row_elements
-from ..pdtable import Table
+from .. import Table
 
 
 def write_csv(

@@ -15,6 +15,7 @@ import pandas as pd
 import numpy as np
 
 import tables.origin
+import tables.proxy
 from .. import pdtable
 from ..directives import Directive
 from ..store import BlockType, BlockGenerator
@@ -69,7 +70,7 @@ def make_directive(
 
 def make_table(
     lines: List[str], sep: str, origin: Optional[tables.origin.TableOriginCSV] = None
-) -> pdtable.Table:
+) -> tables.proxy.Table:
     table_name = lines[0].split(sep)[0][2:]
     destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
     column_names = list(
@@ -98,7 +99,7 @@ def make_table(
                 f"Unable to parse value in column {name} of table {table_name} as {unit}"
             ) from e
 
-    return pdtable.Table(
+    return tables.proxy.Table(
         pdtable.make_pdtable(
             pd.DataFrame(columns),
             units=units,

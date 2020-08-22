@@ -1,5 +1,6 @@
 from io import StringIO
 
+import tables.proxy
 from ..readers.read_csv import make_directive, make_table, read_stream_csv
 from .. import pdtable
 from textwrap import dedent
@@ -30,7 +31,7 @@ def test_make_table():
     t = make_table(lines, ';').df
     assert t.file_bytes[0] == 15373
 
-    tt = pdtable.Table(t)
+    tt = tables.proxy.Table(t)
     assert tt.name == 'input_files_derived'
     assert set(tt.metadata.destinations) == {'all'}
     assert tt.units == ['-', 'text', 'text', 'onoff']
@@ -49,7 +50,7 @@ def test_make_table__parses_onoff_column():
     assert t.file_bytes[0] == 15373
     assert t.has_table[0] == False
     assert t.has_table[1] == True
-    tt = pdtable.Table(t)
+    tt = tables.proxy.Table(t)
     assert tt.name == 'input_files_derived'
     assert set(tt.metadata.destinations) == {'all'}
     assert tt.units == ['-', 'text', 'onoff']

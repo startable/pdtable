@@ -1,6 +1,6 @@
 # flake8: noqa
 
-from .pdtable import Table
+from .proxy import Table
 from .origin import TableOrigin
 from .store import TableBundle
 from .units import UnitPolicy

@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 import tables.origin
+import tables.proxy
 
 try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
@@ -70,7 +71,7 @@ _column_parsers = {
 }
 
 
-def _make_table(lines: List[List], origin=None) -> pdtable.Table:
+def _make_table(lines: List[List], origin=None) -> tables.proxy.Table:
     """Makes a Table from the cell contents of the lines of a given table block"""
     # Parse header things
     table_name = lines[0][0][2:]
@@ -93,7 +94,7 @@ def _make_table(lines: List[List], origin=None) -> pdtable.Table:
             ) from e
 
     # Shove it all in a Table
-    return pdtable.Table(
+    return tables.proxy.Table(
         pdtable.make_pdtable(
             pd.DataFrame(columns),
             units=units,
