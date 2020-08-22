@@ -52,8 +52,9 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str = ";", na_rep: str = "-
     stream.write(sep.join(str(x) for x in table.column_names) + "\n")
     stream.write(sep.join(str(x) for x in units) + "\n")
     display_formats = [table.column_metadata[c].display_format for c in table.column_metadata]
+    format_strings = [f"{{:{f.specifier}}}" if f else None for f in display_formats]
     for row in table.df.itertuples(index=False, name=None):
-        stream.write(sep.join(f"{{:{f.specifier}}}".format(x) if f else str(x) for x, f in zip(_represent_row_elements(row, units, na_rep), display_formats)) + "\n")
+        stream.write(sep.join(fs.format(x) if fs else str(x) for x, fs in zip(_represent_row_elements(row, units, na_rep), format_strings)) + "\n")
     stream.write("\n")
 
 
