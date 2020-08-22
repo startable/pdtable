@@ -3,7 +3,7 @@ from pathlib import Path
 from textwrap import dedent
 
 from ..directives import Directive
-from ..directive_handlers import handle_includes
+from ..demo.directive_handlers import handle_includes
 from ..readers.read_csv import read_stream_csv
 from ..store import BlockType
 
@@ -32,7 +32,8 @@ def test_handle_includes():
         beach;19
         """)
 
-    bg = handle_includes(read_stream_csv(StringIO(dat), sep=";"), input_dir=Path(__file__).parent / "input")
+    bg = handle_includes(read_stream_csv(StringIO(dat), sep=";"),
+                         input_dir=Path(__file__).parent / "input", recursive=True)
     bl = list(bg)
     tables = [b for t, b in bl if t == BlockType.TABLE]
     assert len(tables) == 4
