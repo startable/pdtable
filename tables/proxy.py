@@ -2,8 +2,9 @@ from typing import Union, Dict, List, Optional
 
 import pandas as pd
 
-from tables.pdtable import PandasTable, TableData, get_table_data, is_pdtable, make_pdtable, \
-    TableMetadata, ColumnMetadata, set_units, add_column
+from tables.pdtable import PandasTable, get_table_data, is_pdtable, make_pdtable, \
+    set_units, add_column
+from tables.table_metadata import TableMetadata, ColumnMetadata, TableData
 
 
 class Column:

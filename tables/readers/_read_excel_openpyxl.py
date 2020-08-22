@@ -6,7 +6,7 @@ from typing import List, Tuple, Any, Optional
 import numpy as np
 import pandas as pd
 
-import tables.origin
+import tables.table_metadata
 import tables.proxy
 
 try:
@@ -98,7 +98,7 @@ def _make_table(lines: List[List], origin=None) -> tables.proxy.Table:
         pdtable.make_pdtable(
             pd.DataFrame(columns),
             units=units,
-            metadata=pdtable.TableMetadata(
+            metadata=tables.table_metadata.TableMetadata(
                 name=table_name, destinations=destinations, origin=origin
             ),
         )
@@ -138,7 +138,7 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
 
         if next_block_type is not None:
             yield make_block(
-                block_type, block_lines, tables.origin.TableOriginCSV(origin, block_start_row)
+                block_type, block_lines, tables.table_metadata.TableOriginCSV(origin, block_start_row)
             )
             # TODO replace TableOriginCSV with one tailored for Excel
             block_lines = []
@@ -147,5 +147,5 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
         block_lines.append(row)
 
     if block_lines:
-        yield make_block(block_type, block_lines, tables.origin.TableOriginCSV(origin, block_start_row))
+        yield make_block(block_type, block_lines, tables.table_metadata.TableOriginCSV(origin, block_start_row))
         # TODO replace TableOriginCSV with one tailored for Excel
