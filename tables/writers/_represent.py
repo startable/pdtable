@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Iterable
 
 
-def _represent_row_elements(row: Iterable, col_units: Iterable, na_rep: str = "-"):
+def _represent_row_elements(row: Iterable, units: Iterable, na_rep: str = "-"):
     """Prepares row element representations for writing.
     
     In preparation for writing, coerce row values to representations compliant with 
@@ -17,7 +17,7 @@ def _represent_row_elements(row: Iterable, col_units: Iterable, na_rep: str = "-
     Values are not, in general, converted to strings. If writing to a string format, 
     stringification must be done by the client code. 
     """
-    for col, (val, unit) in enumerate(zip(row, col_units)):
+    for col, (val, unit) in enumerate(zip(row, units)):
         if unit != "text" and pd.isna(val):
             # Represent NaN-like things, except leave them be in text columns
             yield na_rep

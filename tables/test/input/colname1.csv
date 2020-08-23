@@ -1,0 +1,13 @@
+**farm_colname1;;;
+your_farm my_farm farms_galore;;;
+species;;avg_weight;
+text;-;kg;
+chicken;2;3;
+pig;4;39;
+goat;4;-;
+zybra;4;-;
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+
+# error/handle: empty column_name

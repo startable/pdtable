@@ -20,15 +20,21 @@ def test_make_directive():
 
 
 def test_make_table():
-    lines = dedent(r"""
+    lines = (
+        dedent(
+            r"""
     **input_files_derived;
     all;
     file_bytes;file_date;file_name;has_table;
     -;text;text;onoff;
     15373;20190516T104445;PISA_Library\results\check_Soil_Plastic_ULS1-PISA_C1.csv;1;
     15326;20190516T104445;PISA_Library\results\check_Soil_Plastic_ULS1-PISA_C2.csv;1;
-    """).strip().split('\n')
-    t = make_table(lines, ';').df
+    """
+        )
+        .strip()
+        .split("\n")
+    )
+    t = make_table(lines, ";").df
     assert t.file_bytes[0] == 15373
 
     tt = tables.proxy.Table(t)
@@ -45,8 +51,12 @@ def test_make_table__parses_onoff_column():
     -;text;onoff;
     15373;a;0;
     15326;b;1;
-    """).strip().split('\n')
-    t = make_table(lines, ';').df
+    """
+        )
+        .strip()
+        .split("\n")
+    )
+    t = make_table(lines, ";").df
     assert t.file_bytes[0] == 15373
     assert t.has_table[0] == False
     assert t.has_table[1] == True
@@ -63,9 +73,13 @@ def test_make_table__no_trailing_sep():
     column;pct;dash;mm;
     text;%;-;mm;
     bar;10;10;10;
-    """).strip().split('\n')
-    t = make_table(lines, ';').df
-    assert t.column[0] == 'bar'
+    """
+        )
+        .strip()
+        .split("\n")
+    )
+    t = make_table(lines, ";").df
+    assert t.column[0] == "bar"
     assert t.dash[0] == 10
 
 
@@ -91,7 +105,8 @@ def test_read_stream_csv():
     -;text;onoff;
     15373;a;0;
     15326;b;1;
-    """)
+    """
+    )
 
     with StringIO(lines) as f:
         blocks = [b for b in read_stream_csv(f, sep=';')]
@@ -104,7 +119,7 @@ def test_read_stream_csv():
     assert d.lines == ["grok", "jiggyjag"]
 
     with StringIO(lines) as f:
-        table = TableBundle(read_stream_csv(f, sep=';'))
+        table = TableBundle(read_stream_csv(f, sep=";"))
 
-    assert table.foo.column.values[0] == 'bar'
+    assert table.foo.column.values[0] == "bar"
     assert table.foo.dash.values[0] == 10

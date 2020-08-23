@@ -1,0 +1,185 @@
+**farm_colname1;;;
+your_farm my_farm farms_galore;;;
+species;;avg_weight;
+text;-;kg;
+chicken;2;3;
+pig;4;39;
+goat;4;-;
+zybra;4;-;
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+
+# error/handle: empty column_name
+
+**farm_cols1;;;
+your_farm my_farm farms_galore;;;
+species;  num;  flt;          dt;    flt;
+text;       -;   kg;    datetime;     kg;
+chicken;    2;    3;  2020-07-01;   3.21;
+pig;        4;   39;  2020-07-02;   39.1;
+goat;       4;    -;           -;    1.1;
+zybra;      4;    -;           -;    2.1;
+cow;      NaN;  200;           -;  200.2;
+goose;      2;    9;           -;    9.1;
+1234;       -;    -;           -;   7.11;
+
+# error/handle: multiple columns w. same name
+
+**farm_cols2;;;
+your_farm my_farm farms_galore;;;
+species;  num;     ;          dt;    flt;
+text;       -;   kg;    datetime;     kg;
+chicken;    2;    3;  2020-07-01;   3.21;
+pig;        4;   39;  2020-07-02;   39.1;
+goat;       4;    -;           -;    1.1;
+zybra;      4;    -;           -;    2.1;
+cow;      NaN;  200;           -;  200.2;
+goose;      2;    9;           -;    9.1;
+1234;       -;    -;           -;   7.11;
+
+# error/handle: missing column name
+Author:;JEACO
+;;;
+***RevisionHistory;;;
+Date;Revision;Author;Description
+21-03-2017;A;JEACO;Illustrative example
+;;;
+This line is not in a block -- it's just a comment;;;
+;;;
+**farm_animals0;;;
+your_farm my_farm farms_galore;;;
+species;n_legs;avg_weight;
+text;-;kg;
+chicken;2;3;
+pig;4;30;
+goat;4;-;
+zybra;4;-;
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+;;;
+::farm_animals;Lists some properties of typical farm animals;;
+:n_legs;Typical number of legs for this species;;
+:avg_weight;Average weight of adult individuals of this species;;
+;;;
+;;;
+**farm_animals1;;;
+your_farm my_farm farms_galore;;;
+species;n_legs;avg_weight;
+text;-;kg;
+chicken;2;3;
+pig;4;39;
+goat;4;-;
+zybra;4-;
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+
+# error/handle: illegal value (missing ';') in table.farm_animals.zybra.n_legs
+**farm_animals2;;;
+your_farm my_farm farms_galore;;;
+species;n_legs;avg_weight;
+text;-;kg;
+chicken;2;;
+pig;4;39;
+goat;4;-;
+zybra;4;-;
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+
+# error/handle: empty cell in chicken:avg_weight
+**farm_animals3;;;
+your_farm my_farm farms_galore;;;
+species;n_legs;avg_weight;
+text;-;kg;
+chicken;2;tung;
+pig;4;39;
+goat;4;-;
+zybra;4-;
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+
+# error/handle: illegal float value "tung" in chicken:avg_weight
+
+**farm_row1;;;
+your_farm my_farm farms_galore;;;
+species;n_legs;avg_weight;
+text;-;kg;
+chicken;2;3;
+pig;4;39;
+goat;4;-;
+zybra;
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+
+# error/handle: zybra has less columns.
+**farm_row2;;;
+your_farm my_farm farms_galore;;;
+species;n_legs;avg_weight;
+text;-;kg;
+chicken;2;3;
+pig;4;39;
+goat;4;-;
+zybra;4;3;2;1
+cow;NaN;200;
+goose;2;9;
+;;1234;-;-;
+
+# error/handle: zybra has two extra columns
+**farm_types1;;;
+your_farm my_farm farms_galore;;;
+species;  num;  flt;    log;
+text;       -;   kg;  onoff;
+chicken;    2;    3;      1;
+pig;        4;   39;      0;
+goat;       4;    -;      1;
+zybra;      4;    -;      a;
+cow;      NaN;  200;      1;
+goose;      2;    9;       ;
+
+# error/handle: illegal value in table.farm_types1.zybra.log
+# error/handle: missing value in table.farm_types2.goose.dt
+
+**farm_types2;;;
+your_farm my_farm farms_galore;;;
+species;  num;  flt;          dt;
+text;       -;   kg;    datetime;
+chicken;    2;    3;  2020-07-01;
+pig;        4;   39;  2020-07-02;
+goat;       4;    -;           -;
+zybra;      4;    -;           a;
+cow;      NaN;  200;           -;
+goose;      2;    9;            ;
+
+# error/handle: illegal value in table.farm_types2.zybra.dt
+# error/handle: missing value in table.farm_types2.1234.dt
+
+**farm_types3;;;
+your_farm my_farm farms_galore;;;
+species;         dt;  num;  flt;    log;         dt2;  flt2;    log2;
+text;      datetime;    -;   kg;  onoff;    datetime;    kg;  onoff;
+chicken; 2020-jl-01;    2;     ;      a;  2020-07-01;      ;      x;
+pig;     2020-07-02;    4;   39;      0;  2020-07-02;    39;      0;
+goat;             -;    a;    -;      1;           -;     b;      1;
+zybra;            a;    4;    -;      0;           a;     -;      3;
+cow;              -;  NaN;  200;      1;           -;   200;      1;
+goose;             ;    2;    9;       ;            ;     9;       ;
+
+# error/handle: missing/illegal values in multiple columns of different types
+**farm_units1;;;
+your_farm my_farm farms_galore;;;
+species;  num;  flt;
+text;       -;   kg;   unit1; unit2; unit3;
+chicken;    2;    3;
+pig;        4;   39;
+goat;       4;    -;
+zybra;      4;    -;
+cow;      NaN;  200;
+goose;      2;    9;
+1234;       -;    -;
+
+# error/handle: more unit_names than columns
