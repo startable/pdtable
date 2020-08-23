@@ -1,7 +1,7 @@
 import functools
 from pathlib import Path
 
-from tables.directives import Directive
+from tables.ancillary_blocks import Directive
 from tables.readers.read_csv import read_file_csv
 from tables.store import BlockGenerator, BlockType
 

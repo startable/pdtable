@@ -1,11 +1,19 @@
 from io import StringIO
-
-import tables.proxy
-from ..readers.read_csv import make_directive, make_table, read_stream_csv
-from .. import pdtable
 from textwrap import dedent
 
+import tables.proxy
+from ..readers.read_csv import make_metadata_block, make_directive, make_table, read_stream_csv
 from ..store import TableBundle, BlockType
+
+
+def test_make_metadata_block():
+    lines = dedent("""\
+    author:;XYODA;
+    purpose:;Save the galaxy
+    """).strip().split("\n")
+    ml = make_metadata_block(lines, ";")
+    assert ml["author"] == "XYODA"
+    assert ml["purpose"] == "Save the galaxy"
 
 
 def test_make_directive():
@@ -80,7 +88,10 @@ def test_make_table__no_trailing_sep():
 
 
 def test_read_stream_csv():
-    lines = dedent(r"""
+    lines = dedent("""\
+        author: ;XYODA     ;
+        purpose:;Save the galaxy
+    
         ***gunk
         grok
         jiggyjag
@@ -106,7 +117,14 @@ def test_read_stream_csv():
 
     with StringIO(lines) as f:
         blocks = [b for b in read_stream_csv(f, sep=';')]
-        assert len(blocks) == 10  # includes 5 blanks and two template rows
+        assert len(blocks) == 10  # includes blanks
+
+    metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
+    assert len(metadata_blocks) == 1
+    mb = metadata_blocks[0]
+    assert len(mb) == 2
+    assert mb["author"] == "XYODA"
+    assert mb["purpose"] == "Save the galaxy"
 
     directives = [b for t, b in blocks if t == BlockType.DIRECTIVE]
     assert len(directives) == 1

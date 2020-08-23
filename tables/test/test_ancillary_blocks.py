@@ -2,10 +2,19 @@ from io import StringIO
 from pathlib import Path
 from textwrap import dedent
 
-from ..directives import Directive
+from ..ancillary_blocks import Directive, MetadataBlock
 from ..demo.directive_handlers import handle_includes
 from ..readers.read_csv import read_stream_csv
 from ..store import BlockType
+
+
+def test_metadata_block():
+    ml = MetadataBlock()
+    ml["author"] = "XYODA"
+    ml["purpose"] = "Save the galaxy"
+    assert str(ml) == dedent("""\
+        author: XYODA
+        purpose: Save the galaxy""")
 
 
 def test_directive():

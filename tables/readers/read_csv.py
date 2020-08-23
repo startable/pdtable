@@ -17,7 +17,7 @@ import numpy as np
 import tables.table_metadata
 import tables.proxy
 from .. import pdtable
-from ..directives import Directive
+from ..ancillary_blocks import Directive, MetadataBlock
 from ..store import BlockType, BlockGenerator
 
 
@@ -58,6 +58,17 @@ _column_dtypes = {
     "onoff": _parse_onoff_column,
     "datetime": _parse_datetime_column,
 }
+
+
+def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None) -> MetadataBlock:
+    mb = MetadataBlock(origin)
+    for ll in lines:
+        spl = ll.split(sep)
+        if len(spl) > 1:
+            key_field = spl[0].strip()
+            if key_field[-1] == ":":
+                mb[key_field[:-1]] = spl[1].strip()
+    return mb
 
 
 def make_directive(
@@ -107,8 +118,9 @@ def make_table(
 
 
 _token_factory_lookup = {
-    BlockType.TABLE: make_table,
+    BlockType.METADATA: make_metadata_block,
     BlockType.DIRECTIVE: make_directive,
+    BlockType.TABLE: make_table,
 }
 
 
