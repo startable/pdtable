@@ -52,15 +52,13 @@ def test_make_table__parses_onoff_column():
     15373;a;0;
     15326;b;1;
     """
-        )
-        .strip()
-        .split("\n")
-    )
-    t = make_table(lines, ";").df
-    assert t.file_bytes[0] == 15373
-    assert t.has_table[0] == False
-    assert t.has_table[1] == True
-    tt = tables.proxy.Table(t)
+        ).strip().split("\n")
+
+    table_df = make_table(lines, ";").df
+    assert table_df.file_bytes[0] == 15373
+    assert table_df.has_table[0] == False
+    assert table_df.has_table[1] == True
+    tt = tables.proxy.Table(table_df)
     assert tt.name == 'input_files_derived'
     assert set(tt.metadata.destinations) == {'all'}
     assert tt.units == ['-', 'text', 'onoff']
@@ -68,16 +66,14 @@ def test_make_table__parses_onoff_column():
 
 def test_make_table__no_trailing_sep():
     lines=dedent(r"""
-    **foo
-    all
-    column;pct;dash;mm;
-    text;%;-;mm;
-    bar;10;10;10;
-    """
-        )
-        .strip()
-        .split("\n")
-    )
+        **foo
+        all
+        column;pct;dash;mm;
+        text;%;-;mm;
+        bar;10;10;10;
+        """
+        ).strip().split("\n")
+
     t = make_table(lines, ";").df
     assert t.column[0] == "bar"
     assert t.dash[0] == 10
@@ -85,28 +81,28 @@ def test_make_table__no_trailing_sep():
 
 def test_read_stream_csv():
     lines = dedent(r"""
-    ***gunk
-    grok
-    jiggyjag
-    
-    **foo
-    all
-    column;pct;dash;mm;
-    text;%;-;mm;
-    bar;10;10;10;
-    
-    ::;Table foo describes
-    ;the fooness of things
-    :.column;Column is a column in foo
-    
-    **input_files_derived;
-    all;
-    file_bytes;file_date;has_table;
-    -;text;onoff;
-    15373;a;0;
-    15326;b;1;
-    """
-    )
+        ***gunk
+        grok
+        jiggyjag
+        
+        **foo
+        all
+        column;pct;dash;mm;
+        text;%;-;mm;
+        bar;10;10;10;
+        
+        ::;Table foo describes
+        ;the fooness of things
+        :.column;Column is a column in foo
+        
+        **input_files_derived;
+        all;
+        file_bytes;file_date;has_table;
+        -;text;onoff;
+        15373;a;0;
+        15326;b;1;
+        """
+        )
 
     with StringIO(lines) as f:
         blocks = [b for b in read_stream_csv(f, sep=';')]

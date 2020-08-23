@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Set, List, Optional, Dict
+from typing import Set, List, Optional, Dict, Union
 
 import numpy
 import pandas as pd
@@ -57,12 +57,26 @@ class TableMetadata:
         return f'Table "{self.name}" {dst}. {self.operation}{src}'
 
 
-@dataclass
 class ColumnFormat:
-    precision: int = None
 
-    def copy(self) -> 'ColumnFormat':
-        return ColumnFormat(**vars(self))
+    def __init__(self, specifier: Union[str, int]):
+        """Specifies how to format the values in this column as strings.
+        Args:
+            specifier:
+                Can be either of:
+                * An int indicating the precision i.e. number of decimal places
+                  e.g. 2 will format 123.456 as '123.46' and 42 as '42.00'
+                * A standard format specifier conforming to the format specification mini-language:
+                  https://docs.python.org/3/library/string.html#format-specification-mini-language
+                  e.g. '14.3e' will format 123.456 as '     1.235e+02'
+        """
+        self.specifier = f".{specifier}f" if isinstance(specifier, int) else specifier
+
+    def __str__(self):
+        return self.specifier
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}: '{self.specifier}'"
 
 
 # See https://docs.scipy.org/doc/numpy/reference/generated/numpy.dtype.html

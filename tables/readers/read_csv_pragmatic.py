@@ -21,9 +21,10 @@ import numpy as np
 
 import sys
 
-from .. import pdtable
-from ..store import StarBlockType, BlockGenerator
+from .. import pdtable, Table
+from ..store import BlockType, BlockGenerator
 from .FixFactory import FixFactory
+from ..table_metadata import TableOriginCSV
 
 _TF_values = {"0": False, "1": True, "-": False}
 
@@ -99,8 +100,8 @@ _column_dtypes = {
 
 
 def make_table(
-    lines: List[str], sep: str, origin: Optional[pdtable.TableOriginCSV] = None
-) -> pdtable.Table:
+    lines: List[str], sep: str, origin: Optional[TableOriginCSV] = None
+) -> Table:
     table_name = lines[0].split(sep)[0][2:]
 
     _myFixFactory.TableName = table_name
@@ -240,7 +241,7 @@ def make_table(
         _myFixFactory.TableColumn = name
         columns[name] = dtype(values)
 
-    return pdtable.Table(
+    return Table(
         pdtable.make_pdtable(
             pd.DataFrame(columns),
             units=units,
@@ -251,11 +252,11 @@ def make_table(
     )
 
 
-# TTT StarBlockType.TEMPLATE_ROW : make_template
-_token_factory_lookup = {StarBlockType.TABLE: make_table}
+# TTT BlockType.TEMPLATE_ROW : make_template
+_token_factory_lookup = {BlockType.TABLE: make_table}
 
 
-def make_token(token_type, lines, sep, origin) -> Tuple[StarBlockType, Any]:
+def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
     return token_type, None if factory is None else factory(lines, sep, origin)
 
@@ -296,22 +297,22 @@ def read_stream_csv_pragmatic(
         return not ss or ss.startswith(sep)
 
     lines = []
-    block = StarBlockType.METADATA
+    block = BlockType.METADATA
     block_line = 0
     for line_number_0based, line in enumerate(f):
         next_block = None
         if line.startswith("**"):
             if line.startswith("***"):
-                next_block = StarBlockType.DIRECTIVE
+                next_block = BlockType.DIRECTIVE
             else:
-                next_block = StarBlockType.TABLE
+                next_block = BlockType.TABLE
         elif line.startswith(":"):
-            next_block = StarBlockType.TEMPLATE_ROW
-        elif is_blank(line) and not block == StarBlockType.METADATA:
-            next_block = StarBlockType.BLANK
+            next_block = BlockType.TEMPLATE_ROW
+        elif is_blank(line) and not block == BlockType.METADATA:
+            next_block = BlockType.BLANK
 
         if next_block is not None:
-            yield make_token(block, lines, sep, pdtable.TableOriginCSV(origin, block_line))
+            yield make_token(block, lines, sep, TableOriginCSV(origin, block_line))
             lines = []
             block = next_block
             block_line = line_number_0based + 1
@@ -320,7 +321,7 @@ def read_stream_csv_pragmatic(
         lines.append(line)
 
     if lines:
-        yield make_token(block, lines, sep, pdtable.TableOriginCSV(origin, block_line))
+        yield make_token(block, lines, sep, TableOriginCSV(origin, block_line))
 
     _myFixFactory = FixFactory()
 

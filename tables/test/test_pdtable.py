@@ -5,7 +5,7 @@ import tables.proxy
 from .. import pdtable, Table
 import pytest
 
-from ..pdtable import ColumnFormat
+from ..table_metadata import ColumnFormat
 
 
 @pytest.fixture
