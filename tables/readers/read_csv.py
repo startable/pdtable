@@ -11,12 +11,15 @@ Current implementation ignores everything except table blocks.
 import itertools
 from os import PathLike
 from typing import List, Optional, Tuple, Any, TextIO
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
-from .. import pdtable
-from ..store import StarBlockType, BlockGenerator
-
+import tables.proxy
+import tables.table_metadata
+from .. import pdtable, csv_sep
+from ..ancillary_blocks import Directive, MetadataBlock
+from ..store import BlockType, BlockGenerator
 
 _TF_values = {"0": False, "1": True, "-": False}
 
@@ -57,9 +60,28 @@ _column_dtypes = {
 }
 
 
+def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None) -> MetadataBlock:
+    mb = MetadataBlock(origin)
+    for ll in lines:
+        spl = ll.split(sep)
+        if len(spl) > 1:
+            key_field = spl[0].strip()
+            if key_field[-1] == ":":
+                mb[key_field[:-1]] = spl[1].strip()
+    return mb
+
+
+def make_directive(
+    lines: List[str], sep: str, origin: Optional[str] = None
+) -> Directive:
+    name = lines[0].split(sep)[0][3:]
+    directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
+    return Directive(name, directive_lines, origin)
+
+
 def make_table(
-    lines: List[str], sep: str, origin: Optional[pdtable.TableOriginCSV] = None
-) -> pdtable.Table:
+    lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+) -> tables.proxy.Table:
     table_name = lines[0].split(sep)[0][2:]
     destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
     column_names = list(itertools.takewhile(lambda s: len(s.strip()) > 0, lines[2].split(sep)))
@@ -84,31 +106,38 @@ def make_table(
                 f"Unable to parse value in column {name} of table {table_name} as {unit}"
             ) from e
 
-    return pdtable.Table(
+    return tables.proxy.Table(
         pdtable.make_pdtable(
             pd.DataFrame(columns),
             units=units,
-            metadata=pdtable.TableMetadata(
+            metadata=tables.table_metadata.TableMetadata(
                 name=table_name, destinations=destinations, origin=origin
             ),
         )
     )
 
 
-_token_factory_lookup = {StarBlockType.TABLE: make_table}
+_token_factory_lookup = {
+    BlockType.METADATA: make_metadata_block,
+    BlockType.DIRECTIVE: make_directive,
+    BlockType.TABLE: make_table,
+}
 
 
-def make_token(token_type, lines, sep, origin) -> Tuple[StarBlockType, Any]:
+def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
-    return token_type, None if factory is None else factory(lines, sep, origin)
+    return token_type, (lines if factory is None else factory(lines, sep, origin))
 
 
-def read_stream_csv(f: TextIO, sep: str, origin: Optional[str] = None) -> BlockGenerator:
+def read_stream_csv(f: TextIO, sep: str = None, origin: Optional[str] = None) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
     # Template data handling is half-hearted, mostly because of doubts on StarTable syntax
     # Must all template data have leading `:`?
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
+    if sep is None:
+        sep = csv_sep()
+
     if origin is None:
         origin = "Stream"
 
@@ -127,22 +156,24 @@ def read_stream_csv(f: TextIO, sep: str, origin: Optional[str] = None) -> BlockG
         return not ss or ss.startswith(sep)
 
     lines = []
-    block = StarBlockType.METADATA
+    block = BlockType.METADATA
     block_line = 0
     for line_number_0based, line in enumerate(f):
         next_block = None
         if line.startswith("**"):
             if line.startswith("***"):
-                next_block = StarBlockType.DIRECTIVE
+                next_block = BlockType.DIRECTIVE
             else:
-                next_block = StarBlockType.TABLE
+                next_block = BlockType.TABLE
         elif line.startswith(":"):
-            next_block = StarBlockType.TEMPLATE_ROW
-        elif is_blank(line) and not block == StarBlockType.METADATA:
-            next_block = StarBlockType.BLANK
+            next_block = BlockType.TEMPLATE_ROW
+        elif is_blank(line) and not block == BlockType.METADATA:
+            next_block = BlockType.BLANK
 
         if next_block is not None:
-            yield make_token(block, lines, sep, pdtable.TableOriginCSV(origin, block_line))
+            yield make_token(
+                block, lines, sep, tables.table_metadata.TableOriginCSV(origin, block_line)
+            )
             lines = []
             block = next_block
             block_line = line_number_0based + 1
@@ -151,12 +182,15 @@ def read_stream_csv(f: TextIO, sep: str, origin: Optional[str] = None) -> BlockG
         lines.append(line)
 
     if lines:
-        yield make_token(block, lines, sep, pdtable.TableOriginCSV(origin, block_line))
+        yield make_token(block, lines, sep, tables.table_metadata.TableOriginCSV(origin, block_line))
 
 
-def read_file_csv(file: PathLike, sep: str = ";") -> BlockGenerator:
+def read_file_csv(file: PathLike, sep: str = None) -> BlockGenerator:
     """
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
+    if sep is None:
+        sep = csv_sep()
+
     with open(file) as f:
         yield from read_stream_csv(f, sep)

@@ -1,15 +1,16 @@
-from io import StringIO
 import os
-from textwrap import dedent
+from io import StringIO
 from pathlib import Path
-from tables.readers.read_csv_pragmatic import read_stream_csv_pragmatic, StarBlockType
-from tables.readers.read_csv_pragmatic import FixFactory
+from textwrap import dedent
+
+from tables.readers.read_csv_pragmatic import read_stream_csv_pragmatic
 from tables.writers._csv import _table_to_csv
-from .input.auto_fixed import autoFixed
+from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
+from ..store import BlockType
 
 
 def input_dir() -> Path:
-    return Path(__file__).parent / "input"
+    return Path(__file__).parent / "input/test_read_csv_pragmatic"
 
 
 def test_FAT():
@@ -23,7 +24,7 @@ def test_FAT():
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
-        if fn == "auto_fixed.py":
+        if fn in ["auto_fixed.py", "__init__.py"]:
             continue
         all_files += 1
 
@@ -31,17 +32,17 @@ def test_FAT():
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
-        if fn == "auto_fixed.py":
+        if fn in ["auto_fixed.py", "__init__.py"]:
             continue
         with open(input_dir() / fn, "r") as fh:
             g = read_stream_csv_pragmatic(fh, sep=";", origin=fn)
             count = 0
             for tp, tt in g:
                 if True:
-                    if tp == StarBlockType.TABLE:
+                    if tp == BlockType.TABLE:
                         count += 1
                         with StringIO() as out:
-                            _table_to_csv(tt, out)
+                            _table_to_csv(tt, out, sep=";", na_rep="-")
                             test_output = out.getvalue().strip()
                         if fn != "all.csv":
                             assert test_output == dedent(autoFixed[fn]).strip()

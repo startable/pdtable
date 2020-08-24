@@ -6,6 +6,9 @@ from typing import List, Tuple, Any, Optional
 import numpy as np
 import pandas as pd
 
+import tables.table_metadata
+import tables.proxy
+
 try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
 except ImportError:
@@ -13,7 +16,7 @@ except ImportError:
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 
 from tables import pdtable
-from tables.store import StarBlockType, BlockGenerator
+from tables.store import BlockType, BlockGenerator
 
 
 def normalize_if_str(x):
@@ -68,7 +71,7 @@ _column_parsers = {
 }
 
 
-def _make_table(lines: List[List], origin=None) -> pdtable.Table:
+def _make_table(lines: List[List], origin=None) -> tables.proxy.Table:
     """Makes a Table from the cell contents of the lines of a given table block"""
     # Parse header things
     table_name = lines[0][0][2:]
@@ -91,21 +94,21 @@ def _make_table(lines: List[List], origin=None) -> pdtable.Table:
             ) from e
 
     # Shove it all in a Table
-    return pdtable.Table(
+    return tables.proxy.Table(
         pdtable.make_pdtable(
             pd.DataFrame(columns),
             units=units,
-            metadata=pdtable.TableMetadata(
+            metadata=tables.table_metadata.TableMetadata(
                 name=table_name, destinations=destinations, origin=origin
             ),
         )
     )
 
 
-_block_factory_lookup = {StarBlockType.TABLE: _make_table}
+_block_factory_lookup = {BlockType.TABLE: _make_table}
 
 
-def make_block(block_type: StarBlockType, lines: List[List], origin) -> Tuple[StarBlockType, Any]:
+def make_block(block_type: BlockType, lines: List[List], origin) -> Tuple[BlockType, Any]:
     factory = _block_factory_lookup.get(block_type, None)
     return block_type, None if factory is None else factory(lines, origin)
 
@@ -113,7 +116,7 @@ def make_block(block_type: StarBlockType, lines: List[List], origin) -> Tuple[St
 def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGenerator:
     """Parses blocks from a single Openpyxl worksheet"""
     block_lines = []
-    block_type = StarBlockType.METADATA
+    block_type = BlockType.METADATA
     block_start_row = 0
     for irow_0based, row in enumerate(ws.iter_rows(values_only=True)):
         # TODO iterate on cells instead of rows? because all rows are as wide as the rightmost thing in the sheet
@@ -123,24 +126,26 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
         if first_cell_is_str:
             if first_cell.startswith("**"):
                 if first_cell.startswith("***"):
-                    next_block_type = StarBlockType.DIRECTIVE
+                    next_block_type = BlockType.DIRECTIVE
                 else:
-                    next_block_type = StarBlockType.TABLE
+                    next_block_type = BlockType.TABLE
             elif first_cell.startswith(":"):
-                next_block_type = StarBlockType.TEMPLATE_ROW
+                next_block_type = BlockType.TEMPLATE_ROW
         elif (
             first_cell is None or (first_cell_is_str and first_cell == "")
-        ) and not block_type == StarBlockType.METADATA:
-            next_block_type = StarBlockType.BLANK
+        ) and not block_type == BlockType.METADATA:
+            next_block_type = BlockType.BLANK
 
         if next_block_type is not None:
             yield make_block(
-                block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row)
+                block_type, block_lines, tables.table_metadata.TableOriginCSV(origin, block_start_row)
             )
+            # TODO replace TableOriginCSV with one tailored for Excel
             block_lines = []
             block_type = next_block_type
             block_start_row = irow_0based + 1
         block_lines.append(row)
 
     if block_lines:
-        yield make_block(block_type, block_lines, pdtable.TableOriginCSV(origin, block_start_row))
+        yield make_block(block_type, block_lines, tables.table_metadata.TableOriginCSV(origin, block_start_row))
+        # TODO replace TableOriginCSV with one tailored for Excel
