@@ -1,16 +1,16 @@
-from io import StringIO
 import os
-from textwrap import dedent
+from io import StringIO
 from pathlib import Path
+from textwrap import dedent
+
 from tables.readers.read_csv_pragmatic import read_stream_csv_pragmatic
-from ..store import BlockType
-from tables.readers.read_csv_pragmatic import FixFactory
 from tables.writers._csv import _table_to_csv
-from .input_test_read_csv_pragmatic.auto_fixed import autoFixed
+from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
+from ..store import BlockType
 
 
 def input_dir() -> Path:
-    return Path(__file__).parent / "input_test_read_csv_pragmatic"
+    return Path(__file__).parent / "input/test_read_csv_pragmatic"
 
 
 def test_FAT():
