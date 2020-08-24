@@ -1,5 +1,13 @@
 # flake8: noqa
 
+CSV_SEP = ";"  # User can overwrite this default
+
+
+def csv_sep():
+    """Returns value of CSV_SEP as available at runtime"""
+    return CSV_SEP
+
+
 from .proxy import Table
 from .table_metadata import TableOrigin
 from .store import TableBundle

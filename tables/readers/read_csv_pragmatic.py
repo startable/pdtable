@@ -21,7 +21,7 @@ import numpy as np
 
 import sys
 
-from .. import pdtable, Table
+from .. import pdtable, Table, csv_sep
 from ..store import BlockType, BlockGenerator
 from .FixFactory import FixFactory
 from ..table_metadata import TableOriginCSV
@@ -262,13 +262,16 @@ def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
 
 
 def read_stream_csv_pragmatic(
-    f: TextIO, sep: str = ";", origin: Optional[str] = None, fixFactory=None
+    f: TextIO, sep: str = None, origin: Optional[str] = None, fixFactory=None
 ) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
     # Template data handling is half-hearted, mostly because of doubts on StarTable syntax
     # Must all template data have leading `:`?
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
+    if sep is None:
+        sep = csv_sep()
+
     if origin is None:
         origin = "Stream"
 
@@ -326,10 +329,12 @@ def read_stream_csv_pragmatic(
     _myFixFactory = FixFactory()
 
 
-def read_file_csv_pragmatic(file: PathLike, sep=";", fixFactory=None) -> BlockGenerator:
+def read_file_csv_pragmatic(file: PathLike, sep: str = None, fixFactory=None) -> BlockGenerator:
     """
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
+    if sep is None:
+        sep = csv_sep()
 
     with open(file) as f:
         yield from read_stream_csv_pragmatic(f, sep, origin=file, fixFactory=fixFactory)

@@ -42,7 +42,7 @@ def test_FAT():
                     if tp == BlockType.TABLE:
                         count += 1
                         with StringIO() as out:
-                            _table_to_csv(tt, out)
+                            _table_to_csv(tt, out, sep=";", na_rep="-")
                             test_output = out.getvalue().strip()
                         if fn != "all.csv":
                             assert test_output == dedent(autoFixed[fn]).strip()

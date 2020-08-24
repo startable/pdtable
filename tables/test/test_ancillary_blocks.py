@@ -12,15 +12,15 @@ def test_metadata_block():
     ml = MetadataBlock()
     ml["author"] = "XYODA"
     ml["purpose"] = "Save the galaxy"
-    assert str(ml) == dedent("""\
-        author: XYODA
-        purpose: Save the galaxy""")
+    assert repr(ml) == dedent("""\
+        author:;XYODA;
+        purpose:;Save the galaxy;""")
 
 
 def test_directive():
     d = Directive("foo", ["bar", "baz"])
-    assert str(d) == dedent("""\
-        ***foo
+    assert repr(d) == dedent("""\
+        ***foo;
         bar
         baz""")
 

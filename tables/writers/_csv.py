@@ -4,13 +4,13 @@ from typing import Iterable, TextIO, Union
 
 from tables.store import TableBundle
 from ._represent import _represent_row_elements
-from .. import Table
+from .. import Table, csv_sep
 
 
 def write_csv(
     tables: Union[Table, Iterable[Table], TableBundle],
     to: Union[str, os.PathLike, TextIO],
-    sep: str = ";",
+    sep: str = None,
     na_rep: str = "-",
 ):
     """Writes one or more tables to a CSV file or text stream.
@@ -32,6 +32,8 @@ def write_csv(
             Optional; String representation of missing values (NaN, None, NaT). Default is '-'.
             If overriding this default, use another value compliant with the StarTable standard.
     """
+    if sep is None:
+        sep = csv_sep()
 
     if isinstance(tables, Table):
         # For convenience, pack single table in an iterable
@@ -44,9 +46,10 @@ def write_csv(
             _table_to_csv(table, stream, sep, na_rep)
 
 
-def _table_to_csv(table: Table, stream: TextIO, sep: str = ";", na_rep: str = "-") -> None:
+def _table_to_csv(table: Table, stream: TextIO, sep: str, na_rep: str) -> None:
     """Writes a single Table to stream as CSV. 
     """
+
     units = table.units
     display_formats = [table.column_metadata[c].display_format for c in table.column_metadata]
     format_strings = [f"{{:{f.specifier}}}" if f else None for f in display_formats]

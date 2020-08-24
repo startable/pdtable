@@ -10,7 +10,7 @@ def _represent_row_elements(row: Iterable, units: Iterable, na_rep: str = "-"):
     the StarTable standard, in accordance with the values' respective column units: 
     
     - NaN-like things in non-text columns are coerced to the specified nan representation
-    - 'onoff' coumn values are coerced to 0's and 1's (where possible)
+    - 'onoff' column values are coerced to 0's and 1's (where possible)
     - 'text' column values are coerced to strings
     - If the first column is 'text', its empty strings are replaced with an arbitrary but reasonable sealant
 

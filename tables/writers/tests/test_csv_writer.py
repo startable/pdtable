@@ -3,9 +3,10 @@ from textwrap import dedent
 
 import pandas as pd
 
+import tables
 from tables import write_csv, Table
 from .._csv import _table_to_csv
-from ...table_metadata import TableData, ColumnFormat
+from ...table_metadata import ColumnFormat
 
 
 def test__table_to_csv():
@@ -22,7 +23,7 @@ def test__table_to_csv():
 
     # Write table to stream
     with io.StringIO() as out:
-        _table_to_csv(t, out)
+        _table_to_csv(t, out, ";", "-")
         # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
@@ -132,6 +133,41 @@ def test_write_csv__writes_to_file(tmp_path):
     out_path.unlink()
 
 
+def test__write_csv__uses_altered_default_csv_separator(monkeypatch):
+
+    # Change the default CSV separator
+    # Using monkeypatch in lieu of just 'tables.CSV_SEP = ","'
+    # so that this alteration of the default is only visible in this test.
+    monkeypatch.setattr(tables, "CSV_SEP", ",")
+
+    # Make a table with content of various units
+    t = Table(pd.DataFrame({"place": ["home", "work", "beach", "wonderland"],
+                            "distance": list(range(3)) + [float("nan")],
+                            "ETA": pd.to_datetime(
+                                ["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00",
+                                 pd.NaT]),
+                            "is_hot": [True, False, True, False]}),
+              name="foo", units=["text", "km", "datetime", "onoff"])
+
+    # Write table to stream
+    with io.StringIO() as out:
+        write_csv(t, out)
+        # Assert stream content is as expected
+        assert out.getvalue() == dedent(
+            """\
+            **foo
+            all
+            place,distance,ETA,is_hot
+            text,km,datetime,onoff
+            home,0.0,2020-08-04 08:00:00,1
+            work,1.0,2020-08-04 09:00:00,0
+            beach,2.0,2020-08-04 17:00:00,1
+            wonderland,-,-,0
+
+            """
+        )
+
+
 def test_write_csv__with_format_specs():
     # Make a table
     t2 = Table(pd.DataFrame({"numbers": [1, 6, 42],
@@ -156,4 +192,5 @@ def test_write_csv__with_format_specs():
             
             """
         )
+
 
