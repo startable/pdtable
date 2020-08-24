@@ -9,7 +9,12 @@ from tables.store import BlockGenerator, BlockType
 def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> BlockGenerator:
     """Handles 'include' directives, optionally recursively.
 
-    'include' directives must contain a list of files located in input_dir.
+    Handles 'include' directives.
+    'include' directives must contain a list of files located in directory 'input_dir'.
+
+    Optionally handles 'include' directives recursively. No check is done for circular references.
+    For example, if file1.csv includes file2.csv, and file2.csv includes file1.csv, then infinite
+    recursion ensues upon reading either file1.csv or file2.csv with 'recursive' set to True.
 
     Args:
         bg:
