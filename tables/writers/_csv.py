@@ -57,7 +57,7 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str, na_rep: str) -> None:
 
     # Build entire string at once
     the_whole_thing = \
-        f"**{table.name}\n" + \
+        f"**{table.name}{sep}\n" + \
         " ".join(str(x) for x in table.metadata.destinations) + "\n" + \
         sep.join(str(x) for x in table.column_names) + "\n" + \
         sep.join(str(x) for x in units) + "\n" + \

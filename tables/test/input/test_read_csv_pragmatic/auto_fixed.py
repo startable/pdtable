@@ -10,7 +10,7 @@
 """
 autoFixed = {
     "colname1.csv": """
-        **farm_colname1
+        **farm_colname1;
         your_farm my_farm farms_galore
         species;-missing-;avg_weight
         text;-;kg
@@ -22,7 +22,7 @@ autoFixed = {
         goose;2.0;9.0
     """,
     "cols1.csv": """
-        **farm_cols1
+        **farm_cols1;
         your_farm my_farm farms_galore
         species;num;flt;dt;-fix-
         text;-;kg;datetime;kg
@@ -35,7 +35,7 @@ autoFixed = {
         1234;-;-;-;7.11
     """,
     "cols2.csv": """
-        **farm_cols2
+        **farm_cols2;
         your_farm my_farm farms_galore
         species;num;-missing-;dt;flt
         text;-;kg;datetime;kg
@@ -48,7 +48,7 @@ autoFixed = {
         1234;-;-;-;7.11
     """,
     "ex0.csv": """
-        **farm_animals0
+        **farm_animals0;
         your_farm my_farm farms_galore
         species;n_legs;avg_weight
         text;-;kg
@@ -60,7 +60,7 @@ autoFixed = {
         goose;2.0;9.0
     """,
     "ex1.csv": """
-        **farm_animals1
+        **farm_animals1;
         your_farm my_farm farms_galore
         species;n_legs;avg_weight
         text;-;kg
@@ -72,7 +72,7 @@ autoFixed = {
         goose;2.0;9.0
     """,
     "ex2.csv": """
-        **farm_animals2
+        **farm_animals2;
         your_farm my_farm farms_galore
         species;n_legs;avg_weight
         text;-;kg
@@ -84,7 +84,7 @@ autoFixed = {
         goose;2.0;9.0
     """,
     "ex3.csv": """
-        **farm_animals3
+        **farm_animals3;
         your_farm my_farm farms_galore
         species;n_legs;avg_weight
         text;-;kg
@@ -96,7 +96,7 @@ autoFixed = {
         goose;2.0;9.0
     """,
     "row1.csv": """
-        **farm_row1
+        **farm_row1;
         your_farm my_farm farms_galore
         species;n_legs;avg_weight
         text;-;kg
@@ -108,7 +108,7 @@ autoFixed = {
         goose;2.0;9.0
     """,
     "row2.csv": """
-        **farm_row2
+        **farm_row2;
         your_farm my_farm farms_galore
         species;n_legs;avg_weight
         text;-;kg
@@ -120,7 +120,7 @@ autoFixed = {
         goose;2.0;9.0
     """,
     "types1.csv": """
-        **farm_types1
+        **farm_types1;
         your_farm my_farm farms_galore
         species;num;flt;log
         text;-;kg;onoff
@@ -132,7 +132,7 @@ autoFixed = {
         goose;2.0;9.0;0
     """,
     "types2.csv": """
-        **farm_types2
+        **farm_types2;
         your_farm my_farm farms_galore
         species;num;flt;dt
         text;-;kg;datetime
@@ -144,7 +144,7 @@ autoFixed = {
         goose;2.0;9.0;-
     """,
     "types3.csv": """
-        **farm_types3
+        **farm_types3;
         your_farm my_farm farms_galore
         species;dt;num;flt;log;dt2;flt2;log2
         text;datetime;-;kg;onoff;datetime;kg;onoff
@@ -156,7 +156,7 @@ autoFixed = {
         goose;-;2.0;9.0;0;-;9.0;0
     """,
     "units1.csv": """
-        **farm_units1
+        **farm_units1;
         your_farm my_farm farms_galore
         species;num;flt
         text;-;kg
