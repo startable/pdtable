@@ -7,7 +7,7 @@ from textwrap import dedent
 
 
 class MockUnitPolicy(UnitPolicy):
-    def convert_value_to_base(self, value, unit: str) -> Tuple[Any, str]:
+    def convert_value_to_base(self, value, unit: str, column_name: str) -> Tuple[Any, str]:
         if unit == "mm":
             return value * 1e-3, "m"
         else:
@@ -20,8 +20,8 @@ def unit_policy() -> UnitPolicy:
 
 
 def test_convert_values(unit_policy):
-    assert unit_policy.convert_value_to_base(1, "mm") == (1e-3, "m")
-    assert unit_policy.convert_value_to_base("test", "text") == ("test", "text")
+    assert unit_policy.convert_value_to_base(1, "mm", "") == (1e-3, "m")
+    assert unit_policy.convert_value_to_base("test", "text", "") == ("test", "text")
 
 
 def test_update_table(unit_policy):
