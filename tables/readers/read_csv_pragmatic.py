@@ -13,17 +13,16 @@ clone of read_csv.py
 
 
 """
-import itertools
 from os import PathLike
 from typing import List, Optional, Tuple, Any, TextIO
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
-import sys
-
-from .. import pdtable, Table, csv_sep
-from ..store import BlockType, BlockGenerator
+import tables
 from .FixFactory import FixFactory
+from .. import pdtable, Table
+from ..store import BlockType, BlockGenerator
 from ..table_metadata import TableOriginCSV
 
 _TF_values = {"0": False, "1": True, "-": False}
@@ -270,7 +269,7 @@ def read_stream_csv_pragmatic(
     # Must all template data have leading `:`?
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
     if sep is None:
-        sep = csv_sep()
+        sep = tables.CSV_SEP
 
     if origin is None:
         origin = "Stream"
@@ -334,7 +333,7 @@ def read_file_csv_pragmatic(file: PathLike, sep: str = None, fixFactory=None) ->
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
     if sep is None:
-        sep = csv_sep()
+        sep = tables.CSV_SEP
 
     with open(file) as f:
         yield from read_stream_csv_pragmatic(f, sep, origin=file, fixFactory=fixFactory)
