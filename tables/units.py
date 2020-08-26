@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, Any
-from .pdtable import Table as TableType
+from . import Table as TableType
 
 
 class UnitPolicy(ABC):
