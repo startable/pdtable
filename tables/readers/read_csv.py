@@ -67,7 +67,7 @@ def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None
         spl = ll.split(sep)
         if len(spl) > 1:
             key_field = spl[0].strip()
-            if key_field[-1] == ":":
+            if len(key_field) > 0 and key_field[-1] == ":":
                 mb[key_field[:-1]] = spl[1].strip()
     return mb
 
