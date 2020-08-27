@@ -13,7 +13,7 @@ import pandas as pd
 from numpy.testing import assert_array_equal
 
 from ... import Table
-from ...store import StarBlockType
+from ...store import BlockType
 
 
 def test_normalize_if_str():
@@ -125,7 +125,7 @@ def test_parse_blocks():
     ws.append([3, 4, 1])
 
     blocks = list(parse_blocks(ws))
-    tables = [block for (block_type, block) in blocks if block_type == StarBlockType.TABLE]
+    tables = [block for (block_type, block) in blocks if block_type == BlockType.TABLE]
 
     assert tables[0].name == "foo"
     assert tables[0].column_names == ["place", "distance"]
@@ -155,7 +155,7 @@ def test_read_excel():
 
     # Read tables from file
     blocks = read_excel(Path(__file__).parent / "input" / "foo.xlsx")
-    tables_read = [block for (block_type, block) in blocks if block_type == StarBlockType.TABLE]
+    tables_read = [block for (block_type, block) in blocks if block_type == BlockType.TABLE]
 
     assert len(expected_tables) == len(tables_read)
 

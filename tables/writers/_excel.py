@@ -12,7 +12,7 @@ from tables.store import TableBundle
 from typing import Iterable, Union
 import os
 
-from ..pdtable import Table
+from .. import Table
 
 
 def write_excel(

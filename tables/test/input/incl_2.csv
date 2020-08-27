@@ -1,0 +1,9 @@
+***include
+incl_3.csv
+
+**t2
+all
+animal;num_legs
+text;-
+dog;4
+fish;0
