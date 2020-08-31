@@ -5,7 +5,6 @@ from . import units, Table
 from .store import TableBundle, BlockType
 from .readers.read_csv import read_file_csv
 
-
 def normalized_table_generator(unit_policy, ts: Iterable[Tuple[BlockType, Optional[Any]]]):
     for token_type, token in ts:
         if token is not None and token_type == BlockType.TABLE:
