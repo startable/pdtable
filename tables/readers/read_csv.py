@@ -15,9 +15,10 @@ from typing import List, Optional, Tuple, Any, TextIO
 import numpy as np
 import pandas as pd
 
+import tables
 import tables.proxy
 import tables.table_metadata
-from .. import pdtable, csv_sep
+from .. import pdtable
 from ..ancillary_blocks import Directive, MetadataBlock
 from ..store import BlockType, BlockGenerator
 
@@ -66,7 +67,7 @@ def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None
         spl = ll.split(sep)
         if len(spl) > 1:
             key_field = spl[0].strip()
-            if key_field[-1] == ":":
+            if len(key_field) > 0 and key_field[-1] == ":":
                 mb[key_field[:-1]] = spl[1].strip()
     return mb
 
@@ -136,7 +137,7 @@ def read_stream_csv(f: TextIO, sep: str = None, origin: Optional[str] = None) ->
     # Must all template data have leading `:`?
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
     if sep is None:
-        sep = csv_sep()
+        sep = tables.CSV_SEP
 
     if origin is None:
         origin = "Stream"
@@ -190,7 +191,7 @@ def read_file_csv(file: PathLike, sep: str = None) -> BlockGenerator:
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
     if sep is None:
-        sep = csv_sep()
+        sep = tables.CSV_SEP
 
     with open(file) as f:
         yield from read_stream_csv(f, sep)

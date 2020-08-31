@@ -13,17 +13,17 @@ clone of read_csv.py
 
 
 """
-import itertools
 from os import PathLike
 from typing import List, Optional, Tuple, Any, TextIO
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
-import sys
-
-from .. import pdtable, Table, csv_sep
-from ..store import BlockType, BlockGenerator
+import tables
 from .FixFactory import FixFactory
+from .. import pdtable, Table
+from ..store import BlockType, BlockGenerator
+from ..ancillary_blocks import Directive, MetadataBlock
 from ..table_metadata import TableOriginCSV
 
 _TF_values = {"0": False, "1": True, "-": False}
@@ -98,6 +98,23 @@ _column_dtypes = {
     "datetime": _parse_datetime_column,
 }
 
+def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None) -> MetadataBlock:
+    mb = MetadataBlock(origin)
+    for ll in lines:
+        spl = ll.split(sep)
+        if len(spl) > 1:
+            key_field = spl[0].strip()
+            if len(key_field) > 0 and key_field[-1] == ":":
+                mb[key_field[:-1]] = spl[1].strip()
+    return mb
+
+
+def make_directive(
+    lines: List[str], sep: str, origin: Optional[str] = None
+) -> Directive:
+    name = lines[0].split(sep)[0][3:]
+    directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
+    return Directive(name, directive_lines, origin)
 
 def make_table(
     lines: List[str], sep: str, origin: Optional[TableOriginCSV] = None
@@ -252,13 +269,16 @@ def make_table(
     )
 
 
-# TTT BlockType.TEMPLATE_ROW : make_template
-_token_factory_lookup = {BlockType.TABLE: make_table}
+_token_factory_lookup = {
+    BlockType.METADATA: make_metadata_block,
+    BlockType.DIRECTIVE: make_directive,
+    BlockType.TABLE: make_table,
+}
 
 
 def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
-    return token_type, None if factory is None else factory(lines, sep, origin)
+    return token_type, lines if factory is None else factory(lines, sep, origin)
 
 
 def read_stream_csv_pragmatic(
@@ -270,7 +290,7 @@ def read_stream_csv_pragmatic(
     # Must all template data have leading `:`?
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
     if sep is None:
-        sep = csv_sep()
+        sep = tables.CSV_SEP
 
     if origin is None:
         origin = "Stream"
@@ -334,7 +354,7 @@ def read_file_csv_pragmatic(file: PathLike, sep: str = None, fixFactory=None) ->
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
     if sep is None:
-        sep = csv_sep()
+        sep = tables.CSV_SEP
 
     with open(file) as f:
         yield from read_stream_csv_pragmatic(f, sep, origin=file, fixFactory=fixFactory)

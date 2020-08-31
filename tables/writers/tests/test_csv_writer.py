@@ -27,7 +27,7 @@ def test__table_to_csv():
         # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
-            **foo
+            **foo;
             all
             place;distance;ETA;is_hot
             text;km;datetime;onoff
@@ -62,7 +62,7 @@ def test_write_csv__writes_two_tables():
         # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
-            **foo
+            **foo;
             all
             place;distance;ETA;is_hot
             text;km;datetime;onoff
@@ -71,7 +71,7 @@ def test_write_csv__writes_two_tables():
             beach;2.0;2020-08-04 17:00:00;1
             wonderland;-;-;0
 
-            **bar
+            **bar;
             all
             number;spelling
             -;text
@@ -94,7 +94,7 @@ def test_write_csv__leaves_stream_open_if_caller_passes_stream():
         out.write("Fin\n")
         assert out.getvalue() == dedent(
             """\
-            **bar
+            **bar;
             all
             number;spelling
             -;text
@@ -119,7 +119,7 @@ def test_write_csv__writes_to_file(tmp_path):
     # Now check file contents
     assert out_path.read_text() == dedent(
         """\
-        **bar
+        **bar;
         all
         number;spelling
         -;text
@@ -155,7 +155,7 @@ def test__write_csv__uses_altered_default_csv_separator(monkeypatch):
         # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
-            **foo
+            **foo,
             all
             place,distance,ETA,is_hot
             text,km,datetime,onoff
@@ -182,7 +182,7 @@ def test_write_csv__with_format_specs():
         write_csv(t2, out)
         assert out.getvalue() == dedent(
             """\
-            **bar
+            **bar;
             all
             numbers;same_numbers;others
             -;-;-
