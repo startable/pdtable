@@ -98,7 +98,6 @@ _column_dtypes = {
     "datetime": _parse_datetime_column,
 }
 
-
 def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None) -> MetadataBlock:
     mb = MetadataBlock(origin)
     for ll in lines:
@@ -110,20 +109,17 @@ def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None
     return mb
 
 
-def make_directive(lines: List[str], sep: str, origin: Optional[str] = None) -> Directive:
+def make_directive(
+    lines: List[str], sep: str, origin: Optional[str] = None
+) -> Directive:
     name = lines[0].split(sep)[0][3:]
     directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
     return Directive(name, directive_lines, origin)
 
-
-def make_table(lines: List[str], sep: str, origin: Optional[TableOriginCSV] = None) -> Table:
-    table_name = lines[0].split(sep)[0][2:]
-
-    _myFixFactory.TableName = table_name
-    destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
-
-    cnames_raw = lines[2].split(sep)
-    # strip empty elements at end of list
+def _column_names(cnames_raw):
+    """
+       handle known issues in column_names
+    """
     # Thingie: dbg
     # print(f"---oOo- column_names raw: {cnames_raw}")
     n_names_col = len(cnames_raw)
@@ -131,8 +127,6 @@ def make_table(lines: List[str], sep: str, origin: Optional[TableOriginCSV] = No
         if len(el) > 0:
             break
         n_names_col -= 1
-
-    # TBC: also forward scan for first empty column (additional comment blocks)
 
     # handle multiple columns w. same name
     column_names = []
@@ -152,8 +146,20 @@ def make_table(lines: List[str], sep: str, origin: Optional[TableOriginCSV] = No
             assert not cname in names
             names[cname] = 0
             column_names.append(cname)
+    return column_names
 
-    _myFixFactory.TableColumNames = column_names  # final
+def make_table(
+    lines: List[str], sep: str, origin: Optional[TableOriginCSV] = None
+) -> Table:
+    table_name = lines[0].split(sep)[0][2:]
+
+    _myFixFactory.TableName = table_name
+    destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
+
+    # handle multiple columns w. same name
+    cnames_raw = lines[2].split(sep)
+    column_names = _column_names(cnames_raw)
+    _myFixFactory.TableColumNames = column_names
 
     units_raw = lines[3].split(sep)
     n_units_col = len(units_raw)
@@ -169,14 +175,14 @@ def make_table(lines: List[str], sep: str, origin: Optional[TableOriginCSV] = No
     # auto filler
     units = [el if (len(el) > 0) else "-" for el in units]
 
-    n_col = n_names_col
-    if n_names_col != n_units_col:
+    n_col = len(column_names)
+    if len(column_names) != len(units):
         # Thingie
         print(
-            f"Thingie: #-coloumn mismatch, n_names: {n_names_col} differ from n_units: {n_units_col}"
+            f"Thingie: #-coloumn mismatch, n_names: {len(column_names)} differ from n_units: {len(units)}"
         )
         # TBC: choose larger
-        n_col = max(n_names_col, n_units_col)
+        n_col = max(len(column_names), len(units))
         pass
 
     column_data = [l.split(sep)[:n_col] for l in lines[4:]]

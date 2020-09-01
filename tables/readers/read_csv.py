@@ -108,14 +108,50 @@ def make_directive(lines: List[str], sep: str, origin: Optional[str] = None) -> 
     directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
     return Directive(name, directive_lines, origin)
 
+def _column_names(cnames_raw):
+    """
+       handle known issues in column_names
+    """
+    # Thingie: dbg
+    # print(f"---oOo- column_names raw: {cnames_raw}")
+    n_names_col = len(cnames_raw)
+    for el in reversed(cnames_raw):
+        if len(el) > 0:
+            break
+        n_names_col -= 1
+
+    # handle multiple columns w. same name
+    column_names = []
+    cnames_all = [el.strip() for el in cnames_raw[:n_names_col]]
+    names = {}
+    for icol, cname in enumerate(cnames_all):
+        if not cname in names and len(cname) > 0:
+            names[cname] = 0
+            column_names.append(cname)
+        else:
+            _myFixFactory.TableColumn = icol
+            _myFixFactory.TableColumNames = column_names  # so far
+            if len(cname) == 0:
+                cname = _myFixFactory.fix_missing_column_name(col=icol, input_columns=cnames_all)
+            elif cname in names:
+                cname = _myFixFactory.fix_duplicate_column_name(col=icol, input_columns=cnames_all)
+            assert not cname in names
+            names[cname] = 0
+            column_names.append(cname)
+    return column_names
 
 def make_table(
     lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> tables.proxy.Table:
     table_name = lines[0].split(sep)[0][2:]
+
+    _myFixFactory.TableName = table_name
     destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
-    column_names = list(itertools.takewhile(lambda s: len(s.strip()) > 0, lines[2].split(sep)))
-    column_names = [el.strip() for el in column_names]
+
+    # handle multiple columns w. same name
+    cnames_raw = lines[2].split(sep)
+    column_names = _column_names(cnames_raw)
+    _myFixFactory.TableColumNames = column_names
 
     n_col = len(column_names)
     units = lines[3].split(sep)[:n_col]
@@ -130,6 +166,7 @@ def make_table(
     columns = dict()
     for name, dtype, unit, values in zip(column_names, column_dtype, units, zip(*column_data)):
         try:
+            _myFixFactory.TableColumn = name
             columns[name] = dtype(values)
         except ValueError as e:
             raise ValueError(
