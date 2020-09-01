@@ -98,6 +98,7 @@ _column_dtypes = {
     "datetime": _parse_datetime_column,
 }
 
+
 def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None) -> MetadataBlock:
     mb = MetadataBlock(origin)
     for ll in lines:
@@ -109,16 +110,13 @@ def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None
     return mb
 
 
-def make_directive(
-    lines: List[str], sep: str, origin: Optional[str] = None
-) -> Directive:
+def make_directive(lines: List[str], sep: str, origin: Optional[str] = None) -> Directive:
     name = lines[0].split(sep)[0][3:]
     directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
     return Directive(name, directive_lines, origin)
 
-def make_table(
-    lines: List[str], sep: str, origin: Optional[TableOriginCSV] = None
-) -> Table:
+
+def make_table(lines: List[str], sep: str, origin: Optional[TableOriginCSV] = None) -> Table:
     table_name = lines[0].split(sep)[0][2:]
 
     _myFixFactory.TableName = table_name

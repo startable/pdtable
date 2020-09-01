@@ -5,9 +5,8 @@ Central idea is that the reader emits a stream of StarBlock objects.
 This allows early abort of reads as well as generic postprocessing (
 as discussed in store-module docstring).
 
-Not implemented:
-Current implementation ignores everything except table blocks.
 """
+import sys
 import itertools
 from os import PathLike
 from typing import List, Optional, Tuple, Any, TextIO
@@ -16,21 +15,27 @@ import numpy as np
 import pandas as pd
 
 import tables
-import tables.proxy
-import tables.table_metadata
-from .. import pdtable
-from ..ancillary_blocks import Directive, MetadataBlock
+from .FixFactory import FixFactory
+from .. import pdtable, Table
 from ..store import BlockType, BlockGenerator
+from ..ancillary_blocks import Directive, MetadataBlock
+from ..table_metadata import TableOriginCSV
 
 _TF_values = {"0": False, "1": True, "-": False}
 
+# TBC: wrap in specific reader instance, this is global for all threads
+_myFixFactory = FixFactory()
 
 def _parse_onoff_column(values):
-    try:
-        as_bool = [_TF_values[v.strip()] for v in values]
-    except KeyError:
-        raise ValueError("Entries in onoff columns must be 0 (False) or 1 (True)")
-    return np.array(as_bool, dtype=np.bool)
+    bvalues = []
+    for row, vv in enumerate(values):
+        try:
+            bvalues.append(_TF_values[vv.strip()])
+        except KeyError as exc:
+            _myFixFactory.TableRow = row  # TBC: index
+            fix_value = _myFixFactory.fix_illegal_cell_value("onoff", vv)
+            bvalues.append(fix_value)
+    return np.array(bvalues, dtype=np.bool)
 
 
 _cnv_flt = {
@@ -45,12 +50,38 @@ _cnv_datetime = lambda v: pd.NaT if (v == "-") else pd.to_datetime(v, dayfirst=T
 
 
 def _parse_float_column(values):
-    fvalues = [_cnv_flt[vv[0]](vv) for vv in values]
+    fvalues = []
+    for row, vv in enumerate(values):
+        if len(vv) > 0 and (vv[0] in _cnv_flt):
+            try:
+                fvalues.append(_cnv_flt[vv[0]](vv))
+            except Exception as exc:
+                _myFixFactory.TableRow = row  # TBC: index
+                fix_value = _myFixFactory.fix_illegal_cell_value("float", vv)
+                fvalues.append(fix_value)
+        else:
+            _myFixFactory.TableRow = row  # TBC: index
+            fix_value = _myFixFactory.fix_illegal_cell_value("float", vv)
+            fvalues.append(fix_value)
     return np.array(fvalues)
 
 
 def _parse_datetime_column(values):
-    dtvalues = [_cnv_datetime(vv) for vv in values]
+    dtvalues = []
+    for row, vv in enumerate(values):
+        if len(vv) > 0 and (vv[0].isdigit() or vv == "-"):
+            try:
+                dtvalues.append(_cnv_datetime(vv))
+            except Exception as exc:
+                # TBC: register exc !?
+                _myFixFactory.TableRow = row  # TBC: index
+                fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
+                dtvalues.append(fix_value)
+        else:
+            _myFixFactory.TableRow = row  # TBC: index
+            fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
+            dtvalues.append(fix_value)
+
     return np.array(dtvalues)
 
 
@@ -72,9 +103,7 @@ def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None
     return mb
 
 
-def make_directive(
-    lines: List[str], sep: str, origin: Optional[str] = None
-) -> Directive:
+def make_directive(lines: List[str], sep: str, origin: Optional[str] = None) -> Directive:
     name = lines[0].split(sep)[0][3:]
     directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
     return Directive(name, directive_lines, origin)
@@ -107,6 +136,18 @@ def make_table(
                 f"Unable to parse value in column {name} of table {table_name} as {unit}"
             ) from e
 
+    print(f"\ncolumn_data: {type(column_data)}")
+    for dd in column_data:
+        print(f" {dd} ")
+
+    print("\ncolumns:")
+    for dd in columns:
+        print(f" {columns[dd]} ")
+
+    # DET ER FAKTISK HER PRÆCIST VI SKAL GENERALISERE !
+    df = pd.DataFrame(columns)
+    print(df)
+
     return tables.proxy.Table(
         pdtable.make_pdtable(
             pd.DataFrame(columns),
@@ -117,7 +158,6 @@ def make_table(
         )
     )
 
-
 _token_factory_lookup = {
     BlockType.METADATA: make_metadata_block,
     BlockType.DIRECTIVE: make_directive,
@@ -127,10 +167,12 @@ _token_factory_lookup = {
 
 def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
-    return token_type, (lines if factory is None else factory(lines, sep, origin))
+    return token_type, lines if factory is None else factory(lines, sep, origin)
 
 
-def read_stream_csv(f: TextIO, sep: str = None, origin: Optional[str] = None) -> BlockGenerator:
+def read_stream_csv(
+    f: TextIO, sep: str = None, origin: Optional[str] = None, fixFactory=None
+) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
     # Template data handling is half-hearted, mostly because of doubts on StarTable syntax
@@ -141,6 +183,16 @@ def read_stream_csv(f: TextIO, sep: str = None, origin: Optional[str] = None) ->
 
     if origin is None:
         origin = "Stream"
+
+    global _myFixFactory
+    if not fixFactory is None:
+        if type(fixFactory) is type:
+            _myFixFactory = fixFactory()
+        else:
+            _myFixFactory = fixFactory
+    assert _myFixFactory != None
+
+    _myFixFactory.FileName = origin
 
     def is_blank(s):
         """
@@ -172,9 +224,7 @@ def read_stream_csv(f: TextIO, sep: str = None, origin: Optional[str] = None) ->
             next_block = BlockType.BLANK
 
         if next_block is not None:
-            yield make_token(
-                block, lines, sep, tables.table_metadata.TableOriginCSV(origin, block_line)
-            )
+            yield make_token(block, lines, sep, TableOriginCSV(origin, block_line))
             lines = []
             block = next_block
             block_line = line_number_0based + 1
@@ -183,10 +233,12 @@ def read_stream_csv(f: TextIO, sep: str = None, origin: Optional[str] = None) ->
         lines.append(line)
 
     if lines:
-        yield make_token(block, lines, sep, tables.table_metadata.TableOriginCSV(origin, block_line))
+        yield make_token(block, lines, sep, TableOriginCSV(origin, block_line))
+
+    _myFixFactory = FixFactory()
 
 
-def read_file_csv(file: PathLike, sep: str = None) -> BlockGenerator:
+def read_file_csv(file: PathLike, sep: str = None, fixFactory=None) -> BlockGenerator:
     """
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
@@ -194,4 +246,4 @@ def read_file_csv(file: PathLike, sep: str = None) -> BlockGenerator:
         sep = tables.CSV_SEP
 
     with open(file) as f:
-        yield from read_stream_csv(f, sep)
+        yield from read_stream_csv(f, sep, origin=file, fixFactory=fixFactory)
