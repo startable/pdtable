@@ -1,6 +1,8 @@
 import os
 import sys
 import json
+import numpy as np
+import datetime
 from io import StringIO
 from pathlib import Path
 from textwrap import dedent
@@ -8,11 +10,25 @@ from textwrap import dedent
 from tables.readers.read_csv import read_stream_csv
 from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
 from ..store import BlockType
+from ..table_metadata import TableOriginCSV
 
 
 def input_dir() -> Path:
     return Path(__file__).parent / "input/test_read_csv_pragmatic"
 
+
+class OrstedEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, set):
+            return list(obj)
+        if isinstance(obj, TableOriginCSV):
+            return str(obj)
+        if isinstance(obj, datetime.datetime):
+            return str(obj)
+
+        return json.JSONEncoder.default(self, obj)
 
 def test_FAT():
     """ Factory Acceptance Test
@@ -29,13 +45,13 @@ def test_FAT():
             continue
         all_files += 1
 
+    targets = {}
     for fn in os.listdir(input_dir()):
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
         if fn in ["auto_fixed.py", "__init__.py"]:
             continue
-
         with open(input_dir() / fn, "r") as fh:
             g = read_stream_csv(fh, sep=";", origin=fn, do="json")
             count = 0
@@ -43,11 +59,7 @@ def test_FAT():
                 if True:
                     if tp == BlockType.TABLE:
                         count += 1
-                        # jstr = json.dumps(tt)
-                        #test_output = jstr
-                        #print(f"{fn} {jstr}")
-                        print(f"{fn} {tt}")
-
+                        targets[fn] = tt
 #                        if fn != "all.csv":
 #                            print(f"file: {fn}")
 #                            print("\ntest_output:\n",test_output);
@@ -59,3 +71,5 @@ def test_FAT():
                 assert count == all_files - 1
             else:
                 assert count == 1
+    jstr = json.dumps(targets,cls=OrstedEncoder)
+    print(f"{jstr}")

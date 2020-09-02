@@ -204,8 +204,7 @@ def make_table_data_csv(
     lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> dict :
 
-    print("-oOo- lines: \n",lines)
-    # TBC: augment csv-splitting as method for
+    # TBC: augment csv-splitting as method for csv input
 
     lines = [ [cell.strip() for cell in ll.split(sep)] for ll in lines]
     return make_table_data(lines,origin)
