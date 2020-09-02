@@ -6,21 +6,23 @@ This allows early abort of reads as well as generic postprocessing (
 as discussed in store-module docstring).
 
 """
-import sys
-import itertools
+import datetime
 from os import PathLike
-from typing import List, Optional, Tuple, Any, TextIO
+from typing import List, Optional, Tuple, Any, TextIO, Dict
 
 import numpy as np
-import datetime
 import pandas as pd
 
 import tables
 from .FixFactory import FixFactory
-from .. import pdtable, Table
-from ..store import BlockType, BlockGenerator
+from .. import pdtable
 from ..ancillary_blocks import Directive, MetadataBlock
+from ..store import BlockType, BlockGenerator
 from ..table_metadata import TableOriginCSV
+
+# Typing aliases, to clarify intent
+JsonPrecursor = Dict
+CellArray = List[List]
 
 _TF_values = {"0": False, "1": True, "-": False}
 
@@ -29,18 +31,18 @@ _myFixFactory = FixFactory()
 
 
 def _parse_onoff_column(values):
-    bvalues = []
+    bool_values = []
     for row, vv in enumerate(values):
-        if(isinstance(vv,bool) or isinstance(vv,int)):
-            bvalues.append(vv)
+        if isinstance(vv, bool) or isinstance(vv, int):
+            bool_values.append(vv)
             continue
         try:
-            bvalues.append(_TF_values[vv.strip()])
-        except KeyError as exc:
+            bool_values.append(_TF_values[vv.strip()])
+        except KeyError as err:
             _myFixFactory.TableRow = row  # TBC: index
             fix_value = _myFixFactory.fix_illegal_cell_value("onoff", vv)
-            bvalues.append(fix_value)
-    return np.array(bvalues, dtype=np.bool)
+            bool_values.append(fix_value)
+    return np.array(bool_values, dtype=np.bool)
 
 
 _cnv_flt = {
@@ -55,45 +57,45 @@ _cnv_datetime = lambda v: pd.NaT if (v == "-") else pd.to_datetime(v, dayfirst=T
 
 
 def _parse_float_column(values):
-    fvalues = []
+    float_values = []
     for row, vv in enumerate(values):
-        if(isinstance(vv,float) or isinstance(vv,int)):
-            fvalues.append(float(vv))
+        if isinstance(vv, float) or isinstance(vv, int):
+            float_values.append(float(vv))
             continue
         if len(vv) > 0 and (vv[0] in _cnv_flt):
             try:
-                fvalues.append(_cnv_flt[vv[0]](vv))
-            except Exception as exc:
+                float_values.append(_cnv_flt[vv[0]](vv))
+            except (KeyError, ValueError) as err:
                 _myFixFactory.TableRow = row  # TBC: index
                 fix_value = _myFixFactory.fix_illegal_cell_value("float", vv)
-                fvalues.append(fix_value)
+                float_values.append(fix_value)
         else:
             _myFixFactory.TableRow = row  # TBC: index
             fix_value = _myFixFactory.fix_illegal_cell_value("float", vv)
-            fvalues.append(fix_value)
-    return np.array(fvalues)
+            float_values.append(fix_value)
+    return np.array(float_values)
 
 
 def _parse_datetime_column(values):
-    dtvalues = []
+    datettime_values = []
     for row, vv in enumerate(values):
-        if(isinstance(vv,datetime.datetime)):
-            dtvalues.append(vv)
+        if isinstance(vv, datetime.datetime):
+            datettime_values.append(vv)
             continue
         if len(vv) > 0 and (vv[0].isdigit() or vv == "-"):
             try:
-                dtvalues.append(_cnv_datetime(vv))
-            except Exception as exc:
+                datettime_values.append(_cnv_datetime(vv))
+            except ValueError as err:
                 # TBC: register exc !?
                 _myFixFactory.TableRow = row  # TBC: index
                 fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
-                dtvalues.append(fix_value)
+                datettime_values.append(fix_value)
         else:
             _myFixFactory.TableRow = row  # TBC: index
             fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
-            dtvalues.append(fix_value)
+            datettime_values.append(fix_value)
 
-    return np.array(dtvalues)
+    return np.array(datettime_values)
 
 
 _column_dtypes = {
@@ -120,49 +122,50 @@ def make_directive(lines: List[str], sep: str, origin: Optional[str] = None) -> 
     return Directive(name, directive_lines, origin)
 
 
-def _column_names(cnames_raw):
+def _column_names(col_names_raw):
     """
        handle known issues in column_names
     """
-    n_names_col = len(cnames_raw)
-    for el in reversed(cnames_raw):
-        if el != None and len(el) > 0:
+    n_names_col = len(col_names_raw)
+    for el in reversed(col_names_raw):
+        if el is not None and len(el) > 0:
             break
         n_names_col -= 1
 
     # handle multiple columns w. same name
     column_names = []
-    cnames_all = [el.strip() for el in cnames_raw[:n_names_col]]
+    cnames_all = [el.strip() for el in col_names_raw[:n_names_col]]
     names = {}
-    for icol, cname in enumerate(cnames_all):
-        if not cname in names and len(cname) > 0:
+    for col, cname in enumerate(cnames_all):
+        if cname not in names and len(cname) > 0:
             names[cname] = 0
             column_names.append(cname)
         else:
-            _myFixFactory.TableColumn = icol
+            _myFixFactory.TableColumn = col
             _myFixFactory.TableColumNames = column_names  # so far
             if len(cname) == 0:
-                cname = _myFixFactory.fix_missing_column_name(col=icol, input_columns=cnames_all)
+                cname = _myFixFactory.fix_missing_column_name(col=col, input_columns=cnames_all)
             elif cname in names:
-                cname = _myFixFactory.fix_duplicate_column_name(col=icol, input_columns=cnames_all)
+                cname = _myFixFactory.fix_duplicate_column_name(col=col, input_columns=cnames_all)
             print(f"-oOo- {cname} {names}")
-            assert not cname in names
+            assert cname not in names
             names[cname] = 0
             column_names.append(cname)
     return column_names
 
 
-def make_table_data(
-    lines: List[List], origin: Optional[tables.table_metadata.TableOriginCSV] = None
-) -> dict :
+def make_json_precursor(
+        lines: CellArray, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+) -> JsonPrecursor:
     table_name = lines[0][0][2:]
     _myFixFactory.TableName = table_name
-    destinations = { lines[1][0].strip() }
+    destinations = {lines[1][0].strip()}
 
     # handle multiple columns w. same name
-    cnames_raw = lines[2]
-    column_names = _column_names(cnames_raw)
+    col_names_raw = lines[2]
+    column_names = _column_names(col_names_raw)
     _myFixFactory.TableColumNames = column_names
+    # TODO: _myFixFactory.TableColumNames (typo!) is assigned 4 times but never read... Use?
 
     n_col = len(column_names)
     units = lines[3][:n_col]
@@ -193,27 +196,27 @@ def make_table_data(
             ) from e
 
     return {
-         "name": table_name,
-         "columns": columns,
-         "units": units,
-         "destinations": destinations,
-         "origin": origin
+        "name": table_name,
+        "columns": columns,
+        "units": units,
+        "destinations": destinations,
+        "origin": origin
     }
 
-def make_table_data_csv(
-    lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
-) -> dict :
 
+def make_table_data_csv(
+        lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+) -> dict:
     # TBC: augment csv-splitting as method for csv input
 
-    lines = [ [cell.strip() for cell in ll.split(sep)] for ll in lines]
-    return make_table_data(lines,origin)
+    lines = [[cell.strip() for cell in ll.split(sep)] for ll in lines]
+    return make_json_precursor(lines, origin)
+
 
 def _make_table(
-    lines: List[List], origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        lines: CellArray, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> tables.proxy.Table:
-
-    table_data =  make_table_data(lines,origin)
+    table_data = make_json_precursor(lines, origin)
 
     return tables.proxy.Table(
         pdtable.make_pdtable(
@@ -226,16 +229,17 @@ def _make_table(
         )
     )
 
+
 def make_table(
-    lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> tables.proxy.Table:
-
     table_name = lines[0].split(sep)[0][2:]
-
+    # TODO: here we could filter on table_name; only parse tables of interest
     # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
-    lines = [ [cell.strip() for cell in ll.split(sep)] for ll in lines]
+    lines = [[cell.strip() for cell in ll.split(sep)] for ll in lines]
 
-    return _make_table(lines,origin)
+    return _make_table(lines, origin)
+
 
 _token_factory_lookup = {
     BlockType.METADATA: make_metadata_block,
@@ -243,14 +247,15 @@ _token_factory_lookup = {
     BlockType.TABLE: make_table,
 }
 
+
 def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
     return token_type, lines if factory is None else factory(lines, sep, origin)
 
 
 def read_stream_csv(
-    f: TextIO, sep: str = None, origin: Optional[str] = None, fixFactory=None,
-    do: str = "Table"
+        f: TextIO, sep: str = None, origin: Optional[str] = None, fix_factory=None,
+        do: str = "Table"
 ) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
@@ -258,7 +263,7 @@ def read_stream_csv(
     # Must all template data have leading `:`?
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
 
-    if(do == "Table"):
+    if do == "Table":
         _token_factory_lookup[BlockType.TABLE] = make_table
     else:
         _token_factory_lookup[BlockType.TABLE] = make_table_data_csv
@@ -270,12 +275,12 @@ def read_stream_csv(
         origin = "Stream"
 
     global _myFixFactory
-    if not fixFactory is None:
-        if type(fixFactory) is type:
-            _myFixFactory = fixFactory()
+    if fix_factory is not None:
+        if type(fix_factory) is type:
+            _myFixFactory = fix_factory()
         else:
-            _myFixFactory = fixFactory
-    assert _myFixFactory != None
+            _myFixFactory = fix_factory
+    assert _myFixFactory is not None
 
     _myFixFactory.FileName = origin
 
@@ -323,7 +328,7 @@ def read_stream_csv(
     _myFixFactory = FixFactory()
 
 
-def read_file_csv(file: PathLike, sep: str = None, fixFactory=None) -> BlockGenerator:
+def read_file_csv(file: PathLike, sep: str = None, fix_factory=None) -> BlockGenerator:
     """
     Read starTable tokens from CSV file, yielding them one token at a time.
     """
@@ -331,4 +336,4 @@ def read_file_csv(file: PathLike, sep: str = None, fixFactory=None) -> BlockGene
         sep = tables.CSV_SEP
 
     with open(file) as f:
-        yield from read_stream_csv(f, sep, origin=file, fixFactory=fixFactory)
+        yield from read_stream_csv(f, sep, origin=file, fix_factory=fix_factory)

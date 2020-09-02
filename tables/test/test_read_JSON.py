@@ -1,14 +1,11 @@
-import os
-import sys
-import json
-import numpy as np
 import datetime
-from io import StringIO
+import json
+import os
 from pathlib import Path
-from textwrap import dedent
+
+import numpy as np
 
 from tables.readers.read_csv import read_stream_csv
-from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
 from ..store import BlockType
 from ..table_metadata import TableOriginCSV
 
@@ -17,7 +14,7 @@ def input_dir() -> Path:
     return Path(__file__).parent / "input/test_read_csv_pragmatic"
 
 
-class OrstedEncoder(json.JSONEncoder):
+class StarTableJsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
@@ -29,6 +26,7 @@ class OrstedEncoder(json.JSONEncoder):
             return str(obj)
 
         return json.JSONEncoder.default(self, obj)
+
 
 def test_FAT():
     """ Factory Acceptance Test
@@ -60,16 +58,16 @@ def test_FAT():
                     if tp == BlockType.TABLE:
                         count += 1
                         targets[fn] = tt
-#                        if fn != "all.csv":
-#                            print(f"file: {fn}")
-#                            print("\ntest_output:\n",test_output);
-#                            print("\ntarget:\n",dedent(autoFixed[fn]).strip());
-#                            sys.stdout.flush()
-#                            assert test_output == dedent(autoFixed[fn]).strip()
+            #                        if fn != "all.csv":
+            #                            print(f"file: {fn}")
+            #                            print("\ntest_output:\n",test_output);
+            #                            print("\ntarget:\n",dedent(autoFixed[fn]).strip());
+            #                            sys.stdout.flush()
+            #                            assert test_output == dedent(autoFixed[fn]).strip()
 
             if fn == "all.csv":
                 assert count == all_files - 1
             else:
                 assert count == 1
-    jstr = json.dumps(targets,cls=OrstedEncoder)
+    jstr = json.dumps(targets, cls=StarTableJsonEncoder)
     print(f"{jstr}")

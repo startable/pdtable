@@ -203,7 +203,7 @@ def make_table(lines: List[str], sep: str, origin: Optional[TableOriginCSV] = No
             cols_stat[cols] = 1
 
     maxval = 0
-    num_data_col = 0  #  # columns seen in most rows
+    num_data_col = 0  # # columns seen in most rows
     for cnt in cols_stat.keys():
         if cols_stat[cnt] > maxval:
             maxval = cols_stat[cnt]
@@ -285,8 +285,10 @@ def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
     return token_type, lines if factory is None else factory(lines, sep, origin)
 
 
-def read_stream_csv_pragmatic(f: TextIO, sep: str = None, fixFactory=None,origin=None) -> BlockGenerator:
-    yield from unfied_read_stream_csv(f, sep, fixFactory=fixFactory,origin=origin)
+def read_stream_csv_pragmatic(f: TextIO, sep: str = None, fixFactory=None,
+                              origin=None) -> BlockGenerator:
+    yield from unfied_read_stream_csv(f, sep, fix_factory=fixFactory, origin=origin)
+
 
 def read_file_csv_pragmatic(file: PathLike, sep: str = None, fixFactory=None) -> BlockGenerator:
     """
