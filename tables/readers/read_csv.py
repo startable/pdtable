@@ -145,17 +145,17 @@ def _column_names(cnames_raw):
                 cname = _myFixFactory.fix_missing_column_name(col=icol, input_columns=cnames_all)
             elif cname in names:
                 cname = _myFixFactory.fix_duplicate_column_name(col=icol, input_columns=cnames_all)
+            print(f"-oOo- {cname} {names}")
             assert not cname in names
             names[cname] = 0
             column_names.append(cname)
     return column_names
 
 
-def _make_table(
+def make_table_data(
     lines: List[List], origin: Optional[tables.table_metadata.TableOriginCSV] = None
-) -> tables.proxy.Table:
+) -> dict :
     table_name = lines[0][0][2:]
-
     _myFixFactory.TableName = table_name
     destinations = { lines[1][0].strip() }
 
@@ -192,24 +192,37 @@ def _make_table(
                 f"Unable to parse value in column {name} of table {table_name} as {unit}"
             ) from e
 
-    print(f"\ncolumn_data: {type(column_data)}")
-    for dd in column_data:
-        print(f" {dd} ")
+    return {
+         "name": table_name,
+         "columns": columns,
+         "units": units,
+         "destinations": destinations,
+         "origin": origin
+    }
 
-    print("\ncolumns:")
-    for dd in columns:
-        print(f" {columns[dd]} ")
+def make_table_data_csv(
+    lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+) -> dict :
 
-    # DET ER FAKTISK HER PRÆCIST VI SKAL GENERALISERE !
-    df = pd.DataFrame(columns)
-    print(df)
+    print("-oOo- lines: \n",lines)
+    # TBC: augment csv-splitting as method for
+
+    lines = [ [cell.strip() for cell in ll.split(sep)] for ll in lines]
+    return make_table_data(lines,origin)
+
+def _make_table(
+    lines: List[List], origin: Optional[tables.table_metadata.TableOriginCSV] = None
+) -> tables.proxy.Table:
+
+    table_data =  make_table_data(lines,origin)
 
     return tables.proxy.Table(
         pdtable.make_pdtable(
-            pd.DataFrame(columns),
-            units=units,
+            pd.DataFrame(table_data["columns"]),
+            units=table_data["units"],
             metadata=tables.table_metadata.TableMetadata(
-                name=table_name, destinations=destinations, origin=origin
+                name=table_data["name"], destinations=table_data["destinations"],
+                origin=table_data["origin"]
             ),
         )
     )
@@ -219,12 +232,9 @@ def make_table(
 ) -> tables.proxy.Table:
 
     table_name = lines[0].split(sep)[0][2:]
-    # filer on table_name : evt. før dette kald, hvor **er identificeret
-    lines = [ [cell.strip() for cell in ll.split(sep)] for ll in lines]
 
-    print("\n-oOo-lines:")
-    for ll in lines:
-        print(ll)
+    # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
+    lines = [ [cell.strip() for cell in ll.split(sep)] for ll in lines]
 
     return _make_table(lines,origin)
 
@@ -234,20 +244,26 @@ _token_factory_lookup = {
     BlockType.TABLE: make_table,
 }
 
-
 def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
     return token_type, lines if factory is None else factory(lines, sep, origin)
 
 
 def read_stream_csv(
-    f: TextIO, sep: str = None, origin: Optional[str] = None, fixFactory=None
+    f: TextIO, sep: str = None, origin: Optional[str] = None, fixFactory=None,
+    do: str = "Table"
 ) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
     # Template data handling is half-hearted, mostly because of doubts on StarTable syntax
     # Must all template data have leading `:`?
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
+
+    if(do == "Table"):
+        _token_factory_lookup[BlockType.TABLE] = make_table
+    else:
+        _token_factory_lookup[BlockType.TABLE] = make_table_data_csv
+
     if sep is None:
         sep = tables.CSV_SEP
 

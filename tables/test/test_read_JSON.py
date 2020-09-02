@@ -1,11 +1,11 @@
 import os
 import sys
+import json
 from io import StringIO
 from pathlib import Path
 from textwrap import dedent
 
 from tables.readers.read_csv import read_stream_csv
-from tables.writers._csv import _table_to_csv
 from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
 from ..store import BlockType
 
@@ -37,21 +37,23 @@ def test_FAT():
             continue
 
         with open(input_dir() / fn, "r") as fh:
-            g = read_stream_csv(fh, sep=";", origin=fn)
+            g = read_stream_csv(fh, sep=";", origin=fn, do="json")
             count = 0
             for tp, tt in g:
                 if True:
                     if tp == BlockType.TABLE:
                         count += 1
-                        with StringIO() as out:
-                            _table_to_csv(tt, out, sep=";", na_rep="-")
-                            test_output = out.getvalue().strip()
-                        if fn != "all.csv":
-                            print(f"file: {fn}")
-                            print("\ntest_output:\n",test_output);
-                            print("\ntarget:\n",dedent(autoFixed[fn]).strip());
-                            sys.stdout.flush()
-                            assert test_output == dedent(autoFixed[fn]).strip()
+                        # jstr = json.dumps(tt)
+                        #test_output = jstr
+                        #print(f"{fn} {jstr}")
+                        print(f"{fn} {tt}")
+
+#                        if fn != "all.csv":
+#                            print(f"file: {fn}")
+#                            print("\ntest_output:\n",test_output);
+#                            print("\ntarget:\n",dedent(autoFixed[fn]).strip());
+#                            sys.stdout.flush()
+#                            assert test_output == dedent(autoFixed[fn]).strip()
 
             if fn == "all.csv":
                 assert count == all_files - 1
