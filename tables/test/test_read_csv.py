@@ -7,29 +7,28 @@ from ..store import TableBundle, BlockType
 
 
 def test_make_metadata_block():
-    lines = dedent("""\
+    cells = [[cell.strip() for cell in line.split(";")] for line in  dedent("""\
     author:;XYODA;
     purpose:;Save the galaxy
-    """).strip().split("\n")
-    ml = make_metadata_block(lines, ";")
+    """).strip().split("\n")]
+    ml = make_metadata_block(cells, ";")
     assert ml["author"] == "XYODA"
     assert ml["purpose"] == "Save the galaxy"
 
 
 def test_make_directive():
-    lines = dedent("""\
-    ***foo
-    bar
-    baz
-    """).strip().split("\n")
-    d = make_directive(lines, ";")
+    cells = [[cell.strip() for cell in line.split(";")] for line in dedent("""\
+    ***foo;
+    bar;
+    baz;
+    """).strip().split("\n")]
+    d = make_directive(cells, ";")
     assert d.name == "foo"
     assert d.lines == ["bar", "baz"]
 
 
 def test_make_table():
-    lines = (
-        dedent(
+    cells = [[cell.strip() for cell in line.split(";")] for line in dedent(
             r"""
     **input_files_derived;
     all;
@@ -40,9 +39,9 @@ def test_make_table():
     """
         )
         .strip()
-        .split("\n")
-    )
-    t = make_table(lines, ";").df
+        .split("\n")]
+
+    t = make_table(cells, ";").df
     assert t.file_bytes[0] == 15373
 
     tt = tables.proxy.Table(t)

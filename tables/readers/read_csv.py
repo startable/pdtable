@@ -22,7 +22,7 @@ from ..table_metadata import TableOriginCSV
 
 # Typing aliases, to clarify intent
 JsonPrecursor = Dict
-CellArray = List[List]
+CellArray = List[List]  # intended indexing: cell_array[row][col]
 
 _TF_values = {"0": False, "1": True, "-": False}
 
@@ -53,7 +53,7 @@ _cnv_flt = {
 for ch in "+0123456789":
     _cnv_flt[ch] = lambda v: float(v)
 
-_cnv_datetime = lambda v: pd.NaT if (v == "-") else pd.to_datetime(v, dayfirst=True)
+_cnv_datetime = lambda v: pd.NaT if v == "-" else pd.to_datetime(v, dayfirst=True)
 
 
 def _parse_float_column(values):
@@ -77,25 +77,25 @@ def _parse_float_column(values):
 
 
 def _parse_datetime_column(values):
-    datettime_values = []
+    datetime_values = []
     for row, vv in enumerate(values):
         if isinstance(vv, datetime.datetime):
-            datettime_values.append(vv)
+            datetime_values.append(vv)
             continue
         if len(vv) > 0 and (vv[0].isdigit() or vv == "-"):
             try:
-                datettime_values.append(_cnv_datetime(vv))
+                datetime_values.append(_cnv_datetime(vv))
             except ValueError as err:
                 # TBC: register exc !?
                 _myFixFactory.TableRow = row  # TBC: index
                 fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
-                datettime_values.append(fix_value)
+                datetime_values.append(fix_value)
         else:
             _myFixFactory.TableRow = row  # TBC: index
             fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
-            datettime_values.append(fix_value)
+            datetime_values.append(fix_value)
 
-    return np.array(datettime_values)
+    return np.array(datetime_values)
 
 
 _column_dtypes = {
@@ -105,20 +105,19 @@ _column_dtypes = {
 }
 
 
-def make_metadata_block(lines: List[str], sep: str, origin: Optional[str] = None) -> MetadataBlock:
+def make_metadata_block(cells: CellArray, sep: str, origin: Optional[str] = None) -> MetadataBlock:
     mb = MetadataBlock(origin)
-    for ll in lines:
-        spl = ll.split(sep)
-        if len(spl) > 1:
-            key_field = spl[0].strip()
+    for row in cells:
+        if len(row) > 1:
+            key_field = row[0].strip()
             if len(key_field) > 0 and key_field[-1] == ":":
-                mb[key_field[:-1]] = spl[1].strip()
+                mb[key_field[:-1]] = row[1].strip()
     return mb
 
 
-def make_directive(lines: List[str], sep: str, origin: Optional[str] = None) -> Directive:
-    name = lines[0].split(sep)[0][3:]
-    directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
+def make_directive(cells: CellArray, sep: str, origin: Optional[str] = None) -> Directive:
+    name = cells[0][0][3:]
+    directive_lines = [row[0] for row in cells[1:]]
     return Directive(name, directive_lines, origin)
 
 
@@ -231,14 +230,13 @@ def _make_table(
 
 
 def make_table(
-        lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        cells: CellArray, sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> tables.proxy.Table:
-    table_name = lines[0].split(sep)[0][2:]
+    table_name = cells[0][0][2:]
     # TODO: here we could filter on table_name; only parse tables of interest
     # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
-    lines = [[cell.strip() for cell in ll.split(sep)] for ll in lines]
 
-    return _make_table(lines, origin)
+    return _make_table(cells, origin)
 
 
 _token_factory_lookup = {
@@ -248,9 +246,9 @@ _token_factory_lookup = {
 }
 
 
-def make_token(token_type, lines, sep, origin) -> Tuple[BlockType, Any]:
+def make_token(token_type, cells, sep, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
-    return token_type, lines if factory is None else factory(lines, sep, origin)
+    return token_type, cells if factory is None else factory(cells, sep, origin)
 
 
 def read_stream_csv(
