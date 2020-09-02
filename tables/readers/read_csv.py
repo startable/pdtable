@@ -121,6 +121,38 @@ def make_directive(cells: CellGrid, origin: Optional[str] = None) -> Directive:
     return Directive(name, directive_lines, origin)
 
 
+def make_table(
+        cells: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+) -> tables.proxy.Table:
+    table_name = cells[0][0][2:]
+    # TODO: here we could filter on table_name; only parse tables of interest
+    # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
+
+    table_data = make_table_json_precursor(cells, origin)
+    return tables.proxy.Table(
+        pdtable.make_pdtable(
+            pd.DataFrame(table_data["columns"]),
+            units=table_data["units"],
+            metadata=tables.table_metadata.TableMetadata(
+                name=table_data["name"], destinations=table_data["destinations"],
+                origin=table_data["origin"]
+            ),
+        )
+    )
+
+
+_block_factory_lookup = {
+    BlockType.METADATA: make_metadata_block,
+    BlockType.DIRECTIVE: make_directive,
+    BlockType.TABLE: make_table,
+}
+
+
+def make_block(token_type: BlockType, cells: CellGrid, origin) -> Tuple[BlockType, Any]:
+    factory = _block_factory_lookup.get(token_type, None)
+    return token_type, cells if factory is None else factory(cells, origin)
+
+
 def _column_names(col_names_raw):
     """
        handle known issues in column_names
@@ -153,7 +185,7 @@ def _column_names(col_names_raw):
     return column_names
 
 
-def make_json_precursor(
+def make_table_json_precursor(
         cells: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> JsonPrecursor:
     table_name = cells[0][0][2:]
@@ -203,38 +235,6 @@ def make_json_precursor(
     }
 
 
-def make_table(
-        cells: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
-) -> tables.proxy.Table:
-    table_name = cells[0][0][2:]
-    # TODO: here we could filter on table_name; only parse tables of interest
-    # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
-
-    table_data = make_json_precursor(cells, origin)
-    return tables.proxy.Table(
-        pdtable.make_pdtable(
-            pd.DataFrame(table_data["columns"]),
-            units=table_data["units"],
-            metadata=tables.table_metadata.TableMetadata(
-                name=table_data["name"], destinations=table_data["destinations"],
-                origin=table_data["origin"]
-            ),
-        )
-    )
-
-
-_token_factory_lookup = {
-    BlockType.METADATA: make_metadata_block,
-    BlockType.DIRECTIVE: make_directive,
-    BlockType.TABLE: make_table,
-}
-
-
-def make_token(token_type, cells, origin) -> Tuple[BlockType, Any]:
-    factory = _token_factory_lookup.get(token_type, None)
-    return token_type, cells if factory is None else factory(cells, origin)
-
-
 def read_stream_csv(
         f: TextIO, sep: str = None, origin: Optional[str] = None, fix_factory=None,
         do: str = "Table"
@@ -246,9 +246,9 @@ def read_stream_csv(
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
 
     if do == "Table":
-        _token_factory_lookup[BlockType.TABLE] = make_table
+        _block_factory_lookup[BlockType.TABLE] = make_table
     else:
-        _token_factory_lookup[BlockType.TABLE] = make_json_precursor
+        _block_factory_lookup[BlockType.TABLE] = make_table_json_precursor
 
     if sep is None:
         sep = tables.CSV_SEP
@@ -296,7 +296,7 @@ def read_stream_csv(
             next_block = BlockType.BLANK
 
         if next_block is not None:
-            yield make_token(block, cells, TableOriginCSV(origin, block_line))
+            yield make_block(block, cells, TableOriginCSV(origin, block_line))
             cells = []
             block = next_block
             block_line = line_number_0based + 1
@@ -305,7 +305,7 @@ def read_stream_csv(
         cells.append(row)
 
     if cells:
-        yield make_token(block, cells, TableOriginCSV(origin, block_line))
+        yield make_block(block, cells, TableOriginCSV(origin, block_line))
 
     _myFixFactory = FixFactory()
 
