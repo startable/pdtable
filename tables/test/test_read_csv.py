@@ -22,7 +22,7 @@ def test_make_directive():
     bar;
     baz;
     """).strip().split("\n")]
-    d = make_directive(cells, ";")
+    d = make_directive(cells)
     assert d.name == "foo"
     assert d.lines == ["bar", "baz"]
 
@@ -41,7 +41,7 @@ def test_make_table():
         .strip()
         .split("\n")]
 
-    t = make_table(cells, ";").df
+    t = make_table(cells).df
     assert t.file_bytes[0] == 15373
 
     tt = tables.proxy.Table(t)
@@ -51,7 +51,7 @@ def test_make_table():
 
 
 def test_make_table__parses_onoff_column():
-    lines = dedent(r"""
+    cells = [[cell.strip() for cell in line.split(";")] for line in dedent(r"""
     **input_files_derived;
     all;
     file_bytes;file_date;has_table;
@@ -59,9 +59,9 @@ def test_make_table__parses_onoff_column():
     15373;a;0;
     15326;b;1;
     """
-        ).strip().split("\n")
+        ).strip().split("\n")]
 
-    table_df = make_table(lines, ";").df
+    table_df = make_table(cells).df
     assert table_df.file_bytes[0] == 15373
     assert table_df.has_table[0] == False
     assert table_df.has_table[1] == True
@@ -72,16 +72,16 @@ def test_make_table__parses_onoff_column():
 
 
 def test_make_table__no_trailing_sep():
-    lines=dedent(r"""
+    cells = [[cell.strip() for cell in line.split(";")] for line in dedent(r"""
         **foo
         all
         column;pct;dash;mm;
         text;%;-;mm;
         bar;10;10;10;
         """
-        ).strip().split("\n")
+        ).strip().split("\n")]
 
-    t = make_table(lines, ";").df
+    t = make_table(cells).df
     assert t.column[0] == "bar"
     assert t.dash[0] == 10
 

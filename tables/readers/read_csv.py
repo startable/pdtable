@@ -22,7 +22,7 @@ from ..table_metadata import TableOriginCSV
 
 # Typing aliases, to clarify intent
 JsonPrecursor = Dict
-CellArray = List[List]  # intended indexing: cell_array[row][col]
+CellGrid = List[List]  # intended indexing: cell_grid[row][col]
 
 _TF_values = {"0": False, "1": True, "-": False}
 
@@ -105,7 +105,7 @@ _column_dtypes = {
 }
 
 
-def make_metadata_block(cells: CellArray, sep: str, origin: Optional[str] = None) -> MetadataBlock:
+def make_metadata_block(cells: CellGrid, origin: Optional[str] = None) -> MetadataBlock:
     mb = MetadataBlock(origin)
     for row in cells:
         if len(row) > 1:
@@ -115,7 +115,7 @@ def make_metadata_block(cells: CellArray, sep: str, origin: Optional[str] = None
     return mb
 
 
-def make_directive(cells: CellArray, sep: str, origin: Optional[str] = None) -> Directive:
+def make_directive(cells: CellGrid, origin: Optional[str] = None) -> Directive:
     name = cells[0][0][3:]
     directive_lines = [row[0] for row in cells[1:]]
     return Directive(name, directive_lines, origin)
@@ -147,14 +147,14 @@ def _column_names(col_names_raw):
             elif cname in names:
                 cname = _myFixFactory.fix_duplicate_column_name(col=col, input_columns=cnames_all)
             print(f"-oOo- {cname} {names}")
-            assert cname not in names
+            #assert cname not in names
             names[cname] = 0
             column_names.append(cname)
     return column_names
 
 
 def make_json_precursor(
-        lines: CellArray, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        lines: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> JsonPrecursor:
     table_name = lines[0][0][2:]
     _myFixFactory.TableName = table_name
@@ -204,16 +204,15 @@ def make_json_precursor(
 
 
 def make_table_data_csv(
-        lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        cells: CellGrid, sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> dict:
     # TBC: augment csv-splitting as method for csv input
 
-    lines = [[cell.strip() for cell in ll.split(sep)] for ll in lines]
-    return make_json_precursor(lines, origin)
+    return make_json_precursor(cells, origin)
 
 
 def _make_table(
-        lines: CellArray, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        lines: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> tables.proxy.Table:
     table_data = make_json_precursor(lines, origin)
 
@@ -230,7 +229,7 @@ def _make_table(
 
 
 def make_table(
-        cells: CellArray, sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        cells: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> tables.proxy.Table:
     table_name = cells[0][0][2:]
     # TODO: here we could filter on table_name; only parse tables of interest
@@ -246,9 +245,9 @@ _token_factory_lookup = {
 }
 
 
-def make_token(token_type, cells, sep, origin) -> Tuple[BlockType, Any]:
+def make_token(token_type, cells, origin) -> Tuple[BlockType, Any]:
     factory = _token_factory_lookup.get(token_type, None)
-    return token_type, cells if factory is None else factory(cells, sep, origin)
+    return token_type, cells if factory is None else factory(cells, origin)
 
 
 def read_stream_csv(
@@ -296,7 +295,7 @@ def read_stream_csv(
         ss = s.lstrip()
         return not ss or ss.startswith(sep)
 
-    lines = []
+    cells: CellGrid = []
     block = BlockType.METADATA
     block_line = 0
     for line_number_0based, line in enumerate(f):
@@ -312,16 +311,16 @@ def read_stream_csv(
             next_block = BlockType.BLANK
 
         if next_block is not None:
-            yield make_token(block, lines, sep, TableOriginCSV(origin, block_line))
-            lines = []
+            yield make_token(block, cells, TableOriginCSV(origin, block_line))
+            cells = []
             block = next_block
             block_line = line_number_0based + 1
 
-        line = line.rstrip("\n")
-        lines.append(line)
+        row = [cell.strip() for cell in line.rstrip("\n").split(sep)]
+        cells.append(row)
 
-    if lines:
-        yield make_token(block, lines, sep, TableOriginCSV(origin, block_line))
+    if cells:
+        yield make_token(block, cells, TableOriginCSV(origin, block_line))
 
     _myFixFactory = FixFactory()
 

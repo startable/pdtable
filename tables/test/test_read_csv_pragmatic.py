@@ -1,5 +1,4 @@
 import os
-import sys
 from io import StringIO
 from pathlib import Path
 from textwrap import dedent

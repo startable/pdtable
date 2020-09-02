@@ -30,8 +30,8 @@ def test_read_csv_compatible1():
     """
     )
 
-    with StringIO(lines) as istream:
-        table = TableBundle(read_stream_csv(istream, sep=";"))
+    with StringIO(lines) as stream:
+        table = TableBundle(read_stream_csv(stream, sep=";"))
     assert table
 
     assert table.test_input.onoffs[0] == False
