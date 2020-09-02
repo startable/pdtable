@@ -147,30 +147,30 @@ def _column_names(col_names_raw):
             elif cname in names:
                 cname = _myFixFactory.fix_duplicate_column_name(col=col, input_columns=cnames_all)
             print(f"-oOo- {cname} {names}")
-            #assert cname not in names
+            assert cname not in names
             names[cname] = 0
             column_names.append(cname)
     return column_names
 
 
 def make_json_precursor(
-        lines: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        cells: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> JsonPrecursor:
-    table_name = lines[0][0][2:]
+    table_name = cells[0][0][2:]
     _myFixFactory.TableName = table_name
-    destinations = {lines[1][0].strip()}
+    destinations = {cells[1][0].strip()}
 
     # handle multiple columns w. same name
-    col_names_raw = lines[2]
+    col_names_raw = cells[2]
     column_names = _column_names(col_names_raw)
     _myFixFactory.TableColumNames = column_names
     # TODO: _myFixFactory.TableColumNames (typo!) is assigned 4 times but never read... Use?
 
     n_col = len(column_names)
-    units = lines[3][:n_col]
+    units = cells[3][:n_col]
     units = [el.strip() for el in units]
 
-    column_data = [l[:n_col] for l in lines[4:]]
+    column_data = [l[:n_col] for l in cells[4:]]
     column_data = [[el for el in col] for col in column_data]
 
     # ensure all data columns are populated
@@ -201,14 +201,6 @@ def make_json_precursor(
         "destinations": destinations,
         "origin": origin
     }
-
-
-def make_table_data_csv(
-        cells: CellGrid, sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
-) -> dict:
-    # TBC: augment csv-splitting as method for csv input
-
-    return make_json_precursor(cells, origin)
 
 
 def make_table(
@@ -256,7 +248,7 @@ def read_stream_csv(
     if do == "Table":
         _token_factory_lookup[BlockType.TABLE] = make_table
     else:
-        _token_factory_lookup[BlockType.TABLE] = make_table_data_csv
+        _token_factory_lookup[BlockType.TABLE] = make_json_precursor
 
     if sep is None:
         sep = tables.CSV_SEP
