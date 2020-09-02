@@ -1,4 +1,5 @@
 import os
+import sys
 from io import StringIO
 from pathlib import Path
 from textwrap import dedent
@@ -45,6 +46,10 @@ def test_FAT():
                             _table_to_csv(tt, out, sep=";", na_rep="-")
                             test_output = out.getvalue().strip()
                         if fn != "all.csv":
+                            print(f"file: {fn}")
+                            print("\ntest_output:\n",test_output);
+                            print("\ntarget:\n",dedent(autoFixed[fn]).strip());
+                            sys.stdout.flush()
                             assert test_output == dedent(autoFixed[fn]).strip()
 
             if fn == "all.csv":

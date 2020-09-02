@@ -8,6 +8,7 @@ import pandas as pd
 
 import tables.table_metadata
 import tables.proxy
+from .read_csv import _make_table
 
 try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
@@ -69,40 +70,6 @@ _column_parsers = {
     "onoff": _parse_onoff_column,
     "datetime": _parse_datetime_column,
 }
-
-
-def _make_table(lines: List[List], origin=None) -> tables.proxy.Table:
-    """Makes a Table from the cell contents of the lines of a given table block"""
-    # Parse header things
-    table_name = lines[0][0][2:]
-    destinations = {s.strip() for s in lines[1][0].split(" ")}
-    column_names = list(
-        itertools.takewhile(lambda s: s is not None and len(s.strip()) > 0, lines[2])
-    )
-    column_names = [el.strip() for el in column_names]
-    n_col = len(column_names)
-    units = lines[3][:n_col]
-
-    # Parse column values
-    columns = {}
-    for name, values, unit in zip(column_names, zip(*lines[4:]), units):
-        try:
-            columns[name] = _column_parsers.get(unit, _parse_float_column)(values)
-        except ValueError as e:
-            raise ValueError(
-                f"Unable to parse value in column {name} of table {table_name} as {unit}"
-            ) from e
-
-    # Shove it all in a Table
-    return tables.proxy.Table(
-        pdtable.make_pdtable(
-            pd.DataFrame(columns),
-            units=units,
-            metadata=tables.table_metadata.TableMetadata(
-                name=table_name, destinations=destinations, origin=origin
-            ),
-        )
-    )
 
 
 _block_factory_lookup = {BlockType.TABLE: _make_table}

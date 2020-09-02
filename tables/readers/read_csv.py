@@ -12,6 +12,7 @@ from os import PathLike
 from typing import List, Optional, Tuple, Any, TextIO
 
 import numpy as np
+import datetime
 import pandas as pd
 
 import tables
@@ -26,9 +27,13 @@ _TF_values = {"0": False, "1": True, "-": False}
 # TBC: wrap in specific reader instance, this is global for all threads
 _myFixFactory = FixFactory()
 
+
 def _parse_onoff_column(values):
     bvalues = []
     for row, vv in enumerate(values):
+        if(isinstance(vv,bool) or isinstance(vv,int)):
+            bvalues.append(vv)
+            continue
         try:
             bvalues.append(_TF_values[vv.strip()])
         except KeyError as exc:
@@ -52,6 +57,9 @@ _cnv_datetime = lambda v: pd.NaT if (v == "-") else pd.to_datetime(v, dayfirst=T
 def _parse_float_column(values):
     fvalues = []
     for row, vv in enumerate(values):
+        if(isinstance(vv,float) or isinstance(vv,int)):
+            fvalues.append(float(vv))
+            continue
         if len(vv) > 0 and (vv[0] in _cnv_flt):
             try:
                 fvalues.append(_cnv_flt[vv[0]](vv))
@@ -69,6 +77,9 @@ def _parse_float_column(values):
 def _parse_datetime_column(values):
     dtvalues = []
     for row, vv in enumerate(values):
+        if(isinstance(vv,datetime.datetime)):
+            dtvalues.append(vv)
+            continue
         if len(vv) > 0 and (vv[0].isdigit() or vv == "-"):
             try:
                 dtvalues.append(_cnv_datetime(vv))
@@ -108,15 +119,14 @@ def make_directive(lines: List[str], sep: str, origin: Optional[str] = None) -> 
     directive_lines = [ll.split(sep)[0] for ll in lines[1:]]
     return Directive(name, directive_lines, origin)
 
+
 def _column_names(cnames_raw):
     """
        handle known issues in column_names
     """
-    # Thingie: dbg
-    # print(f"---oOo- column_names raw: {cnames_raw}")
     n_names_col = len(cnames_raw)
     for el in reversed(cnames_raw):
-        if len(el) > 0:
+        if el != None and len(el) > 0:
             break
         n_names_col -= 1
 
@@ -140,25 +150,34 @@ def _column_names(cnames_raw):
             column_names.append(cname)
     return column_names
 
-def make_table(
-    lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+
+def _make_table(
+    lines: List[List], origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> tables.proxy.Table:
-    table_name = lines[0].split(sep)[0][2:]
+    table_name = lines[0][0][2:]
 
     _myFixFactory.TableName = table_name
-    destinations = {s.strip() for s in lines[1].split(sep)[0].split(" ,;")}
+    destinations = { lines[1][0].strip() }
 
     # handle multiple columns w. same name
-    cnames_raw = lines[2].split(sep)
+    cnames_raw = lines[2]
     column_names = _column_names(cnames_raw)
     _myFixFactory.TableColumNames = column_names
 
     n_col = len(column_names)
-    units = lines[3].split(sep)[:n_col]
+    units = lines[3][:n_col]
     units = [el.strip() for el in units]
 
-    column_data = [l.split(sep)[:n_col] for l in lines[4:]]
-    column_data = [[el.strip() for el in col] for col in column_data]
+    column_data = [l[:n_col] for l in lines[4:]]
+    column_data = [[el for el in col] for col in column_data]
+
+    # ensure all data columns are populated
+    for irow, row in enumerate(column_data):
+        if len(row) < n_col:
+            fix_row = _myFixFactory.fix_missing_rows_in_column_data(
+                row=irow, row_data=row, num_columns=n_col
+            )
+            column_data[irow] = fix_row
 
     column_dtype = [_column_dtypes.get(u, _parse_float_column) for u in units]
 
@@ -194,6 +213,20 @@ def make_table(
             ),
         )
     )
+
+def make_table(
+    lines: List[str], sep: str, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+) -> tables.proxy.Table:
+
+    table_name = lines[0].split(sep)[0][2:]
+    # filer on table_name : evt. før dette kald, hvor **er identificeret
+    lines = [ [cell.strip() for cell in ll.split(sep)] for ll in lines]
+
+    print("\n-oOo-lines:")
+    for ll in lines:
+        print(ll)
+
+    return _make_table(lines,origin)
 
 _token_factory_lookup = {
     BlockType.METADATA: make_metadata_block,

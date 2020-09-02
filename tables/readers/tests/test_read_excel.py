@@ -91,7 +91,7 @@ def test_make_table():
     t = _make_table(lines)
 
     assert t.name == "foo"
-    assert t.metadata.destinations == {"all"}
+    assert set(t.metadata.destinations) == {"all"}
     assert t.column_names == ["place", "distance", "ETA", "is_hot"]
     assert t.units == ["text", "km", "datetime", "onoff"]
 
@@ -134,7 +134,7 @@ def test_parse_blocks():
     assert tables[1].column_names == ["a", "b", "c"]
     assert len(tables[1].df) == 3
 
-
+import sys
 def test_read_excel():
 
     # Prepare the expected tables.
@@ -156,11 +156,19 @@ def test_read_excel():
     # Read tables from file
     blocks = read_excel(Path(__file__).parent / "input" / "foo.xlsx")
     tables_read = [block for (block_type, block) in blocks if block_type == BlockType.TABLE]
-
     assert len(expected_tables) == len(tables_read)
 
     # Assert read tables are equal to the expected ones
     for te, tr in zip(expected_tables, tables_read):
+        print("-oOo- compare table te\n",te)
+        print("-oOo- compare table tr\n",tr)
+        print("-oOo- compare meta te\n",
+            [te.name, te.metadata.destinations, te.column_names, te.units]
+            )
+        print("-oOo- compare meta tr\n",
+            [tr.name, tr.metadata.destinations, tr.column_names, tr.units]
+            )
+        sys.stdout.flush()
         assert te.equals(tr)
 
 
