@@ -8,7 +8,7 @@ import pandas as pd
 
 import tables.table_metadata
 import tables.proxy
-from .read_csv import _make_table
+from .read_csv import make_table
 
 try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
@@ -72,7 +72,7 @@ _column_parsers = {
 }
 
 
-_block_factory_lookup = {BlockType.TABLE: _make_table}
+_block_factory_lookup = {BlockType.TABLE: make_table}
 
 
 def make_block(block_type: BlockType, lines: List[List], origin) -> Tuple[BlockType, Any]:

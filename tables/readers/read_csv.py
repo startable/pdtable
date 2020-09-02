@@ -211,11 +211,14 @@ def make_table_data_csv(
     return make_json_precursor(cells, origin)
 
 
-def _make_table(
-        lines: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+def make_table(
+        cells: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
 ) -> tables.proxy.Table:
-    table_data = make_json_precursor(lines, origin)
+    table_name = cells[0][0][2:]
+    # TODO: here we could filter on table_name; only parse tables of interest
+    # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
 
+    table_data = make_json_precursor(cells, origin)
     return tables.proxy.Table(
         pdtable.make_pdtable(
             pd.DataFrame(table_data["columns"]),
@@ -226,16 +229,6 @@ def _make_table(
             ),
         )
     )
-
-
-def make_table(
-        cells: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
-) -> tables.proxy.Table:
-    table_name = cells[0][0][2:]
-    # TODO: here we could filter on table_name; only parse tables of interest
-    # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
-
-    return _make_table(cells, origin)
 
 
 _token_factory_lookup = {

@@ -7,7 +7,7 @@ import datetime as dt
 
 from ..read_excel import read_excel
 from .._read_excel_openpyxl import normalize_if_str, is_missing_data_marker, _parse_onoff_column, \
-    _parse_float_column, _parse_datetime_column, _make_table, parse_blocks
+    _parse_float_column, _parse_datetime_column, make_table, parse_blocks
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
@@ -88,7 +88,7 @@ def test_make_table():
         ["wonderland", "-", "-", 0],
     ]
 
-    t = _make_table(lines)
+    t = make_table(lines)
 
     assert t.name == "foo"
     assert set(t.metadata.destinations) == {"all"}
