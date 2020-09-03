@@ -1,6 +1,5 @@
 """Machinery to read Tables from an Excel workbook using openpyxl as engine."""
 
-import itertools
 from typing import List, Tuple, Any, Optional
 
 import numpy as np
@@ -8,6 +7,7 @@ import pandas as pd
 
 import tables.table_metadata
 import tables.proxy
+from .parsers.columns import normalize_if_str, is_missing_data_marker
 from .read_csv import make_table
 
 try:
@@ -16,20 +16,7 @@ except ImportError:
     # openpyxl < 2.6
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 
-from tables import pdtable
 from tables.store import BlockType, BlockGenerator
-
-
-def normalize_if_str(x):
-    """If it's a string, strip it and make it lowercase. If isn't a string, leave it alone."""
-    if isinstance(x, str):
-        return x.strip().lower()
-    return x
-
-
-def is_missing_data_marker(x):
-    """Return True if, after normalization, it's a valid StarTable missing-data marker"""
-    return normalize_if_str(x) in {"-", "nan"}
 
 # ================================================================================
 # ====== Parsers for the various column types (as determined by their unit) ======

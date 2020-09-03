@@ -23,21 +23,34 @@ import pandas as pd
 from tables.readers.FixFactory import FixFactory
 
 
+def normalize_if_str(x):
+    """If it's a string, strip it and make it lowercase. If isn't a string, leave it alone."""
+    if isinstance(x, str):
+        return x.strip().lower()
+    return x
+
+
+def is_missing_data_marker(x):
+    """Return True if, after normalization, it's a valid StarTable missing-data marker"""
+    return normalize_if_str(x) in {"-", "nan"}
+
+
 def _parse_text_column(values: Iterable, fixer: FixFactory = None):
     # Ensure that 'values' is a Sequence, else np.array() will not unpack it
     return np.array(values if isinstance(values, Sequence) else list(values), dtype=np.str)
 
 
-_onoff_to_bool = {0: False, 1: True, False: False, True: True, "0": False, "1": True}
+def _onoff_to_bool(val) -> bool:
+    """Converts typical onoff columns values to bools"""
+    conversions = {0: False, 1: True, False: False, True: True, "0": False, "1": True, "false": False, "true": True}
+    return conversions[normalize_if_str(val)]
 
 
 def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
     bool_values = []
     for row, val in enumerate(values):
-        if isinstance(val, str):
-            val = val.strip()
         try:
-            bool_values.append(_onoff_to_bool[val])
+            bool_values.append(_onoff_to_bool(val))
         except KeyError as err:
             if fixer is not None:
                 fixer.TableRow = row  # TBC: index
@@ -52,7 +65,7 @@ _float_converters_by_1st_char = {
     "N": lambda val: np.nan,
     "n": lambda val: np.nan,
     "-": lambda val: np.nan if (len(val) == 1) else float(val),
-}
+}  # TODO is switching on 1st char a good idea? "Nine" would give a NaN, where "Eight" would crash
 for ch in "+0123456789":
     _float_converters_by_1st_char[ch] = lambda val: float(val)
 

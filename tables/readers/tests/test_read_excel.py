@@ -6,7 +6,7 @@ from pytest import raises
 import datetime as dt
 
 from ..read_excel import read_excel
-from .._read_excel_openpyxl import normalize_if_str, is_missing_data_marker, _parse_onoff_column, \
+from .._read_excel_openpyxl import _parse_onoff_column, \
     _parse_float_column, _parse_datetime_column, make_table, parse_blocks
 import numpy as np
 import pandas as pd
@@ -16,27 +16,7 @@ from ... import Table
 from ...store import BlockType
 
 
-def test_normalize_if_str():
-    assert normalize_if_str(" NoRmALiZe me\t") == "normalize me"
-    assert normalize_if_str("already normalized") == "already normalized"
-    assert normalize_if_str(42) == 42
-    assert normalize_if_str(None) is None
 
-
-@pytest.mark.parametrize(
-    "x,out",
-    [
-        ("-", True),
-        ("NaN", True),
-        ("nan", True),
-        ("NAN", True),
-        ("nAn", True),
-        ("Non!", False),
-        (None, False),
-    ],
-)
-def test_is_missing_data_marker(x, out):
-    assert is_missing_data_marker(x) == out
 
 
 def test__parse_onoff_column():
