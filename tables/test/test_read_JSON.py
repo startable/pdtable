@@ -17,13 +17,18 @@ def input_dir() -> Path:
 class StarTableJsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
-            return obj.tolist()
+            if f"{obj.dtype}" == "float64":
+                # https://stackoverflow.com/questions/26921836/correct-way-to-test-for-numpy-dtype
+                return [val if (not np.isnan(val)) else None for val in obj.tolist()]
+            else:
+                return obj.tolist()
         if isinstance(obj, set):
             return list(obj)
         if isinstance(obj, TableOriginCSV):
             return str(obj)
         if isinstance(obj, datetime.datetime):
-            return str(obj)
+            jval = str(obj)
+            return jval if jval != "NaT" else None
 
         return json.JSONEncoder.default(self, obj)
 
@@ -69,5 +74,6 @@ def test_FAT():
                 assert count == all_files - 1
             else:
                 assert count == 1
+
     jstr = json.dumps(targets, cls=StarTableJsonEncoder)
-    print(f"{jstr}")
+    print(f"\n{jstr}\n")
