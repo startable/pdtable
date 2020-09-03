@@ -100,7 +100,6 @@ def _column_names(col_names_raw):
                 cname = _myFixFactory.fix_missing_column_name(col=col, input_columns=cnames_all)
             elif cname in names:
                 cname = _myFixFactory.fix_duplicate_column_name(col=col, input_columns=cnames_all)
-            print(f"-oOo- {cname} {names}")
             assert cname not in names
             names[cname] = 0
             column_names.append(cname)

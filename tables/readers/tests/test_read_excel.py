@@ -160,15 +160,5 @@ def test_read_excel():
 
     # Assert read tables are equal to the expected ones
     for te, tr in zip(expected_tables, tables_read):
-        print("-oOo- compare table te\n",te)
-        print("-oOo- compare table tr\n",tr)
-        print("-oOo- compare meta te\n",
-            [te.name, te.metadata.destinations, te.column_names, te.units]
-            )
-        print("-oOo- compare meta tr\n",
-            [tr.name, tr.metadata.destinations, tr.column_names, tr.units]
-            )
-        sys.stdout.flush()
         assert te.equals(tr)
-
 
