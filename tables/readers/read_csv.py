@@ -32,7 +32,7 @@ _myFixFactory = FixFactory()
 _onoff_value_conversions = {"0": False, "1": True, "-": False}
 
 
-def _parse_onoff_column(values):
+def _parse_onoff_column(values, fixer: FixFactory):
     bool_values = []
     for row, val in enumerate(values):
         if isinstance(val, bool) or isinstance(val, int):
@@ -41,8 +41,8 @@ def _parse_onoff_column(values):
         try:
             bool_values.append(_onoff_value_conversions[val.strip()])
         except KeyError as err:
-            _myFixFactory.TableRow = row  # TBC: index
-            fix_value = _myFixFactory.fix_illegal_cell_value("onoff", val)
+            fixer.TableRow = row  # TBC: index
+            fix_value = fixer.fix_illegal_cell_value("onoff", val)
             bool_values.append(fix_value)
     return np.array(bool_values, dtype=np.bool)
 
@@ -56,7 +56,7 @@ for ch in "+0123456789":
     _cnv_flt[ch] = lambda v: float(v)
 
 
-def _parse_float_column(values):
+def _parse_float_column(values, fixer: FixFactory):
     float_values = []
     for row, val in enumerate(values):
         if isinstance(val, float) or isinstance(val, int):
@@ -66,12 +66,12 @@ def _parse_float_column(values):
             try:
                 float_values.append(_cnv_flt[val[0]](val))
             except (KeyError, ValueError) as err:
-                _myFixFactory.TableRow = row  # TBC: index
-                fix_value = _myFixFactory.fix_illegal_cell_value("float", val)
+                fixer.TableRow = row  # TBC: index
+                fix_value = fixer.fix_illegal_cell_value("float", val)
                 float_values.append(fix_value)
         else:
-            _myFixFactory.TableRow = row  # TBC: index
-            fix_value = _myFixFactory.fix_illegal_cell_value("float", val)
+            fixer.TableRow = row  # TBC: index
+            fix_value = fixer.fix_illegal_cell_value("float", val)
             float_values.append(fix_value)
     return np.array(float_values)
 
@@ -79,7 +79,7 @@ def _parse_float_column(values):
 _cnv_datetime = lambda val: pd.NaT if val == "-" else pd.to_datetime(val, dayfirst=True)
 
 
-def _parse_datetime_column(values):
+def _parse_datetime_column(values, fixer: FixFactory):
     datetime_values = []
     for row, val in enumerate(values):
         if isinstance(val, datetime.datetime):
@@ -90,19 +90,23 @@ def _parse_datetime_column(values):
                 datetime_values.append(_cnv_datetime(val))
             except ValueError as err:
                 # TBC: register exc !?
-                _myFixFactory.TableRow = row  # TBC: index
-                fix_value = _myFixFactory.fix_illegal_cell_value("datetime", val)
+                fixer.TableRow = row  # TBC: index
+                fix_value = fixer.fix_illegal_cell_value("datetime", val)
                 datetime_values.append(fix_value)
         else:
-            _myFixFactory.TableRow = row  # TBC: index
-            fix_value = _myFixFactory.fix_illegal_cell_value("datetime", val)
+            fixer.TableRow = row  # TBC: index
+            fix_value = fixer.fix_illegal_cell_value("datetime", val)
             datetime_values.append(fix_value)
 
     return np.array(datetime_values)
 
 
+def _parse_text_column(values, fixer: FixFactory):
+    return np.array(values, dtype=np.str)
+
+
 _column_parsers = defaultdict(lambda: _parse_float_column)
-_column_parsers["text"] = lambda values: np.array(values, dtype=np.str)
+_column_parsers["text"] = _parse_text_column
 _column_parsers["onoff"] = _parse_onoff_column
 _column_parsers["datetime"] = _parse_datetime_column
 
@@ -222,7 +226,7 @@ def make_table_json_precursor(
     for name, col_parser, unit, values in zip(column_names, col_parsers, units, zip(*column_data)):
         try:
             _myFixFactory.TableColumn = name
-            columns[name] = col_parser(values)
+            columns[name] = col_parser(values, _myFixFactory)
         except ValueError as e:
             raise ValueError(
                 f"Unable to parse value in column {name} of table {table_name} as {unit}"
