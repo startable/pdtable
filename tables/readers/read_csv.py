@@ -15,13 +15,14 @@ import tables
 from .FixFactory import FixFactory
 from .. import pdtable
 from ..ancillary_blocks import Directive, MetadataBlock
-from ..parsers.columns import column_parsers
+from .parsers.columns import parse_column
 from ..store import BlockType, BlockGenerator
 from ..table_metadata import TableOriginCSV
 
-# Typing aliases, to clarify intent
-JsonPrecursor = Dict
-CellGrid = List[List]  # intended indexing: cell_grid[row][col]
+# ======== Typing aliases, to clarify intent ==============
+JsonPrecursor = Dict  # Json-like data structure of nested "objects" (dict) and "arrays" (list).
+CellGrid = List[List]  # Intended indexing: cell_grid[row][col]
+# ========================================================
 
 # TBC: wrap in specific reader instance, this is global for all threads
 _myFixFactory = FixFactory()
@@ -75,7 +76,7 @@ def make_block(token_type: BlockType, cells: CellGrid, origin) -> Tuple[BlockTyp
     return token_type, cells if factory is None else factory(cells, origin)
 
 
-def _column_names(col_names_raw):
+def preprocess_column_names(col_names_raw):
     """
        handle known issues in column_names
     """
@@ -115,7 +116,7 @@ def make_table_json_precursor(
 
     # handle multiple columns w. same name
     col_names_raw = cells[2]
-    column_names = _column_names(col_names_raw)
+    column_names = preprocess_column_names(col_names_raw)
     _myFixFactory.TableColumNames = column_names
     # TODO: _myFixFactory.TableColumNames (typo!) is assigned 4 times but never read... Use?
 
@@ -134,17 +135,15 @@ def make_table_json_precursor(
             )
             column_data[irow] = fix_row
 
-    col_parsers = [column_parsers[u] for u in units]
-
     # build dictionary of columns iteratively to allow meaningful error messages
     columns = dict()
-    for name, col_parser, unit, values in zip(column_names, col_parsers, units, zip(*column_data)):
+    for name, unit, values in zip(column_names, units, zip(*column_data)):
         try:
             _myFixFactory.TableColumn = name
-            columns[name] = col_parser(values, _myFixFactory)
+            columns[name] = parse_column(unit, values, _myFixFactory)
         except ValueError as e:
             raise ValueError(
-                f"Unable to parse value in column {name} of table {table_name} as {unit}"
+                f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
             ) from e
 
     return {
