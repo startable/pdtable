@@ -7,6 +7,7 @@ as discussed in store-module docstring).
 
 """
 import datetime
+from collections import defaultdict
 from os import PathLike
 from typing import List, Optional, Tuple, Any, TextIO, Dict
 
@@ -24,85 +25,86 @@ from ..table_metadata import TableOriginCSV
 JsonPrecursor = Dict
 CellGrid = List[List]  # intended indexing: cell_grid[row][col]
 
-_TF_values = {"0": False, "1": True, "-": False}
-
 # TBC: wrap in specific reader instance, this is global for all threads
 _myFixFactory = FixFactory()
 
 
+_onoff_value_conversions = {"0": False, "1": True, "-": False}
+
+
 def _parse_onoff_column(values):
     bool_values = []
-    for row, vv in enumerate(values):
-        if isinstance(vv, bool) or isinstance(vv, int):
-            bool_values.append(vv)
+    for row, val in enumerate(values):
+        if isinstance(val, bool) or isinstance(val, int):
+            bool_values.append(val)
             continue
         try:
-            bool_values.append(_TF_values[vv.strip()])
+            bool_values.append(_onoff_value_conversions[val.strip()])
         except KeyError as err:
             _myFixFactory.TableRow = row  # TBC: index
-            fix_value = _myFixFactory.fix_illegal_cell_value("onoff", vv)
+            fix_value = _myFixFactory.fix_illegal_cell_value("onoff", val)
             bool_values.append(fix_value)
     return np.array(bool_values, dtype=np.bool)
 
 
 _cnv_flt = {
-    "N": lambda v: np.nan,
-    "n": lambda v: np.nan,
-    "-": lambda v: np.nan if (len(v) == 1) else float(v),
+    "N": lambda val: np.nan,
+    "n": lambda val: np.nan,
+    "-": lambda val: np.nan if (len(val) == 1) else float(val),
 }
 for ch in "+0123456789":
     _cnv_flt[ch] = lambda v: float(v)
 
-_cnv_datetime = lambda v: pd.NaT if v == "-" else pd.to_datetime(v, dayfirst=True)
-
 
 def _parse_float_column(values):
     float_values = []
-    for row, vv in enumerate(values):
-        if isinstance(vv, float) or isinstance(vv, int):
-            float_values.append(float(vv))
+    for row, val in enumerate(values):
+        if isinstance(val, float) or isinstance(val, int):
+            float_values.append(float(val))
             continue
-        if len(vv) > 0 and (vv[0] in _cnv_flt):
+        if len(val) > 0 and (val[0] in _cnv_flt):
             try:
-                float_values.append(_cnv_flt[vv[0]](vv))
+                float_values.append(_cnv_flt[val[0]](val))
             except (KeyError, ValueError) as err:
                 _myFixFactory.TableRow = row  # TBC: index
-                fix_value = _myFixFactory.fix_illegal_cell_value("float", vv)
+                fix_value = _myFixFactory.fix_illegal_cell_value("float", val)
                 float_values.append(fix_value)
         else:
             _myFixFactory.TableRow = row  # TBC: index
-            fix_value = _myFixFactory.fix_illegal_cell_value("float", vv)
+            fix_value = _myFixFactory.fix_illegal_cell_value("float", val)
             float_values.append(fix_value)
     return np.array(float_values)
 
 
+_cnv_datetime = lambda val: pd.NaT if val == "-" else pd.to_datetime(val, dayfirst=True)
+
+
 def _parse_datetime_column(values):
     datetime_values = []
-    for row, vv in enumerate(values):
-        if isinstance(vv, datetime.datetime):
-            datetime_values.append(vv)
+    for row, val in enumerate(values):
+        if isinstance(val, datetime.datetime):
+            datetime_values.append(val)
             continue
-        if len(vv) > 0 and (vv[0].isdigit() or vv == "-"):
+        if len(val) > 0 and (val[0].isdigit() or val == "-"):
             try:
-                datetime_values.append(_cnv_datetime(vv))
+                datetime_values.append(_cnv_datetime(val))
             except ValueError as err:
                 # TBC: register exc !?
                 _myFixFactory.TableRow = row  # TBC: index
-                fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
+                fix_value = _myFixFactory.fix_illegal_cell_value("datetime", val)
                 datetime_values.append(fix_value)
         else:
             _myFixFactory.TableRow = row  # TBC: index
-            fix_value = _myFixFactory.fix_illegal_cell_value("datetime", vv)
+            fix_value = _myFixFactory.fix_illegal_cell_value("datetime", val)
             datetime_values.append(fix_value)
 
     return np.array(datetime_values)
 
 
-_column_dtypes = {
-    "text": lambda values: np.array(values, dtype=np.str),
-    "onoff": _parse_onoff_column,
-    "datetime": _parse_datetime_column,
-}
+_column_parsers = defaultdict(lambda: _parse_float_column)
+_column_parsers["text"] = lambda values: np.array(values, dtype=np.str)
+_column_parsers["onoff"] = _parse_onoff_column
+_column_parsers["datetime"] = _parse_datetime_column
 
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None) -> MetadataBlock:
@@ -213,14 +215,14 @@ def make_table_json_precursor(
             )
             column_data[irow] = fix_row
 
-    column_dtype = [_column_dtypes.get(u, _parse_float_column) for u in units]
+    col_parsers = [_column_parsers[u] for u in units]
 
     # build dictionary of columns iteratively to allow meaningful error messages
     columns = dict()
-    for name, dtype, unit, values in zip(column_names, column_dtype, units, zip(*column_data)):
+    for name, col_parser, unit, values in zip(column_names, col_parsers, units, zip(*column_data)):
         try:
             _myFixFactory.TableColumn = name
-            columns[name] = dtype(values)
+            columns[name] = col_parser(values)
         except ValueError as e:
             raise ValueError(
                 f"Unable to parse value in column {name} of table {table_name} as {unit}"
