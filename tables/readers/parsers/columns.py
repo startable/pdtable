@@ -3,13 +3,15 @@
 Parsers to convert column values of uncontrolled data types into values with a data type
 consistent with the intended representation given the column's unit indicator.
 
-A parser is implemented for each of the allowable StarTable column unit indicators:
+A data-type-specific parser is implemented for each of the allowable StarTable column unit
+indicators:
 - 'text' -> str
-- 'datetime' -> datetime / NaT
 - 'onoff' -> bool
+- 'datetime' -> datetime / NaT
 - everything else -> float / NaN
 
-A wrapper takes care of switching between these.
+The parse_column() wrapper takes care of switching between these data-type-specific parsers.
+This wrapper is the intended API.
 """
 import datetime
 from collections import defaultdict
@@ -21,30 +23,28 @@ import pandas as pd
 from tables.readers.FixFactory import FixFactory
 
 
-def _parse_text_column(values: Iterable, fixer: FixFactory):
-    # Ensure that values is a Sequence, else np.array will not unpack it
+def _parse_text_column(values: Iterable, fixer: FixFactory = None):
+    # Ensure that 'values' is a Sequence, else np.array will not unpack it
     return np.array(values if isinstance(values, Sequence) else list(values), dtype=np.str)
 
 
-_onoff_to_bool = {"0": False, "1": True, "-": False}
+_onoff_to_bool = {0: False, 1: True, False: False, True: True, "0": False, "1": True}
 
 
 def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
     bool_values = []
     for row, val in enumerate(values):
-        if isinstance(val, bool) or isinstance(val, int):
-            # TODO why are we letting ints in???
-            bool_values.append(val)
-            continue
+        if isinstance(val, str):
+            val = val.strip()
         try:
-            bool_values.append(_onoff_to_bool[val.strip()])
+            bool_values.append(_onoff_to_bool[val])
         except KeyError as err:
             if fixer is not None:
                 fixer.TableRow = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("onoff", val)
                 bool_values.append(fix_value)
             else:
-                raise err
+                raise ValueError("Illegal value in onoff column", val) from err
     return np.array(bool_values, dtype=np.bool)
 
 
@@ -61,10 +61,14 @@ def _parse_float_column(values: Iterable, fixer: FixFactory = None):
     float_values = []
     for row, val in enumerate(values):
         if isinstance(val, float) or isinstance(val, int):
+            # It's already a number.
             float_values.append(float(val))
             continue
-        if len(val) > 0 and (val[0] in _float_converters_by_1st_char):
+
+        # It's something else than a number.
+        if isinstance(val, str) and len(val) > 0:
             try:
+                # Parsing the string as one of the expected things (a number or missing value)
                 float_values.append(_float_converters_by_1st_char[val[0]](val))
             except (KeyError, ValueError) as err:
                 if fixer is not None:
@@ -72,27 +76,33 @@ def _parse_float_column(values: Iterable, fixer: FixFactory = None):
                     fix_value = fixer.fix_illegal_cell_value("float", val)
                     float_values.append(fix_value)
                 else:
-                    raise err
+                    raise ValueError("Illegal value in numerical column", val) from err
         else:
             if fixer is not None:
                 fixer.TableRow = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("float", val)
                 float_values.append(fix_value)
+            else:
+                raise ValueError("Illegal value in numerical column", val)
 
     return np.array(float_values)
 
 
-_to_datetime = lambda val: pd.NaT if val == "-" else pd.to_datetime(val, dayfirst=True)
+_to_datetime = lambda val: pd.NaT if val in ["-", "nan"] else pd.to_datetime(val, dayfirst=True)
 
 
 def _parse_datetime_column(values: Iterable, fixer: FixFactory = None):
     datetime_values = []
     for row, val in enumerate(values):
         if isinstance(val, datetime.datetime):
+            # It's already a datetime
             datetime_values.append(val)
             continue
-        if len(val) > 0 and (val[0].isdigit() or val == "-"):
+
+        # It's something else than a datetime
+        if len(val) > 0 and (val[0].isdigit() or val in ["-", "nan"]):
             try:
+                # Parsing the string as one of the expected things (a datetime or missing value)
                 datetime_values.append(_to_datetime(val))
             except ValueError as err:
                 # TBC: register exc !?
@@ -101,12 +111,14 @@ def _parse_datetime_column(values: Iterable, fixer: FixFactory = None):
                     fix_value = fixer.fix_illegal_cell_value("datetime", val)
                     datetime_values.append(fix_value)
                 else:
-                    raise err
+                    raise ValueError("Illegal value in datetime column", val) from err
         else:
             if fixer is not None:
                 fixer.TableRow = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("datetime", val)
                 datetime_values.append(fix_value)
+            else:
+                raise ValueError("Illegal value in datetime column", val)
 
     return np.array(datetime_values)
 
