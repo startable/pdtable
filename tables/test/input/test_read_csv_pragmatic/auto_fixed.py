@@ -95,6 +95,18 @@ autoFixed = {
         cow;-;200.0
         goose;2.0;9.0
     """,
+    "json1.csv": """
+        **farm_json1;
+        your_farm my_farm farms_galore
+        species;dt;num;flt;dt2;encode
+        text;datetime;-;kg;datetime;onoff
+        "chicken";-;2.0;-;2020-07-01 00:00:00;1
+        pig;2020-07-02 00:00:00;4.0;39.0;2020-07-02 00:00:00;0
+        goat;-;-;-;-;0
+        z'ybra;-;4.0;-;-;1
+        'cow';-;-;200.0;-;1
+        goose;-;2.0;9.0;-;0
+    """,
     "row1.csv": """
         **farm_row1;
         your_farm my_farm farms_galore

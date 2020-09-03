@@ -20,19 +20,21 @@ def test_FAT():
         Using default FixFactory
     """
     all_files = 0
+    ignore_files = ["auto_fixed.py", "__init__.py", "all.json"]
     for fn in os.listdir(input_dir()):
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
-        if fn in ["auto_fixed.py", "__init__.py"]:
+        if fn in ignore_files:
             continue
         all_files += 1
 
     for fn in os.listdir(input_dir()):
+        print(f"-oOo- read {fn}")
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
-        if fn in ["auto_fixed.py", "__init__.py"]:
+        if fn in ignore_files:
             continue
 
         with open(input_dir() / fn, "r") as fh:
@@ -45,8 +47,10 @@ def test_FAT():
                         with StringIO() as out:
                             _table_to_csv(tt, out, sep=";", na_rep="-")
                             test_output = out.getvalue().strip()
+                            print(test_output)
                         if fn != "all.csv":
                             assert test_output == dedent(autoFixed[fn]).strip()
+
 
             if fn == "all.csv":
                 assert count == all_files - 1

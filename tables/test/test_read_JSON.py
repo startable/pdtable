@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -36,24 +37,28 @@ class StarTableJsonEncoder(json.JSONEncoder):
 def test_FAT():
     """ Factory Acceptance Test
 
-        Verify that we are able to read all files in ./input
-        Using default FixFactory
+        Read input files as dictionary objects.
+        Compare objects to stored target objects (input_dir() / all.json)
+
     """
     all_files = 0
     for fn in os.listdir(input_dir()):
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
-        if fn in ["auto_fixed.py", "__init__.py"]:
+        if fn in ["auto_fixed.py", "__init__.py", "all.json"]:
             continue
         all_files += 1
 
-    targets = {}
+
+    with open(input_dir() / "all.json") as f:
+           all_json = json.load(f)
+
     for fn in os.listdir(input_dir()):
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
-        if fn in ["auto_fixed.py", "__init__.py"]:
+        if fn in ["auto_fixed.py", "__init__.py", "all.json"]:
             continue
         with open(input_dir() / fn, "r") as fh:
             g = read_stream_csv(fh, sep=";", origin=fn, do="json")
@@ -62,18 +67,12 @@ def test_FAT():
                 if True:
                     if tp == BlockType.TABLE:
                         count += 1
-                        targets[fn] = tt
-            #                        if fn != "all.csv":
-            #                            print(f"file: {fn}")
-            #                            print("\ntest_output:\n",test_output);
-            #                            print("\ntarget:\n",dedent(autoFixed[fn]).strip());
-            #                            sys.stdout.flush()
-            #                            assert test_output == dedent(autoFixed[fn]).strip()
+                        jstr = json.dumps(tt, cls=StarTableJsonEncoder, ensure_ascii=False)
+                        if fn != "all.csv":
+                            print("\ntest_output:\n",jstr);
+                            jobj = json.loads(jstr)
+                            print("\nmemory_obj:\n",jobj);
+                            print("\ntarget_obj:\n",all_json.get(fn));
+                            sys.stdout.flush()
+                            assert jobj == all_json.get(fn)
 
-            if fn == "all.csv":
-                assert count == all_files - 1
-            else:
-                assert count == 1
-
-    jstr = json.dumps(targets, cls=StarTableJsonEncoder)
-    print(f"\n{jstr}\n")

@@ -1,0 +1,13 @@
+
+**farm_json1;;;
+your_farm my_farm farms_galore;;;
+species;           dt;  num;  flt;         dt2;   encode;
+text;        datetime;    -;   kg;    datetime;    onoff;
+"chicken"; 2020-jl-01;    2;     ;  2020-07-01;        1;
+pig;       2020-07-02;    4;   39;  2020-07-02;        0;
+goat;               -;    a;    -;           -;        0;
+z'ybra;             -;    4;    -;           -;        1;
+'cow';              -;  NaN;  200;           -;        1;
+goose;               ;    2;    9;           -;        0;
+
+# error/handle: escape " quotes when encoding json
