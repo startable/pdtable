@@ -24,7 +24,7 @@ from tables.readers.FixFactory import FixFactory
 
 
 def _parse_text_column(values: Iterable, fixer: FixFactory = None):
-    # Ensure that 'values' is a Sequence, else np.array will not unpack it
+    # Ensure that 'values' is a Sequence, else np.array() will not unpack it
     return np.array(values if isinstance(values, Sequence) else list(values), dtype=np.str)
 
 
