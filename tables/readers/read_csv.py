@@ -15,7 +15,7 @@ import tables
 from .FixFactory import FixFactory
 from .. import pdtable
 from ..ancillary_blocks import Directive, MetadataBlock
-from ..parsers.columns import column_parsers
+from .parsers.columns import column_parsers
 from ..store import BlockType, BlockGenerator
 from ..table_metadata import TableOriginCSV
 
