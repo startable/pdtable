@@ -1,5 +1,19 @@
+"""Machinery to parse columns in accordance with their unit indicator.
+
+Parsers to convert column values of uncontrolled data types into values with a data type
+consistent with the intended representation given the column's unit indicator.
+
+A parser is implemented for each of the allowable StarTable column unit indicators:
+- 'text' -> str
+- 'datetime' -> datetime / NaT
+- 'onoff' -> bool
+- everything else -> float / NaN
+
+A wrapper takes care of switching between these.
+"""
 import datetime
 from collections import defaultdict
+from typing import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -7,17 +21,19 @@ import pandas as pd
 from tables.readers.FixFactory import FixFactory
 
 
-def _parse_text_column(values, fixer: FixFactory):
-    return np.array(values, dtype=np.str)
+def _parse_text_column(values: Iterable, fixer: FixFactory):
+    # Ensure that values is a Sequence, else np.array will not unpack it
+    return np.array(values if isinstance(values, Sequence) else list(values), dtype=np.str)
 
 
 _onoff_to_bool = {"0": False, "1": True, "-": False}
 
 
-def _parse_onoff_column(values, fixer: FixFactory = None):
+def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
     bool_values = []
     for row, val in enumerate(values):
         if isinstance(val, bool) or isinstance(val, int):
+            # TODO why are we letting ints in???
             bool_values.append(val)
             continue
         try:
@@ -38,10 +54,10 @@ _float_converters_by_1st_char = {
     "-": lambda val: np.nan if (len(val) == 1) else float(val),
 }
 for ch in "+0123456789":
-    _float_converters_by_1st_char[ch] = lambda v: float(v)
+    _float_converters_by_1st_char[ch] = lambda val: float(val)
 
 
-def _parse_float_column(values, fixer: FixFactory = None):
+def _parse_float_column(values: Iterable, fixer: FixFactory = None):
     float_values = []
     for row, val in enumerate(values):
         if isinstance(val, float) or isinstance(val, int):
@@ -69,7 +85,7 @@ def _parse_float_column(values, fixer: FixFactory = None):
 _to_datetime = lambda val: pd.NaT if val == "-" else pd.to_datetime(val, dayfirst=True)
 
 
-def _parse_datetime_column(values, fixer: FixFactory = None):
+def _parse_datetime_column(values: Iterable, fixer: FixFactory = None):
     datetime_values = []
     for row, val in enumerate(values):
         if isinstance(val, datetime.datetime):
@@ -95,7 +111,31 @@ def _parse_datetime_column(values, fixer: FixFactory = None):
     return np.array(datetime_values)
 
 
-column_parsers = defaultdict(lambda: _parse_float_column)
-column_parsers["text"] = _parse_text_column
-column_parsers["onoff"] = _parse_onoff_column
-column_parsers["datetime"] = _parse_datetime_column
+_column_parsers = defaultdict(lambda: _parse_float_column)
+_column_parsers["text"] = _parse_text_column
+_column_parsers["onoff"] = _parse_onoff_column
+_column_parsers["datetime"] = _parse_datetime_column
+
+
+def parse_column(unit_indicator: str, values: Iterable, fixer: FixFactory = None) -> np.ndarray:
+    """Parses column values to the intended data type as per the column's unit indicator.
+
+    Parses column values to a consistent internal representation.
+    The parser is chosen by switching on unit_indicator.
+    The parsed values are returned as a numpy array with a suitable dtype.
+
+    Args:
+        unit_indicator:
+            The column's unit indicator, e.g. 'text', 'onoff', 'datetime', '-', 'kg'...
+
+        values:
+            Iterable of the column's values
+
+        fixer:
+            Optional
+
+    Returns:
+        Parsed values, placed in a numpy array of a suitable dtype.
+
+    """
+    return _column_parsers[unit_indicator](values, fixer)
