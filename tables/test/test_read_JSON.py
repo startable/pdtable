@@ -1,12 +1,17 @@
 import datetime
 import json
 import os
+import io
 import sys
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
+from textwrap import dedent
 
 from tables.readers.read_csv import read_stream_csv
+from tables.readers.read_csv import tables, pdtable
+from tables.readers.read_csv import make_table
 from ..store import BlockType
 from ..table_metadata import TableOriginCSV
 
@@ -34,6 +39,102 @@ class StarTableJsonEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+def test_JSON_pdtable():
+    """ ensure dict-obj to pdtable conversion
+        compare to target created w. read_stream_csv
+    """
+    csv_src = dedent(
+        """\
+        **farm_types1;;;
+        your_farm my_farm farms_galore;;;
+        species;  num;  flt;    log;
+        text;       -;   kg;  onoff;
+        chicken;    2;    3;      1;
+        pig;        4;   39;      0;
+        goat;       4;    -;      1;
+        zybra;      4;    -;      0;
+        cow;      NaN;  200;      1;
+        goose;      2;    9;      0;
+        """
+    )
+    pandas_pdtab = None
+    with io.StringIO(csv_src) as fh:
+        g = read_stream_csv(fh, sep=";", origin='"types1.csv" row 1')
+        for tp, tab in g:
+            pandas_pdtab = tab
+
+    table_data = {
+        "name": "farm_types1",
+        "columns": {
+            "species": ["chicken", "pig", "goat", "zybra", "cow", "goose"],
+            "num": [2.0, 4.0, 4.0, 4.0, None, 2.0],
+            "flt": [3.0, 39.0, None, None, 200.0, 9.0],
+            "log": [True, False, True, False, True, False],
+        },
+        "units": ["text", "-", "kg", "onoff"],
+        "destinations": ["your_farm my_farm farms_galore"],
+        "origin": '"types1.csv" row 1',
+    }
+    json_pdtab = tables.proxy.Table(
+        pdtable.make_pdtable(
+            pd.DataFrame(table_data["columns"]),
+            units=table_data["units"],
+            metadata=tables.table_metadata.TableMetadata(
+                name=table_data["name"],
+                destinations={dest for dest in table_data["destinations"]},
+                origin=table_data["origin"],
+            ),
+        )
+    )
+    assert pandas_pdtab.equals(json_pdtab)
+
+def data_to_pdtable(table_data:dict):
+    lines_json =  []
+    lines_json.append([f'**{table_data["name"]}'])
+    lines_json.append([f'{dst}' for dst in table_data["destinations"]])
+    lines_json.append([f'{cname}' for cname in table_data["columns"].keys()])
+    lines_json.append([f'{unit}' for unit in table_data["units"]])
+    json_rows = list(map(list, zip(*table_data["columns"].values()))) # transposed columns
+    lines_json.extend(json_rows)
+
+    return make_table(lines_json)
+
+def test_JSON_make_table():
+    """ ensure dict-obj to pdtable conversion
+        compare to target created w. make_table(List[List]])
+    """
+    lines_target = [
+       ["**farm_types1"],
+       ["your_farm my_farm farms_galore"],
+       ["species","num","flt","log"],
+       ["text","-","kg","onoff"],
+       ["chicken",2,3,1],
+       ["pig",4,39,0],
+       ["goat",4,None,1],
+       ["zybra",4,None,0],
+       ["cow",None,200,1],
+       ["goose",2,9,0]
+       ]
+
+    pandas_pdtab = make_table(lines_target)
+
+    table_data = {
+        "name": "farm_types1",
+        "columns": {
+            "species": ["chicken", "pig", "goat", "zybra", "cow", "goose"],
+            "num": [2.0, 4.0, 4.0, 4.0, None, 2.0],
+            "flt": [3.0, 39.0, None, None, 200.0, 9.0],
+            "log": [True, False, True, False, True, False],
+        },
+        "units": ["text", "-", "kg", "onoff"],
+        "destinations": ["your_farm my_farm farms_galore"],
+        "origin": '"types1.csv" row 1',
+    }
+
+    json_pdtab = data_to_pdtable(table_data)
+    assert pandas_pdtab.equals(json_pdtab)
+
+
 def test_FAT():
     """ Factory Acceptance Test
 
@@ -50,9 +151,8 @@ def test_FAT():
             continue
         all_files += 1
 
-
     with open(input_dir() / "all.json") as f:
-           all_json = json.load(f)
+        all_json = json.load(f)
 
     for fn in os.listdir(input_dir()):
         path = input_dir() / fn
@@ -69,10 +169,5 @@ def test_FAT():
                         count += 1
                         jstr = json.dumps(tt, cls=StarTableJsonEncoder, ensure_ascii=False)
                         if fn != "all.csv":
-                            print("\ntest_output:\n",jstr);
                             jobj = json.loads(jstr)
-                            print("\nmemory_obj:\n",jobj);
-                            print("\ntarget_obj:\n",all_json.get(fn));
-                            sys.stdout.flush()
                             assert jobj == all_json.get(fn)
-
