@@ -19,7 +19,8 @@ from ..table_metadata import TableOriginCSV
 def input_dir() -> Path:
     return Path(__file__).parent / "input/test_read_csv_pragmatic"
 
-
+# TBC: this stuff should prob. be included in some pdtable util package
+# TBD: need a good name for the in-memory object (JSON_data)
 class StarTableJsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
@@ -38,6 +39,30 @@ class StarTableJsonEncoder(json.JSONEncoder):
 
         return json.JSONEncoder.default(self, obj)
 
+def JSON_data_to_pdtable(table_data:dict):
+    """  translate table-dictionary (JSON-like) to pdtable
+    """
+    lines_json =  []
+    lines_json.append([f'**{table_data["name"]}'])
+    lines_json.append([f'{dst}' for dst in table_data["destinations"]])
+    lines_json.append([f'{cname}' for cname in table_data["columns"].keys()])
+    lines_json.append([f'{unit}' for unit in table_data["units"]])
+    json_rows = list(map(list, zip(*table_data["columns"].values()))) # transposed columns
+    lines_json.extend(json_rows)
+    # note: this allows us to use FixFactory !
+    return make_table(lines_json,origin=table_data["origin"])
+
+def pdtable_to_JSON_data(tab):
+    """  translate pdtable to table-dictionary (JSON-like)
+    """
+    table_data = { "name": tab.name, "origin": tab.metadata.origin,
+                    "destinations":  tab.metadata.destinations,
+                    "units": tab.units
+                 }
+    table_data["columns"] = {}
+    for cname in tab.column_names:
+        table_data["columns"][cname] = [vv for vv in tab.df[cname]]
+    return table_data
 
 def test_JSON_pdtable():
     """ ensure dict-obj to pdtable conversion
@@ -88,18 +113,7 @@ def test_JSON_pdtable():
     )
     assert pandas_pdtab.equals(json_pdtab)
 
-def data_to_pdtable(table_data:dict):
-    lines_json =  []
-    lines_json.append([f'**{table_data["name"]}'])
-    lines_json.append([f'{dst}' for dst in table_data["destinations"]])
-    lines_json.append([f'{cname}' for cname in table_data["columns"].keys()])
-    lines_json.append([f'{unit}' for unit in table_data["units"]])
-    json_rows = list(map(list, zip(*table_data["columns"].values()))) # transposed columns
-    lines_json.extend(json_rows)
-
-    return make_table(lines_json)
-
-def test_JSON_make_table():
+def test_JSON_data_to_pdtable():
     """ ensure dict-obj to pdtable conversion
         compare to target created w. make_table(List[List]])
     """
@@ -131,8 +145,13 @@ def test_JSON_make_table():
         "origin": '"types1.csv" row 1',
     }
 
-    json_pdtab = data_to_pdtable(table_data)
+    json_pdtab = JSON_data_to_pdtable(table_data)
     assert pandas_pdtab.equals(json_pdtab)
+
+    # reverse
+    table_data_back = pdtable_to_JSON_data(json_pdtab)
+    json_pdtab_back = JSON_data_to_pdtable(table_data)
+    assert pandas_pdtab.equals(json_pdtab_back)
 
 
 def test_FAT():
@@ -171,3 +190,4 @@ def test_FAT():
                         if fn != "all.csv":
                             jobj = json.loads(jstr)
                             assert jobj == all_json.get(fn)
+
