@@ -16,7 +16,23 @@ from tables.store import BlockType, BlockGenerator
 
 
 def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None) -> BlockGenerator:
-    """Parses blocks from a single Openpyxl worksheet"""
+    """Parses blocks from a single sheet.
+
+    Takes an iterable of cell rows and parses it into blocks.
+
+    Args:
+        cell_rows: Iterable of cell rows, where each row is a sequence of cells.
+        origin: A thing.
+
+    Yields:
+        Blocks.
+    """
+    # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
+    # but I haven't seen how.
+    # Template data handling is half-hearted, mostly because of doubts on StarTable syntax
+    # Must all template data have leading `:`?
+    # In any case, avoiding row-wise emit for multi-line template data should be a priority.
+
     block_lines = []
     block_type = BlockType.METADATA
     block_start_row = 0
