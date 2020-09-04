@@ -7,21 +7,21 @@ as discussed in store-module docstring).
 
 """
 from os import PathLike
-from typing import List, Optional, Tuple, Any, TextIO, Dict
+from typing import Optional, Tuple, Any, TextIO, Dict, Sequence
 
 import pandas as pd
 
 import tables
 from .FixFactory import FixFactory
+from .parsers.columns import parse_column
 from .. import pdtable
 from ..ancillary_blocks import Directive, MetadataBlock
-from .parsers.columns import parse_column
 from ..store import BlockType, BlockGenerator
 from ..table_metadata import TableOriginCSV
 
 # ======== Typing aliases, to clarify intent ==============
 JsonPrecursor = Dict  # Json-like data structure of nested "objects" (dict) and "arrays" (list).
-CellGrid = List[List]  # Intended indexing: cell_grid[row][col]
+CellGrid = Sequence[Sequence]  # Intended indexing: cell_grid[row][col]
 # ========================================================
 
 # TBC: wrap in specific reader instance, this is global for all threads
@@ -155,6 +155,7 @@ def make_table_json_precursor(
     }
 
 
+# TODO first convert CSV file into cell row generator, then parse that into blocks
 def read_stream_csv(
         f: TextIO, sep: str = None, origin: Optional[str] = None, fix_factory=None,
         do: str = "Table"

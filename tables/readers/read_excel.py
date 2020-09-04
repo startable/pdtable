@@ -36,4 +36,5 @@ def read_excel(path: PathLike) -> BlockGenerator:
         ) from err
     wb = openpyxl.load_workbook(path)
     for ws in wb.worksheets:
-        yield from parse_blocks(ws)
+        cell_rows = ws.iter_rows(values_only=True)
+        yield from parse_blocks(cell_rows)

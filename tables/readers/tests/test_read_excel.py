@@ -5,7 +5,8 @@ import numpy as np
 import openpyxl
 import pandas as pd
 
-from .._read_excel_openpyxl import make_table, parse_blocks
+from .._read_excel_openpyxl import parse_blocks
+from ..read_csv import make_table
 from ..read_excel import read_excel
 from ... import Table
 from ...store import BlockType
@@ -43,23 +44,27 @@ def test_make_table():
 
 
 def test_parse_blocks():
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.append(["**foo"])
-    ws.append(["all"])
-    ws.append(["place", "distance"])
-    ws.append(["text", "km"])
-    ws.append(["ha", 1.0])
-    ws.append([])
-    ws.append(["**bar"])
-    ws.append(["all"])
-    ws.append(["a", "b", "c"])
-    ws.append(["-", "-", "onoff"])
-    ws.append([42, 66, 1])
-    ws.append([1, 2, 0])
-    ws.append([3, 4, 1])
+    cell_rows = []
+    # first table block
+    cell_rows.append(["**foo"])
+    cell_rows.append(["all"])
+    cell_rows.append(["place", "distance"])
+    cell_rows.append(["text", "km"])
+    cell_rows.append(["ha", 1.0])
+    # Throw in different flavours of blank rows for kicks
+    cell_rows.append([""])
+    cell_rows.append([])
+    cell_rows.append([None, ""])
+    # second table block
+    cell_rows.append(["**bar"])
+    cell_rows.append(["all"])
+    cell_rows.append(["a", "b", "c"])
+    cell_rows.append(["-", "-", "onoff"])
+    cell_rows.append([42, 66, 1])
+    cell_rows.append([1, 2, 0])
+    cell_rows.append([3, 4, 1])
 
-    blocks = list(parse_blocks(ws))
+    blocks = list(parse_blocks(cell_rows))
     tables = [block for (block_type, block) in blocks if block_type == BlockType.TABLE]
 
     assert tables[0].name == "foo"
