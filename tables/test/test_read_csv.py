@@ -115,7 +115,8 @@ def test_read_stream_csv():
         )
 
     with StringIO(lines) as f:
-        blocks = [b for b in read_stream_csv(f, sep=';')]
+        cell_rows = (line.rstrip("\n").split(";") for line in f)
+        blocks = [b for b in read_stream_csv(cell_rows, sep=';')]
         assert len(blocks) == 10  # includes blanks
 
     metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
@@ -131,8 +132,15 @@ def test_read_stream_csv():
     assert d.name == "gunk"
     assert d.lines == ["grok", "jiggyjag"]
 
+    tabs = [b for t, b in blocks if t == BlockType.TABLE]
+    assert len(tabs) == 2
+    t = tabs[0]
+    assert t.name == "foo"
+    assert t.df["column"].iloc[0] == "bar"
+
     with StringIO(lines) as f:
-        table = TableBundle(read_stream_csv(f, sep=";"))
+        cell_rows = (line.rstrip("\n").split(";") for line in f)
+        table = TableBundle(read_stream_csv(cell_rows, sep=";"))
 
     assert table.foo.column.values[0] == "bar"
     assert table.foo.dash.values[0] == 10

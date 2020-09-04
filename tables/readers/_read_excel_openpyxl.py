@@ -33,7 +33,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None) ->
     # Must all template data have leading `:`?
     # In any case, avoiding row-wise emit for multi-line template data should be a priority.
 
-    block_lines = []
+    cell_grid = []
     block_type = BlockType.METADATA
     block_start_row = 0
     for irow_0based, row in enumerate(cell_rows):
@@ -56,16 +56,16 @@ def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None) ->
 
         if next_block_type is not None:
             yield make_block(
-                block_type, block_lines,
+                block_type, cell_grid,
                 tables.table_metadata.TableOriginCSV(origin, block_start_row)
             )
             # TODO replace TableOriginCSV with one tailored for Excel
-            block_lines = []
+            cell_grid = []
             block_type = next_block_type
             block_start_row = irow_0based + 1
-        block_lines.append(row)
+        cell_grid.append(row)
 
-    if block_lines:
-        yield make_block(block_type, block_lines,
+    if cell_grid:
+        yield make_block(block_type, cell_grid,
                          tables.table_metadata.TableOriginCSV(origin, block_start_row))
         # TODO replace TableOriginCSV with one tailored for Excel

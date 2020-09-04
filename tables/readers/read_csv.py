@@ -7,7 +7,7 @@ as discussed in store-module docstring).
 
 """
 from os import PathLike
-from typing import Optional, Tuple, Any, TextIO, Dict, Sequence
+from typing import Optional, Tuple, Any, TextIO, Dict, Sequence, Iterable
 
 import pandas as pd
 
@@ -157,7 +157,7 @@ def make_table_json_precursor(
 
 # TODO first convert CSV file into cell row generator, then parse that into blocks
 def read_stream_csv(
-        f: TextIO, sep: str = None, origin: Optional[str] = None, fix_factory=None,
+        cell_rows: Iterable[Sequence], sep: str = None, origin: Optional[str] = None, fix_factory=None,
         do: str = "Table"
 ) -> BlockGenerator:
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
@@ -201,32 +201,32 @@ def read_stream_csv(
         ss = s.lstrip()
         return not ss or ss.startswith(sep)
 
-    cells: CellGrid = []
+    cell_grid = []
     block = BlockType.METADATA
     block_line = 0
-    for line_number_0based, line in enumerate(f):
+    for line_number_0based, row in enumerate(cell_rows):
         next_block = None
-        if line.startswith("**"):
-            if line.startswith("***"):
+        first_cell = row[0] if len(row) > 0 else None
+        if first_cell.startswith("**"):
+            if first_cell.startswith("***"):
                 next_block = BlockType.DIRECTIVE
             else:
                 next_block = BlockType.TABLE
-        elif line.startswith(":"):
+        elif first_cell.startswith(":"):
             next_block = BlockType.TEMPLATE_ROW
-        elif is_blank(line) and not block == BlockType.METADATA:
+        elif is_blank(first_cell) and not block == BlockType.METADATA:
             next_block = BlockType.BLANK
 
         if next_block is not None:
-            yield make_block(block, cells, TableOriginCSV(origin, block_line))
-            cells = []
+            yield make_block(block, cell_grid, TableOriginCSV(origin, block_line))
+            cell_grid = []
             block = next_block
             block_line = line_number_0based + 1
 
-        row = [cell.strip() for cell in line.rstrip("\n").split(sep)]
-        cells.append(row)
+        cell_grid.append(row)
 
-    if cells:
-        yield make_block(block, cells, TableOriginCSV(origin, block_line))
+    if cell_grid:
+        yield make_block(block, cell_grid, TableOriginCSV(origin, block_line))
 
     _myFixFactory = FixFactory()
 
@@ -239,4 +239,5 @@ def read_file_csv(file: PathLike, sep: str = None, fix_factory=None) -> BlockGen
         sep = tables.CSV_SEP
 
     with open(file) as f:
-        yield from read_stream_csv(f, sep, origin=file, fix_factory=fix_factory)
+        cell_rows = (line.split(sep) for line in f)
+        yield from read_stream_csv(cell_rows, sep, origin=file, fix_factory=fix_factory)
