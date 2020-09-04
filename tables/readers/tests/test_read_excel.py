@@ -1,59 +1,14 @@
+import datetime as dt
 from pathlib import Path
 
-import openpyxl
-import pytest
-from pytest import raises
-import datetime as dt
-
-from ..read_excel import read_excel
-from .._read_excel_openpyxl import _parse_onoff_column, \
-    _parse_float_column, _parse_datetime_column, make_table, parse_blocks
 import numpy as np
+import openpyxl
 import pandas as pd
-from numpy.testing import assert_array_equal
 
+from .._read_excel_openpyxl import make_table, parse_blocks
+from ..read_excel import read_excel
 from ... import Table
 from ...store import BlockType
-
-
-
-
-
-def test__parse_onoff_column():
-    col = _parse_onoff_column([0, 1, False, True, "0", "1", " 0\t", "1 \n "])
-    assert_array_equal(col, np.array([False, True, False, True, False, True, False, True,]))
-    assert col.dtype == bool
-
-
-def test__parse_onoff_column__panics_on_illegal_value():
-    illegal_values = ["-", 2, -1]
-    for x in illegal_values:
-        with raises(ValueError):
-            _parse_onoff_column([x])
-
-
-def test__parse_float_column():
-    col = _parse_float_column([-1, 42, "-1", "42", "-", "NaN", "nan"])
-    assert_array_equal(col, np.array([-1, 42, -1, 42, np.nan, np.nan, np.nan]))
-    assert col.dtype == float
-
-
-def test__parse_float_column__panics_on_illegal_value():
-    illegal_values = ["foo", "", None]
-    for x in illegal_values:
-        with raises(ValueError):
-            _parse_float_column([x])
-
-
-def test__parse_datetime_column():
-    col = _parse_datetime_column([dt.datetime(2020, 8, 11), dt.datetime(2020, 8, 11, 11, 40)])
-    assert_array_equal(
-        col, np.array([pd.to_datetime("2020-08-11"), pd.to_datetime("2020-08-11 11:40")])
-    )
-
-    col = _parse_datetime_column(["-", "nan"])
-    for v in col:
-        assert v is pd.NaT
 
 
 def test_make_table():
@@ -65,7 +20,7 @@ def test_make_table():
         ["home", 0.0, dt.datetime(2020, 8, 4, 8, 0, 0), 1],
         ["work", 1.0, dt.datetime(2020, 8, 4, 9, 0, 0), 0],
         ["beach", 2.0, dt.datetime(2020, 8, 4, 17, 0, 0), 1],
-        ["wonderland", "-", "-", 0],
+        ["wonderland", "-", "-", "FALSE"],
     ]
 
     t = make_table(lines)
@@ -114,7 +69,7 @@ def test_parse_blocks():
     assert tables[1].column_names == ["a", "b", "c"]
     assert len(tables[1].df) == 3
 
-import sys
+
 def test_read_excel():
 
     # Prepare the expected tables.

@@ -1,14 +1,10 @@
 """Machinery to read Tables from an Excel workbook using openpyxl as engine."""
 
-from typing import List, Tuple, Any, Optional
+from typing import Optional
 
-import numpy as np
-import pandas as pd
-
-import tables.table_metadata
 import tables.proxy
-from .parsers.columns import normalize_if_str, is_missing_data_marker
-from .read_csv import make_table
+import tables.table_metadata
+from .read_csv import make_block
 
 try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
@@ -17,54 +13,6 @@ except ImportError:
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 
 from tables.store import BlockType, BlockGenerator
-
-# ================================================================================
-# ====== Parsers for the various column types (as determined by their unit) ======
-
-_onoff_value_conversions = {0: False, 1: True, False: False, True: True, "0": False, "1": True}
-
-
-def _parse_onoff_column(values) -> np.ndarray:
-    try:
-        as_bool = [_onoff_value_conversions[normalize_if_str(v)] for v in values]
-    except KeyError:
-        raise ValueError("Entries in onoff columns must be 0 (False) or 1 (True)")
-    return np.array(as_bool, dtype=np.bool)
-
-
-def _parse_float_column(values) -> np.ndarray:
-    try:
-        values = [np.nan if is_missing_data_marker(v) else float(v) for v in values]
-    except (ValueError, TypeError):
-        raise ValueError(
-            "Entries in numerical columns must be numbers or missing-value markers ('-', 'NaN', 'nan')"
-        )
-    return np.array(values)
-
-
-def _parse_datetime_column(values):
-    values = [
-        pd.NaT if is_missing_data_marker(v) else pd.to_datetime(v, dayfirst=True) for v in values
-    ]
-    return np.array(values)
-
-# ====== End column parsers ======================================================
-# ================================================================================
-
-
-_column_parsers = {
-    "text": lambda values: np.array(values, dtype=np.str),
-    "onoff": _parse_onoff_column,
-    "datetime": _parse_datetime_column,
-}
-
-
-_block_factory_lookup = {BlockType.TABLE: make_table}
-
-
-def make_block(block_type: BlockType, lines: List[List], origin) -> Tuple[BlockType, Any]:
-    factory = _block_factory_lookup.get(block_type, None)
-    return block_type, None if factory is None else factory(lines, origin)
 
 
 def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGenerator:

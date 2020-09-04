@@ -71,9 +71,9 @@ _block_factory_lookup = {
 }
 
 
-def make_block(token_type: BlockType, cells: CellGrid, origin) -> Tuple[BlockType, Any]:
-    factory = _block_factory_lookup.get(token_type, None)
-    return token_type, cells if factory is None else factory(cells, origin)
+def make_block(block_type: BlockType, cells: CellGrid, origin) -> Tuple[BlockType, Any]:
+    factory = _block_factory_lookup.get(block_type, None)
+    return block_type, cells if factory is None else factory(cells, origin)
 
 
 def preprocess_column_names(col_names_raw):
