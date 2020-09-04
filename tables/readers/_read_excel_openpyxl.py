@@ -1,6 +1,6 @@
 """Machinery to read Tables from an Excel workbook using openpyxl as engine."""
 
-from typing import Optional
+from typing import Optional, Sequence, Iterable
 
 import tables.proxy
 import tables.table_metadata
@@ -15,17 +15,16 @@ except ImportError:
 from tables.store import BlockType, BlockGenerator
 
 
-def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGenerator:
+def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None) -> BlockGenerator:
     """Parses blocks from a single Openpyxl worksheet"""
     block_lines = []
     block_type = BlockType.METADATA
     block_start_row = 0
-    for irow_0based, row in enumerate(ws.iter_rows(values_only=True)):
-        # TODO iterate on cells instead of rows? because all rows are as wide as the rightmost thing in the sheet
+    for irow_0based, row in enumerate(cell_rows):
         next_block_type = None
-        first_cell = row[0]
-        first_cell_is_str = isinstance(first_cell, str)
-        if first_cell_is_str:
+        first_cell = row[0] if len(row) > 0 else None
+        if isinstance(first_cell, str) and first_cell != "":
+            # Check whether it's a block start marker
             if first_cell.startswith("**"):
                 if first_cell.startswith("***"):
                     next_block_type = BlockType.DIRECTIVE
@@ -34,13 +33,15 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
             elif first_cell.startswith(":"):
                 next_block_type = BlockType.TEMPLATE_ROW
         elif (
-            first_cell is None or (first_cell_is_str and first_cell == "")
+                first_cell is None or first_cell == ""
         ) and not block_type == BlockType.METADATA:
+            # Blank first cell marks end of block
             next_block_type = BlockType.BLANK
 
         if next_block_type is not None:
             yield make_block(
-                block_type, block_lines, tables.table_metadata.TableOriginCSV(origin, block_start_row)
+                block_type, block_lines,
+                tables.table_metadata.TableOriginCSV(origin, block_start_row)
             )
             # TODO replace TableOriginCSV with one tailored for Excel
             block_lines = []
@@ -49,5 +50,6 @@ def parse_blocks(ws: OpenpyxlWorksheet, origin: Optional[str] = None) -> BlockGe
         block_lines.append(row)
 
     if block_lines:
-        yield make_block(block_type, block_lines, tables.table_metadata.TableOriginCSV(origin, block_start_row))
+        yield make_block(block_type, block_lines,
+                         tables.table_metadata.TableOriginCSV(origin, block_start_row))
         # TODO replace TableOriginCSV with one tailored for Excel
