@@ -87,7 +87,7 @@ def test_make_table__no_trailing_sep():
 
 
 def test_read_stream_csv():
-    lines = dedent("""\
+    cell_rows = [[cell.strip() for cell in line.split(";")] for line in dedent("""\
         author: ;XYODA     ;
         purpose:;Save the galaxy
     
@@ -112,12 +112,10 @@ def test_read_stream_csv():
         15373;a;0;
         15326;b;1;
         """
-        )
+        ).strip().split("\n")]
 
-    with StringIO(lines) as f:
-        cell_rows = (line.rstrip("\n").split(";") for line in f)
-        blocks = [b for b in read_stream_csv(cell_rows, sep=';')]
-        assert len(blocks) == 10  # includes blanks
+    blocks = [b for b in read_stream_csv(cell_rows, sep=';')]
+    assert len(blocks) == 10  # includes blanks
 
     metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
     assert len(metadata_blocks) == 1
@@ -138,9 +136,7 @@ def test_read_stream_csv():
     assert t.name == "foo"
     assert t.df["column"].iloc[0] == "bar"
 
-    with StringIO(lines) as f:
-        cell_rows = (line.rstrip("\n").split(";") for line in f)
-        table = TableBundle(read_stream_csv(cell_rows, sep=";"))
-
-    assert table.foo.column.values[0] == "bar"
-    assert table.foo.dash.values[0] == 10
+    # Bundle
+    table_bundle = TableBundle(read_stream_csv(cell_rows, sep=";"))
+    assert table_bundle.foo.column.values[0] == "bar"
+    assert table_bundle.foo.dash.values[0] == 10
