@@ -262,4 +262,4 @@ def read_csv(source: Union[str, PathLike, TextIO], sep: str = None, fixer=None) 
 
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
-        yield from parse_blocks(cell_rows, origin=source, fixer=fixer)
+        yield from parse_blocks(cell_rows, origin=str(source), fixer=fixer)
