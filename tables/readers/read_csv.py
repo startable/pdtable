@@ -6,8 +6,9 @@ This allows early abort of reads as well as generic postprocessing (
 as discussed in store-module docstring).
 
 """
+from contextlib import nullcontext
 from os import PathLike
-from typing import Optional, Tuple, Any, TextIO, Dict, Sequence, Iterable
+from typing import Optional, Tuple, Any, TextIO, Dict, Sequence, Iterable, Union
 
 import pandas as pd
 
@@ -241,13 +242,13 @@ def read_stream_csv(
     _myFixFactory = FixFactory()
 
 
-def read_file_csv(file: PathLike, sep: str = None, fix_factory=None) -> BlockGenerator:
+def read_csv(source: Union[str, PathLike, TextIO], sep: str = None, fixer=None) -> BlockGenerator:
     """
-    Read starTable tokens from CSV file, yielding them one token at a time.
+    Read starTable tokens from CSV file or text stream, yielding them one token at a time.
     """
     if sep is None:
         sep = tables.CSV_SEP
 
-    with open(file) as f:
+    with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
-        yield from read_stream_csv(cell_rows, sep, origin=file, fix_factory=fix_factory)
+        yield from read_stream_csv(cell_rows, sep, origin=source, fix_factory=fixer)
