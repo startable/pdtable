@@ -87,7 +87,7 @@ def test_make_table__no_trailing_sep():
 
 
 def test_read_stream_csv():
-    cell_rows = [[cell.strip() for cell in line.split(";")] for line in dedent("""\
+    cell_rows = [line.split(";") for line in dedent("""\
         author: ;XYODA     ;
         purpose:;Save the galaxy
     

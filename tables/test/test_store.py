@@ -6,7 +6,7 @@ from ..readers.read_csv import read_stream_csv
 
 
 def test_bundle_from_csv():
-    lines = dedent(
+    cell_rows = [line.split(";") for line in dedent(
         r"""
     **foo
     all
@@ -26,9 +26,9 @@ def test_bundle_from_csv():
     15373;a;0;
     15326;b;1;
     """
-    )
+    ).strip().split("\n")]
 
-    with StringIO(lines) as f:
-        table = TableBundle(read_stream_csv(f, sep=";"))
+    # with StringIO(lines) as f:
+    table = TableBundle(read_stream_csv(cell_rows, sep=";"))
 
     assert table.foo.column.values[0] == "bar"

@@ -78,7 +78,8 @@ def _parse_float_column(values: Iterable, fixer: FixFactory = None):
             float_values.append(float(val))
             continue
 
-        # It's something else than a number.
+        # It's something else than a number. Presumably a string.
+        val = normalize_if_str(val)
         if isinstance(val, str) and len(val) > 0:
             try:
                 # Parsing the string as one of the expected things (a number or missing value)
@@ -112,7 +113,8 @@ def _parse_datetime_column(values: Iterable, fixer: FixFactory = None):
             datetime_values.append(val)
             continue
 
-        # It's something else than a datetime
+        # It's something else than a datetime. Presumably a string.
+        val = val.strip()
         if len(val) > 0 and (val[0].isdigit() or val in ["-", "nan"]):
             try:
                 # Parsing the string as one of the expected things (a datetime or missing value)

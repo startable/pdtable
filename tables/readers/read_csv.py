@@ -155,11 +155,21 @@ def make_table_json_precursor(
     }
 
 
-# TODO first convert CSV file into cell row generator, then parse that into blocks
 def read_stream_csv(
         cell_rows: Iterable[Sequence], sep: str = None, origin: Optional[str] = None, fix_factory=None,
         do: str = "Table"
 ) -> BlockGenerator:
+    """Parses blocks from a single sheet as rows of cells.
+
+    Takes an iterable of cell rows and parses it into blocks.
+
+    Args:
+        cell_rows: Iterable of cell rows, where each row is a sequence of cells.
+        origin: A thing.
+
+    Yields:
+        Blocks.
+    """
     # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
     # but I haven't seen how.
     # Template data handling is half-hearted, mostly because of doubts on StarTable syntax
@@ -239,5 +249,5 @@ def read_file_csv(file: PathLike, sep: str = None, fix_factory=None) -> BlockGen
         sep = tables.CSV_SEP
 
     with open(file) as f:
-        cell_rows = (line.split(sep) for line in f)
+        cell_rows = (line.rstrip("\n").split(sep) for line in f)
         yield from read_stream_csv(cell_rows, sep, origin=file, fix_factory=fix_factory)

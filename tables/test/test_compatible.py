@@ -13,7 +13,7 @@ def test_read_csv_compatible1():
       handle leading and trailing wsp
     """
 
-    lines = dedent(
+    cell_rows = [line.split(";") for line in dedent(
         r"""
     **test_input;
     all;
@@ -28,10 +28,9 @@ def test_read_csv_compatible1():
      -1.23 ; - ; - ;
      +1.23 ; - ; - ;
     """
-    )
+    ).strip().split("\n")]
 
-    with StringIO(lines) as stream:
-        table = TableBundle(read_stream_csv(stream, sep=";"))
+    table = TableBundle(read_stream_csv(cell_rows, sep=";"))
     assert table
 
     assert table.test_input.onoffs[0] == False
@@ -58,7 +57,7 @@ def test_read_csv_compatible2():
       handle leading and trailing wsp in column_name, unit
     """
 
-    lines = dedent(
+    cell_rows = [line.split(";") for line in dedent(
         r"""
     **test_input;
     all;
@@ -66,10 +65,9 @@ def test_read_csv_compatible2():
      - ; datetime;onoff ;
     123;08/07/2020;0;
     """
-    )
+    ).strip().split("\n")]
 
-    with StringIO(lines) as istream:
-        table = TableBundle(read_stream_csv(istream, sep=";"))
+    table = TableBundle(read_stream_csv(cell_rows, sep=";"))
     assert table
 
     assert table.test_input.onoffs[0] == False
