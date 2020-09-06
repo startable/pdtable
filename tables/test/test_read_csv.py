@@ -2,7 +2,7 @@ from io import StringIO
 from textwrap import dedent
 
 import tables.proxy
-from ..readers.read_csv import make_metadata_block, make_directive, make_table, read_stream_csv
+from ..readers.read_csv import make_metadata_block, make_directive, make_table, parse_blocks
 from ..store import TableBundle, BlockType
 
 
@@ -114,7 +114,7 @@ def test_read_stream_csv():
         """
         ).strip().split("\n")]
 
-    blocks = [b for b in read_stream_csv(cell_rows, sep=';')]
+    blocks = [b for b in parse_blocks(cell_rows)]
     assert len(blocks) == 10  # includes blanks
 
     metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
@@ -137,6 +137,6 @@ def test_read_stream_csv():
     assert t.df["column"].iloc[0] == "bar"
 
     # Bundle
-    table_bundle = TableBundle(read_stream_csv(cell_rows, sep=";"))
+    table_bundle = TableBundle(parse_blocks(cell_rows))
     assert table_bundle.foo.column.values[0] == "bar"
     assert table_bundle.foo.dash.values[0] == 10

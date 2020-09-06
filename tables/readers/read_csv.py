@@ -156,10 +156,8 @@ def make_table_json_precursor(
     }
 
 
-def read_stream_csv(
-        cell_rows: Iterable[Sequence], sep: str = None, origin: Optional[str] = None, fix_factory=None,
-        do: str = "Table"
-) -> BlockGenerator:
+def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None, fixer=None,
+                 do: str = "Table") -> BlockGenerator:
     """Parses blocks from a single sheet as rows of cells.
 
     Takes an iterable of cell rows and parses it into blocks.
@@ -167,6 +165,8 @@ def read_stream_csv(
     Args:
         cell_rows: Iterable of cell rows, where each row is a sequence of cells.
         origin: A thing.
+        fixer: Also a thing, but different.
+        do: Determines what the output is. # TODO revisit this API
 
     Yields:
         Blocks.
@@ -182,18 +182,15 @@ def read_stream_csv(
     else:
         _block_factory_lookup[BlockType.TABLE] = make_table_json_precursor
 
-    if sep is None:
-        sep = tables.CSV_SEP
-
     if origin is None:
         origin = "Stream"
 
     global _myFixFactory
-    if fix_factory is not None:
-        if type(fix_factory) is type:
-            _myFixFactory = fix_factory()
+    if fixer is not None:
+        if type(fixer) is type:
+            _myFixFactory = fixer()
         else:
-            _myFixFactory = fix_factory
+            _myFixFactory = fixer
     assert _myFixFactory is not None
 
     _myFixFactory.FileName = origin
@@ -210,7 +207,7 @@ def read_stream_csv(
         assert not is_blank('foo;')
         """
         ss = s.lstrip()
-        return not ss or ss.startswith(sep)
+        return not ss
 
     cell_grid = []
     block = BlockType.METADATA
@@ -265,4 +262,4 @@ def read_csv(source: Union[str, PathLike, TextIO], sep: str = None, fixer=None) 
 
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
-        yield from read_stream_csv(cell_rows, sep, origin=source, fix_factory=fixer)
+        yield from parse_blocks(cell_rows, origin=source, fixer=fixer)

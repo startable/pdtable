@@ -5,7 +5,7 @@ from textwrap import dedent
 
 import pytest
 
-from tables.readers.read_csv import read_stream_csv
+from tables.readers.read_csv import parse_blocks
 from tables.writers._csv import _table_to_csv
 from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
 from ..store import BlockType
@@ -41,7 +41,7 @@ def test_FAT():
             continue
 
         with open(input_dir() / fn, "r") as fh:
-            g = read_stream_csv(fh, sep=";", origin=fn)
+            g = parse_blocks(fh, origin=fn)
             count = 0
             for tp, tt in g:
                 if True:

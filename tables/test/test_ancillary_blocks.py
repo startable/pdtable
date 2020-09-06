@@ -4,7 +4,7 @@ from textwrap import dedent
 
 from ..ancillary_blocks import Directive, MetadataBlock
 from ..demo.directive_handlers import handle_includes
-from ..readers.read_csv import read_stream_csv
+from ..readers.read_csv import parse_blocks
 from ..store import BlockType
 
 
@@ -41,7 +41,7 @@ def test_handle_includes():
         beach;19
         """).strip().split("\n")]
 
-    bg = handle_includes(read_stream_csv(cell_rows, sep=";"),
+    bg = handle_includes(parse_blocks(cell_rows),
                          input_dir=Path(__file__).parent / "input", recursive=True)
     bl = list(bg)
     tables = [b for t, b in bl if t == BlockType.TABLE]

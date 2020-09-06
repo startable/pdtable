@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from textwrap import dedent
 
-from tables.readers.read_csv import read_stream_csv
+from tables.readers.read_csv import parse_blocks
 from tables.readers.read_csv import tables, pdtable
 from tables.readers.read_csv import make_table
 from ..store import BlockType
@@ -88,7 +88,7 @@ def test_json_pdtable():
     ).strip().split("\n")]
     pandas_pdtab = None
     # with io.StringIO(csv_src) as fh:
-    g = read_stream_csv(cell_rows, sep=";", origin='"types1.csv" row 1')
+    g = parse_blocks(cell_rows, origin='"types1.csv" row 1')
     for tp, tab in g:
         pandas_pdtab = tab
 
@@ -185,7 +185,7 @@ def test_FAT():
         if fn in ["auto_fixed.py", "__init__.py", "all.json"]:
             continue
         with open(input_dir() / fn, "r") as fh:
-            g = read_stream_csv(fh, sep=";", origin=fn, do="json")
+            g = parse_blocks(fh, origin=fn, do="json")
             count = 0
             for tp, tt in g:
                 if True:

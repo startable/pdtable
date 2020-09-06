@@ -1,6 +1,6 @@
 from io import StringIO
 
-from tables.readers.read_csv import read_stream_csv
+from tables.readers.read_csv import parse_blocks
 from textwrap import dedent
 from tables.store import TableBundle
 
@@ -30,7 +30,7 @@ def test_read_csv_compatible1():
     """
     ).strip().split("\n")]
 
-    table = TableBundle(read_stream_csv(cell_rows, sep=";"))
+    table = TableBundle(parse_blocks(cell_rows))
     assert table
 
     assert table.test_input.onoffs[0] == False
@@ -67,7 +67,7 @@ def test_read_csv_compatible2():
     """
     ).strip().split("\n")]
 
-    table = TableBundle(read_stream_csv(cell_rows, sep=";"))
+    table = TableBundle(parse_blocks(cell_rows))
     assert table
 
     assert table.test_input.onoffs[0] == False

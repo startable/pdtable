@@ -2,7 +2,7 @@ from io import StringIO
 from textwrap import dedent
 
 from ..store import TableBundle
-from ..readers.read_csv import read_stream_csv
+from ..readers.read_csv import parse_blocks
 
 
 def test_bundle_from_csv():
@@ -29,6 +29,6 @@ def test_bundle_from_csv():
     ).strip().split("\n")]
 
     # with StringIO(lines) as f:
-    table = TableBundle(read_stream_csv(cell_rows, sep=";"))
+    table = TableBundle(parse_blocks(cell_rows))
 
     assert table.foo.column.values[0] == "bar"
