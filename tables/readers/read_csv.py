@@ -14,8 +14,6 @@ import tables
 from .parsers.blocks import parse_blocks
 from ..store import BlockGenerator
 
-# ======== Typing aliases, to clarify intent ==============
-# ========================================================
 
 # TBC: wrap in specific reader instance, this is global for all threads
 

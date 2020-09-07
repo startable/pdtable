@@ -2,16 +2,21 @@ from typing import Dict, Sequence, Optional, Tuple, Any, Iterable
 
 import pandas as pd
 
-import tables
-from tables import pdtable
-from tables.ancillary_blocks import MetadataBlock, Directive
-from tables.readers.FixFactory import FixFactory
-from tables.readers.parsers import parse_column
-from tables.store import BlockType, BlockGenerator
-from tables.table_metadata import TableOriginCSV
+from ..FixFactory import FixFactory
+from ..parsers import parse_column
+from ... import pdtable, Table
+from ...ancillary_blocks import MetadataBlock, Directive
+from ...store import BlockType, BlockGenerator
+from ...table_metadata import TableOriginCSV, TableMetadata
 
+# Typing aliases, to clarify intent
 JsonPrecursor = Dict  # Json-like data structure of nested "objects" (dict) and "arrays" (list).
+# TODO Not a good alias... Decoded JSON is not necessarily a Dict at top level
 CellGrid = Sequence[Sequence]  # Intended indexing: cell_grid[row][col]
+
+
+_myFixFactory = FixFactory()
+# TODO remove hard-coded coupling to this module-level instance of FixFactory; pass as arg instead
 
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None) -> MetadataBlock:
@@ -32,17 +37,17 @@ def make_directive(cells: CellGrid, origin: Optional[str] = None) -> Directive:
 
 def make_table(
         cells: CellGrid, origin: Optional[TableOriginCSV] = None
-) -> tables.proxy.Table:
+) -> Table:
     table_name = cells[0][0][2:]
     # TODO: here we could filter on table_name; only parse tables of interest
     # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
 
     table_data = make_table_json_precursor(cells, origin)
-    return tables.proxy.Table(
+    return Table(
         pdtable.make_pdtable(
             pd.DataFrame(table_data["columns"]),
             units=table_data["units"],
-            metadata=tables.table_metadata.TableMetadata(
+            metadata=TableMetadata(
                 name=table_data["name"], destinations=table_data["destinations"],
                 origin=table_data["origin"]
             ),
@@ -145,9 +150,6 @@ def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None, fi
     _myFixFactory = FixFactory()
 
 
-_myFixFactory = FixFactory()
-
-
 def preprocess_column_names(col_names_raw):
     """
        handle known issues in column_names
@@ -180,7 +182,7 @@ def preprocess_column_names(col_names_raw):
 
 
 def make_table_json_precursor(
-        cells: CellGrid, origin: Optional[tables.table_metadata.TableOriginCSV] = None
+        cells: CellGrid, origin: Optional[TableOriginCSV] = None
 ) -> JsonPrecursor:
     table_name = cells[0][0][2:]
     _myFixFactory.TableName = table_name
