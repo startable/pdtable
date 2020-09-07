@@ -1,17 +1,15 @@
 import datetime
 import json
 import os
-import io
-import sys
 from pathlib import Path
+from textwrap import dedent
 
 import numpy as np
 import pandas as pd
-from textwrap import dedent
 
-from tables.readers.read_csv import parse_blocks
-from tables.readers.read_csv import tables, pdtable
-from tables.readers.read_csv import make_table
+from ..pdtable import make_pdtable
+from ..readers.parsers.blocks import make_table, parse_blocks
+from ..readers.read_csv import tables
 from ..store import BlockType
 from ..table_metadata import TableOriginCSV
 
@@ -105,7 +103,7 @@ def test_json_pdtable():
         "origin": '"types1.csv" row 1',
     }
     json_pdtab = tables.proxy.Table(
-        pdtable.make_pdtable(
+        make_pdtable(
             pd.DataFrame(table_data["columns"]),
             units=table_data["units"],
             metadata=tables.table_metadata.TableMetadata(

@@ -6,7 +6,7 @@ import openpyxl
 import pandas as pd
 
 from .._read_excel_openpyxl import parse_blocks
-from ..read_csv import make_table
+from ..parsers.blocks import make_table
 from ..read_excel import read_excel
 from ... import Table
 from ...store import BlockType

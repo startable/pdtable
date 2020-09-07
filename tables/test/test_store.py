@@ -2,7 +2,7 @@ from io import StringIO
 from textwrap import dedent
 
 from ..store import TableBundle
-from ..readers.read_csv import parse_blocks
+from ..readers.parsers.blocks import parse_blocks
 
 
 def test_bundle_from_csv():

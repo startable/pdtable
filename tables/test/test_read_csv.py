@@ -2,7 +2,7 @@ from io import StringIO
 from textwrap import dedent
 
 import tables.proxy
-from ..readers.read_csv import make_metadata_block, make_directive, make_table, parse_blocks
+from ..readers.parsers.blocks import make_metadata_block, make_directive, make_table, parse_blocks
 from ..store import TableBundle, BlockType
 
 

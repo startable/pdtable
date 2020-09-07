@@ -4,7 +4,7 @@ from typing import Optional, Sequence, Iterable
 
 import tables.proxy
 import tables.table_metadata
-from .read_csv import make_block
+from .parsers.blocks import make_block
 
 try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet

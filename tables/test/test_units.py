@@ -2,7 +2,7 @@ from typing import Tuple, Any
 
 import pytest
 from ..units import UnitPolicy, normalize_table_in_place
-from ..readers.read_csv import make_table
+from ..readers.parsers.blocks import make_table
 from textwrap import dedent
 
 

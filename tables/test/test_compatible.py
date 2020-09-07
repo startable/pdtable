@@ -1,6 +1,6 @@
 from io import StringIO
 
-from tables.readers.read_csv import parse_blocks
+from tables.readers.parsers.blocks import parse_blocks
 from textwrap import dedent
 from tables.store import TableBundle
 
