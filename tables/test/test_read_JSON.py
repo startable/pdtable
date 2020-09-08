@@ -18,7 +18,6 @@ def input_dir() -> Path:
     return Path(__file__).parent / "input/test_read_csv_pragmatic"
 
 
-# TODO make this better
 # TBC: this stuff should prob. be included in some pdtable util package
 # TBD: need a good name for the in-memory object (JSON_data)
 class StarTableJsonEncoder(json.JSONEncoder):
