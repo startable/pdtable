@@ -194,7 +194,7 @@ def preprocess_column_names(col_names_raw):
             _myFixFactory.TableColumn = col
             _myFixFactory.TableColumNames = column_names  # so far
             if len(cname) == 0:
-                cname = _myFixFactory.fix_missing_column_name(col=col, input_columns=cnames_all)
+                cname = _myFixFactory.fix_missing_column_name(input_columns=column_names)
             elif cname in names:
                 cname = _myFixFactory.fix_duplicate_column_name(cname, input_columns=column_names)
             assert cname not in names

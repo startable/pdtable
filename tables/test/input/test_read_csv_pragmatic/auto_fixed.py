@@ -37,7 +37,7 @@ autoFixed = {
     "cols2.csv": """
         **farm_cols2;
         your_farm my_farm farms_galore
-        species;num;-missing-;dt;flt
+        species;num;missing_fixed_000;dt;flt
         text;-;kg;datetime;kg
         chicken;2.0;3.0;2020-07-01 00:00:00;3.21
         pig;4.0;39.0;2020-07-02 00:00:00;39.1

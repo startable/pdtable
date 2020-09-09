@@ -13,6 +13,43 @@ def input_dir() -> Path:
     return Path(__file__).parent / "input/test_read_csv_pragmatic"
 
 
+def test_columns_duplicate():
+    """
+       Verify that default FixFactory corrects duplicate column names
+
+    """
+    tab = None
+    with open(input_dir() / "cols1.csv", "r") as fh:
+        g = read_csv(fh)
+        count = 0
+        for tp, tt in g:
+            if True:
+                if tp == BlockType.TABLE:
+                    tab = tt
+                    break
+    assert tab is not None
+    assert tab.df["flt_fixed_001"] is not None
+    assert tab.df["flt_fixed_001"][6] == 7.6
+    assert tab.df["flt"][0] == 3.0
+
+def test_columns_missing():
+    """
+       Verify that default FixFactory corrects missing column name
+
+    """
+    tab = None
+    with open(input_dir() / "cols2.csv", "r") as fh:
+        g = read_csv(fh)
+        count = 0
+        for tp, tt in g:
+            if True:
+                if tp == BlockType.TABLE:
+                    tab = tt
+                    break
+    assert tab is not None
+    assert tab.df["missing_fixed_000"] is not None
+    assert tab.df["flt"][6] == 7.11
+
 def test_FAT():
     """ Factory Acceptance Test
 
@@ -47,11 +84,8 @@ def test_FAT():
                         with StringIO() as out:
                             _table_to_csv(tt, out, sep=";", na_rep="-")
                             test_output = out.getvalue().strip()
-                            print("\ntest out")
-                            print(test_output)
+
                         if fn != "all.csv":
-                            print("\ntarget out")
-                            print(dedent(autoFixed[fn]).strip())
                             assert test_output == dedent(autoFixed[fn]).strip()
 
 
