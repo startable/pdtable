@@ -1,9 +1,28 @@
+"""Parsers to convert uncontrolled cell grids into pdtable representations of StarTable blocks.
+
+We have a parser for each StarTable block type:
+- Metadata
+- Directive
+- Table
+- Template (not yet implemented)
+
+For each of these:
+
+- The intended input is a two-dimensional "cell grid" i.e. a sequence of rows, with each row
+  being a sequence of values (where a "sequence" is usually a list, but can also be e.g. a tuple).
+  Rows need not be of equal length; only the relevant portion of a cell grid will be parsed
+  depending on the relevant block type.
+
+- The output is a pdtable representation of a StarTable block type.
+
+"""
+
 from typing import Dict, Sequence, Optional, Tuple, Any, Iterable
 
 import pandas as pd
 
 from ..FixFactory import FixFactory
-from ..parsers import parse_column
+from ..parsers.columns import parse_column
 from ... import pdtable, Table
 from ...ancillary_blocks import MetadataBlock, Directive
 from ...store import BlockType, BlockGenerator
@@ -14,7 +33,7 @@ JsonPrecursor = Dict  # Json-like data structure of nested "objects" (dict) and 
 # TODO Not a good alias... Decoded JSON is not necessarily a Dict at top level
 CellGrid = Sequence[Sequence]  # Intended indexing: cell_grid[row][col]
 
-
+# TBC: wrap in specific reader instance, this is global for all threads
 _myFixFactory = FixFactory()
 # TODO remove hard-coded coupling to this module-level instance of FixFactory; pass as arg instead
 
@@ -106,46 +125,45 @@ def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None, fi
 
     _myFixFactory.FileName = origin
 
-    def is_blank(s):
+    def is_blank(cell):
         """
         True if first cell is empty
-
-        assert is_blank('   ')
-        assert is_blank('')
-        assert is_blank(';')
-        assert not is_blank('foo')
-        assert not is_blank('  foo;')
-        assert not is_blank('foo;')
         """
-        ss = s.lstrip()
-        return not ss
+        return cell is None or (isinstance(cell, str) and not cell.strip())
 
     cell_grid = []
-    block = BlockType.METADATA
-    block_line = 0
-    for line_number_0based, row in enumerate(cell_rows):
-        next_block = None
+    this_block_type = BlockType.METADATA
+    this_block_1st_row = 0
+    for row_number_0based, row in enumerate(cell_rows):
+        next_block_type = None
         first_cell = row[0] if len(row) > 0 else None
-        if first_cell.startswith("**"):
-            if first_cell.startswith("***"):
-                next_block = BlockType.DIRECTIVE
-            else:
-                next_block = BlockType.TABLE
-        elif first_cell.startswith(":"):
-            next_block = BlockType.TEMPLATE_ROW
-        elif is_blank(first_cell) and not block == BlockType.METADATA:
-            next_block = BlockType.BLANK
 
-        if next_block is not None:
-            yield make_block(block, cell_grid, TableOriginCSV(origin, block_line))
+        if is_blank(first_cell) and not this_block_type == BlockType.METADATA:
+            # Blank first cell means end of this block
+            next_block_type = BlockType.BLANK
+        elif isinstance(first_cell, str):
+            # Check whether it's a block start marker
+            if first_cell.startswith("**"):
+                if first_cell.startswith("***"):
+                    next_block_type = BlockType.DIRECTIVE
+                else:
+                    next_block_type = BlockType.TABLE
+            elif first_cell.startswith(":"):
+                next_block_type = BlockType.TEMPLATE_ROW
+
+        if next_block_type is not None:
+            # Current block has ended. Emit it.
+            yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+            # TODO augment TableOriginCSV with one tailored for Excel
+            # Prepare to read next block
             cell_grid = []
-            block = next_block
-            block_line = line_number_0based + 1
+            this_block_type = next_block_type
+            this_block_1st_row = row_number_0based + 1
 
         cell_grid.append(row)
 
     if cell_grid:
-        yield make_block(block, cell_grid, TableOriginCSV(origin, block_line))
+        yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
 
     _myFixFactory = FixFactory()
 

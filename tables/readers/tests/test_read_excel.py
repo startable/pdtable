@@ -2,11 +2,9 @@ import datetime as dt
 from pathlib import Path
 
 import numpy as np
-import openpyxl
 import pandas as pd
 
-from .._read_excel_openpyxl import parse_blocks
-from ..parsers.blocks import make_table
+from ..parsers.blocks import make_table, parse_blocks
 from ..read_excel import read_excel
 from ... import Table
 from ...store import BlockType

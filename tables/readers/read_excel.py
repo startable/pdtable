@@ -9,7 +9,8 @@ only when write_excel() (or something else in this module) is called for the fir
 
 from os import PathLike
 
-from tables.store import BlockGenerator
+from ..readers.parsers.blocks import parse_blocks
+from ..store import BlockGenerator
 
 
 def read_excel(path: PathLike) -> BlockGenerator:
@@ -27,14 +28,16 @@ def read_excel(path: PathLike) -> BlockGenerator:
     """
     try:
         import openpyxl
-        from ._read_excel_openpyxl import parse_blocks
+        # from ._read_excel_openpyxl import parse_blocks
+        wb = openpyxl.load_workbook(path)
+        for ws in wb.worksheets:
+            cell_rows = ws.iter_rows(values_only=True)
+            yield from parse_blocks(cell_rows)
+
     except ImportError as err:
         raise ImportError(
             "Unable to find a usable Excel engine. "
             "Tried using: 'openpyxl'.\n"
             "Please install openpyxl for Excel I/O support."
         ) from err
-    wb = openpyxl.load_workbook(path)
-    for ws in wb.worksheets:
-        cell_rows = ws.iter_rows(values_only=True)
-        yield from parse_blocks(cell_rows)
+

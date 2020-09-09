@@ -15,9 +15,6 @@ from .parsers.blocks import parse_blocks
 from ..store import BlockGenerator
 
 
-# TBC: wrap in specific reader instance, this is global for all threads
-
-
 def read_csv(source: Union[str, PathLike, TextIO], sep: str = None, fixer=None) -> BlockGenerator:
     """Read starTable blocks from CSV file or text stream, yielding them one block at a time.
 
