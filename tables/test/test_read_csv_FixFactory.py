@@ -47,8 +47,11 @@ def test_FAT():
                         with StringIO() as out:
                             _table_to_csv(tt, out, sep=";", na_rep="-")
                             test_output = out.getvalue().strip()
+                            print("\ntest out")
                             print(test_output)
                         if fn != "all.csv":
+                            print("\ntarget out")
+                            print(dedent(autoFixed[fn]).strip())
                             assert test_output == dedent(autoFixed[fn]).strip()
 
 

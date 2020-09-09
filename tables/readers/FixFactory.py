@@ -81,18 +81,24 @@ class FixFactory:
     def Verbose(self, value: bool):
         self._dbg = value
 
-    def fix_duplicate_column_name(self, col: int, input_columns: List[str]) -> str:
+    def fix_duplicate_column_name(self, column_name: str, input_columns: List[str]) -> str:
         """
-            The column_name: input_columns[col] alreadt exists
+            The column_name already exists in  input_columns
             This method should provide a unique replacement name
 
         """
         if self.Verbose:
             print(
-                f"FixFacory: fix duplicate column ({col}) {input_columns[col]} in table: {self.TableName}"
+                f"FixFacory: fix duplicate column ({self.TableColumn}) {column_name} in table: {self.TableName}"
             )
-        # TTT : check
-        return "-fix-"
+
+        for sq in range(1000):
+            test = f"{column_name}_fixed_{sq:03}"
+            print(f"test: {test}")
+            if not test in input_columns:
+                return test
+
+        return "{column_name}-fixed"
 
     def fix_missing_column_name(self, col: int, input_columns: List[str]) -> str:
         """
