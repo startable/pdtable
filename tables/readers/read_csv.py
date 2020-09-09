@@ -1,9 +1,7 @@
-"""
-Read starTables from CSV
+"""Interface to read starTables from CSV
 
-Central idea is that the reader emits a stream of StarBlock objects.
-This allows early abort of reads as well as generic postprocessing (
-as discussed in store-module docstring).
+This is a thin wrapper around parse_blocks(). The only thing it does is to present the contents of
+an CSV file or stream as a Iterable of cell rows, where each row is a sequence of values.
 
 """
 from contextlib import nullcontext
@@ -13,7 +11,7 @@ from typing import TextIO, Union
 import tables
 from .parsers.blocks import parse_blocks, BlockType
 from ..store import BlockGenerator
-from .FixFactory import FixFactory
+from .parsers.FixFactory import FixFactory
 
 
 def read_csv(
@@ -34,7 +32,8 @@ def read_csv(
             fixer corrects simple errors in source stream.
 
     Yields:
-        Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive, TemplateBlock}
+        Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive,
+        TemplateBlock}
 
     """
     if sep is None:

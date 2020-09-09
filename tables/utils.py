@@ -1,3 +1,4 @@
+# TODO Get rid of this "utils" module; find a better home for its constituents, or delete them.
 from os import PathLike
 from typing import Optional, Any, Tuple, Iterable
 
@@ -18,6 +19,7 @@ def read_bundle_from_csv(input_path: PathLike,
                          unit_policy: Optional[units.UnitPolicy] = None
                          ) -> TableBundle:
     """Read single csv-file to TableBundle"""
+    # TODO this function is not used anywhere. Not clear what its purpose is.
     inputs = read_csv(input_path, sep)
     if unit_policy is not None:
         inputs = normalized_table_generator(unit_policy, inputs)
