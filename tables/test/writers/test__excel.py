@@ -10,7 +10,7 @@ except ImportError:
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 
 from tables import Table, write_excel
-from .._excel_openpyxl import _append_table_to_openpyxl_worksheet
+from tables.writers._excel_openpyxl import _append_table_to_openpyxl_worksheet
 
 
 def test__append_table_to_openpyxl_worksheet():
