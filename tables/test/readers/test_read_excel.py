@@ -4,10 +4,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from ..parsers.blocks import make_table, parse_blocks
-from ..read_excel import read_excel
-from ... import Table
-from ...store import BlockType
+from tables.readers.parsers.blocks import make_table, parse_blocks
+from tables.readers.read_excel import read_excel
+from tables import Table
+from tables.store import BlockType
 
 
 def test_make_table():

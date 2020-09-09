@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .._csv import _represent_row_elements
+from tables.writers._csv import _represent_row_elements
 
 
 def test__represent_row_elements():

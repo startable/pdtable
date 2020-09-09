@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_array_equal
 from pytest import raises
 
-from ..columns import normalize_if_str, is_missing_data_marker, _parse_onoff_column, \
+from tables.readers.parsers.columns import normalize_if_str, is_missing_data_marker, _parse_onoff_column, \
     _parse_float_column, _parse_datetime_column, _parse_text_column, parse_column
 
 
