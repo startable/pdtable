@@ -9,11 +9,14 @@ from os import PathLike
 from typing import TextIO, Union
 
 import tables
-from .parsers.blocks import parse_blocks
+from .parsers.blocks import parse_blocks, BlockType
 from ..store import BlockGenerator
+from .FixFactory import FixFactory
 
 
-def read_csv(source: Union[str, PathLike, TextIO], sep: str = None, fixer=None) -> BlockGenerator:
+def read_csv(
+    source: Union[str, PathLike, TextIO], sep: str = None, fixer: FixFactory = None
+) -> BlockGenerator:
     """Read starTable blocks from CSV file or text stream, yielding them one block at a time.
 
     Args:
@@ -25,7 +28,8 @@ def read_csv(source: Union[str, PathLike, TextIO], sep: str = None, fixer=None) 
         sep:
             Optional; CSV field delimiter. Default is ';'.
         fixer:
-            Thomas will have to help explain that one
+            Customized FixFactory instance to be used instead of default fixer.
+            fixer corrects simple errors in source stream.
 
     Yields:
         Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive,
