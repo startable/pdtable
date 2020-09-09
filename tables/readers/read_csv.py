@@ -1,9 +1,7 @@
-"""
-Read starTables from CSV
+"""Interface to read starTables from CSV
 
-Central idea is that the reader emits a stream of StarBlock objects.
-This allows early abort of reads as well as generic postprocessing (
-as discussed in store-module docstring).
+This is a thin wrapper around parse_blocks(). The only thing it does is to present the contents of
+an CSV file or stream as a Iterable of cell rows, where each row is a sequence of values.
 
 """
 from contextlib import nullcontext

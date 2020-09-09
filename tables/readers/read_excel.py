@@ -1,15 +1,18 @@
 """Interface to read StarTable data from an Excel workbook file.
 
+This is a thin wrapper around parse_blocks(). The only thing it does is to present the contents of
+an Excel workbook as a Iterable of cell rows, where each row is a sequence of values.
+
 The only Excel I/O engine supported right now is 'openpyxl', but this module can
 be extended to support others.
 
 openpyxl (and eventually other engines) are not required at install time;
-only when write_excel() (or something else in this module) is called for the first time.
+only when read_excel() is called for the first time.
 """
 
 from os import PathLike
 
-from ..readers.parsers.blocks import parse_blocks
+from .parsers.blocks import parse_blocks
 from ..store import BlockGenerator
 
 

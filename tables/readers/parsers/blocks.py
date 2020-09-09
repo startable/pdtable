@@ -1,6 +1,10 @@
 """Parsers to convert uncontrolled cell grids into pdtable representations of StarTable blocks.
 
-We have a parser for each StarTable block type:
+Central idea is that parse_blocks() emits a stream of StarBlock objects.
+This in principle allows early abort of reads as well as generic postprocessing (
+as discussed in store-module docstring).
+
+parse_blocks() switches between different parsers depending on the StarTable block type:
 - Metadata
 - Directive
 - Table
@@ -21,8 +25,8 @@ from typing import Dict, Sequence, Optional, Tuple, Any, Iterable
 
 import pandas as pd
 
-from ..FixFactory import FixFactory
-from ..parsers.columns import parse_column
+from tables.readers.parsers.FixFactory import FixFactory
+from .columns import parse_column
 from ... import pdtable, Table
 from ...ancillary_blocks import MetadataBlock, Directive
 from ...store import BlockType, BlockGenerator
