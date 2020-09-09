@@ -21,7 +21,7 @@ For each of these:
 
 """
 
-from typing import Dict, Sequence, Optional, Tuple, Any, Iterable, List, Union
+from typing import Sequence, Optional, Tuple, Any, Iterable, Union, Dict, List
 import pandas as pd
 
 from tables.readers.parsers.FixFactory import FixFactory
@@ -31,11 +31,11 @@ from ...ancillary_blocks import MetadataBlock, Directive
 from ...store import BlockType, BlockGenerator
 from ...table_metadata import TableOriginCSV, TableMetadata
 
-# Typing aliases, to clarify intent
-# Json-like data structure of nested "objects" (dict) and "arrays" (list).
-DecodedJson = Union[Dict[str, "DecodedJson"], List["DecodedJson"], str, float, int, bool, None]
-# 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
+
+# Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
+# Typing alias: Json-like data structure of nested "objects" (dict) and "arrays" (list).
+DecodedJson = Union[Dict[str, "DecodedJson"], List["DecodedJson"], str, float, int, bool, None]
 
 # TBC: wrap in specific reader instance, this is global for all threads
 _myFixFactory = FixFactory()
