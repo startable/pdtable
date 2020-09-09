@@ -3,7 +3,8 @@ import json
 
 import numpy as np
 
-from tables.readers.parsers.blocks import make_table
+from tables import Table
+from tables.readers.parsers.blocks import make_table, DecodedJson
 from tables.table_metadata import TableOriginCSV
 
 
@@ -26,29 +27,30 @@ class StarTableJsonEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def json_data_to_pdtable(table_data: dict):
-    """  translate table-dictionary (JSON-like) to pdtable
+def json_data_to_table(table_json_data: DecodedJson) -> Table:
+    """  translate table-dictionary (JSON-like) to Table
     """
     lines_json = []
-    lines_json.append([f'**{table_data["name"]}'])
-    lines_json.append([f'{dst}' for dst in table_data["destinations"]])
-    lines_json.append([f'{cname}' for cname in table_data["columns"].keys()])
-    lines_json.append([f'{unit}' for unit in table_data["units"]])
-    json_rows = list(map(list, zip(*table_data["columns"].values())))  # transposed columns
+    lines_json.append([f'**{table_json_data["name"]}'])
+    lines_json.append([f'{dst}' for dst in table_json_data["destinations"]])
+    lines_json.append([f'{cname}' for cname in table_json_data["columns"].keys()])
+    lines_json.append([f'{unit}' for unit in table_json_data["units"]])
+    json_rows = list(map(list, zip(*table_json_data["columns"].values())))  # transposed columns
     lines_json.extend(json_rows)
     # note: this allows us to use FixFactory !
-    return make_table(lines_json, origin=table_data["origin"])
+    return make_table(lines_json, origin=table_json_data["origin"])
 
 
-def pdtable_to_json_data(tab):
-    """  translate pdtable to table-dictionary (JSON-like)
+def table_to_json_data(table: Table) -> DecodedJson:
+    """  translate Table to table-dictionary (JSON-like)
     """
-    table_data = {"name": tab.name, "origin": tab.metadata.origin,
-                  "destinations": tab.metadata.destinations,
-                  "units": tab.units
+
+    table_data = {"name": table.name, "origin": table.metadata.origin,
+                  "destinations": table.metadata.destinations,
+                  "units": table.units
                   }
     table_data["columns"] = {}
-    for cname in tab.column_names:
-        table_data["columns"][cname] = [vv for vv in tab.df[cname]]
+    for cname in table.column_names:
+        table_data["columns"][cname] = [vv for vv in table.df[cname]]
     return table_data
 
