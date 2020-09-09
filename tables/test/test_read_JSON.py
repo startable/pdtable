@@ -5,7 +5,7 @@ from textwrap import dedent
 
 import pandas as pd
 
-from ..json import StarTableJsonEncoder, json_data_to_pdtable, pdtable_to_json_data
+from ..json import StarTableJsonEncoder, json_data_to_table, table_to_json_data
 from ..pdtable import make_pdtable
 from ..readers.parsers.blocks import make_table, parse_blocks
 from ..readers.read_csv import tables
@@ -98,12 +98,12 @@ def test_json_data_to_pdtable():
         "origin": '"types1.csv" row 1',
     }
 
-    json_pdtab = json_data_to_pdtable(table_data)
+    json_pdtab = json_data_to_table(table_data)
     assert pandas_pdtab.equals(json_pdtab)
 
     # reverse
-    table_data_back = pdtable_to_json_data(json_pdtab)
-    json_pdtab_back = json_data_to_pdtable(table_data)
+    table_data_back = table_to_json_data(json_pdtab)
+    json_pdtab_back = json_data_to_table(table_data)
     assert pandas_pdtab.equals(json_pdtab_back)
 
 

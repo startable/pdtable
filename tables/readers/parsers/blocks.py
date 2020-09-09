@@ -24,7 +24,7 @@ For each of these:
 from typing import Sequence, Optional, Tuple, Any, Iterable, Union, Dict, List
 import pandas as pd
 
-from tables.readers.parsers.FixFactory import FixFactory
+from .FixFactory import FixFactory
 from .columns import parse_column
 from ... import pdtable, Table
 from ...ancillary_blocks import MetadataBlock, Directive
