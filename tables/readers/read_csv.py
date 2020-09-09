@@ -11,7 +11,7 @@ from typing import TextIO, Union
 import tables
 from .parsers.blocks import parse_blocks, BlockType
 from ..store import BlockGenerator
-from .FixFactory import FixFactory
+from .parsers.FixFactory import FixFactory
 
 
 def read_csv(
