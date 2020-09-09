@@ -16,6 +16,7 @@ class TableOrigin:
     Subclasses should take care to define __str__.
     If possible, as_html() should be defined to include backlink to original input.
     """
+
     def as_html(self) -> str:
         return str(self)
 
@@ -42,13 +43,15 @@ class TableMetadata:
     Only parents or origin should be defined. Neither needs to be.
     """
     name: str
-    destinations: Set[str] = field(default_factory=lambda :{'all'})
+    destinations: Set[str] = field(default_factory=lambda: {'all'})
     operation: str = 'Created'
     parents: List['TableMetadata'] = field(default_factory=list)
-    origin: Optional[str] = ''  # Should be replaced with a TableOrigin object to allow file-edit access
+    origin: Optional[
+        str] = ''  # Should be replaced with a TableOrigin object to allow file-edit access
 
     def __str__(self):
-        dst = ' for {{}}'.format(', '.join(d for d in self.destinations)) if self.destinations else ''
+        dst = ' for {{}}'.format(
+            ', '.join(d for d in self.destinations)) if self.destinations else ''
         src = ''
         if self.origin:
             src = f' from {self.origin}'
@@ -112,13 +115,14 @@ class ColumnMetadata:
 
     def check_dtype(self, dtype, context: Optional[str] = None):
         base_unit = unit_from_dtype(dtype)
-        context_text = ' in '+context if context else ''
+        context_text = ' in ' + context if context else ''
         if base_unit in _units_special:
             if not base_unit == self.unit:
                 raise Exception(
                     f'Column unit {self.unit} not equal to {base_unit} expected from data type {dtype}{context_text}')
         elif self.unit in _units_special:
-            raise Exception(f'Special column unit {self.unit} not applicable for data type {dtype}{context_text}')
+            raise Exception(
+                f'Special column unit {self.unit} not applicable for data type {dtype}{context_text}')
 
     @classmethod
     def from_dtype(cls, dtype: numpy.dtype, **kwargs) -> 'ColumnMetadata':
@@ -145,7 +149,8 @@ class TableData:
 
     A PandasTable object is a dataframe with such a TableData object attached as metadata.
     """
-    def __init__(self, metadata, columns: Optional[Dict[str, ColumnMetadata]]=None):
+
+    def __init__(self, metadata, columns: Optional[Dict[str, ColumnMetadata]] = None):
         self.metadata: TableMetadata = metadata
         self.columns: Dict[str, ColumnMetadata] = columns if columns is not None else dict()
         # self.template #Table template data should be included here
