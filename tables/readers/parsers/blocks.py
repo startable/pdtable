@@ -21,8 +21,7 @@ For each of these:
 
 """
 
-from typing import Dict, Sequence, Optional, Tuple, Any, Iterable
-
+from typing import Dict, Sequence, Optional, Tuple, Any, Iterable, List, Union
 import pandas as pd
 
 from tables.readers.parsers.FixFactory import FixFactory
@@ -33,9 +32,10 @@ from ...store import BlockType, BlockGenerator
 from ...table_metadata import TableOriginCSV, TableMetadata
 
 # Typing aliases, to clarify intent
-JsonPrecursor = Dict  # Json-like data structure of nested "objects" (dict) and "arrays" (list).
-# TODO Not a good alias... Decoded JSON is not necessarily a Dict at top level
-CellGrid = Sequence[Sequence]  # Intended indexing: cell_grid[row][col]
+# Json-like data structure of nested "objects" (dict) and "arrays" (list).
+DecodedJson = Union[Dict[str, "DecodedJson"], List["DecodedJson"], str, float, int, bool, None]
+# 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
+CellGrid = Sequence[Sequence]
 
 # TBC: wrap in specific reader instance, this is global for all threads
 _myFixFactory = FixFactory()
@@ -205,7 +205,7 @@ def preprocess_column_names(col_names_raw):
 
 def make_table_json_precursor(
         cells: CellGrid, origin: Optional[TableOriginCSV] = None
-) -> JsonPrecursor:
+) -> DecodedJson:
     table_name = cells[0][0][2:]
     _myFixFactory.TableName = table_name
     destinations = {cells[1][0].strip()}
