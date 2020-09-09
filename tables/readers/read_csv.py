@@ -28,7 +28,8 @@ def read_csv(source: Union[str, PathLike, TextIO], sep: str = None, fixer=None) 
             Thomas will have to help explain that one
 
     Yields:
-        Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive, TemplateBlock}
+        Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive,
+        TemplateBlock}
 
     """
     if sep is None:
