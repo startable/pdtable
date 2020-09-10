@@ -4,7 +4,7 @@ import json
 import numpy as np
 
 from tables import Table
-from tables.readers.parsers.blocks import make_table, DecodedJson
+from tables.readers.parsers.blocks import make_table, JsonData
 from tables.table_metadata import TableOriginCSV
 
 
@@ -27,7 +27,7 @@ class StarTableJsonEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def json_data_to_table(table_json_data: DecodedJson) -> Table:
+def json_data_to_table(table_json_data: JsonData) -> Table:
     """  translate table-dictionary (JSON-like) to Table
     """
     lines_json = []
@@ -41,7 +41,7 @@ def json_data_to_table(table_json_data: DecodedJson) -> Table:
     return make_table(lines_json, origin=table_json_data["origin"])
 
 
-def table_to_json_data(table: Table) -> DecodedJson:
+def table_to_json_data(table: Table) -> JsonData:
     """  translate Table to table-dictionary (JSON-like)
     """
 

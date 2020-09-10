@@ -35,7 +35,7 @@ from ...table_metadata import TableOriginCSV, TableMetadata
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
 # Typing alias: Json-like data structure of nested "objects" (dict) and "arrays" (list).
-DecodedJson = Union[Dict[str, "DecodedJson"], List["DecodedJson"], str, float, int, bool, None]
+JsonData = Union[Dict[str, "JsonData"], List["JsonData"], str, float, int, bool, None]
 
 # TBC: wrap in specific reader instance, this is global for all threads
 _myFixFactory = FixFactory()
@@ -205,7 +205,7 @@ def preprocess_column_names(col_names_raw):
 
 def make_table_json_precursor(
         cells: CellGrid, origin: Optional[TableOriginCSV] = None
-) -> DecodedJson:
+) -> JsonData:
     table_name = cells[0][0][2:]
     _myFixFactory.TableName = table_name
     destinations = {cells[1][0].strip()}
