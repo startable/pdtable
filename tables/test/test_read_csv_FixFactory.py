@@ -32,6 +32,7 @@ def test_columns_duplicate():
     assert tab.df["flt_fixed_001"][6] == 7.6
     assert tab.df["flt"][0] == 3.0
 
+
 def test_columns_missing():
     """
        Verify that default FixFactory corrects missing column name
@@ -49,6 +50,7 @@ def test_columns_missing():
     assert tab is not None
     assert tab.df["missing_fixed_000"] is not None
     assert tab.df["flt"][6] == 7.11
+
 
 def test_FAT():
     """ Factory Acceptance Test
@@ -78,16 +80,14 @@ def test_FAT():
             g = read_csv(fh)
             count = 0
             for tp, tt in g:
-                if True:
-                    if tp == BlockType.TABLE:
-                        count += 1
-                        with StringIO() as out:
-                            _table_to_csv(tt, out, sep=";", na_rep="-")
-                            test_output = out.getvalue().strip()
+                if tp == BlockType.TABLE:
+                    count += 1
+                    with StringIO() as out:
+                        _table_to_csv(tt, out, sep=";", na_rep="-")
+                        test_output = out.getvalue().strip()
 
-                        if fn != "all.csv":
-                            assert test_output == dedent(autoFixed[fn]).strip()
-
+                    if fn != "all.csv":
+                        assert test_output == dedent(autoFixed[fn]).strip()
 
             if fn == "all.csv":
                 assert count == all_files - 1

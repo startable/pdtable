@@ -20,8 +20,10 @@ def test_json_pdtable():
     """ ensure dict-obj to pdtable conversion
         compare to target created w. read_stream_csv
     """
-    cell_rows = [line.split(";") for line in dedent(
-        """\
+    cell_rows = [
+        line.split(";")
+        for line in dedent(
+            """\
         **farm_types1;;;
         your_farm my_farm farms_galore;;;
         species;  num;  flt;    log;
@@ -33,7 +35,10 @@ def test_json_pdtable():
         cow;      NaN;  200;      1;
         goose;      2;    9;      0;
         """
-    ).strip().split("\n")]
+        )
+        .strip()
+        .split("\n")
+    ]
     pandas_pdtab = None
     # with io.StringIO(csv_src) as fh:
     g = parse_blocks(cell_rows, origin='"types1.csv" row 1')
@@ -80,7 +85,7 @@ def test_json_data_to_pdtable():
         ["goat", 4, None, 1],
         ["zybra", 4, None, 0],
         ["cow", None, 200, 1],
-        ["goose", 2, 9, 0]
+        ["goose", 2, 9, 0],
     ]
 
     pandas_pdtab = make_table(lines_target)
@@ -114,32 +119,37 @@ def test_FAT():
         Compare objects to stored target objects (input_dir() / all.json)
 
     """
+
     all_files = 0
     for fn in os.listdir(input_dir()):
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
-        if fn in ["auto_fixed.py", "__init__.py", "all.json"]:
+        if fn in ["auto_fixed.py", "__init__.py", "all.json", "all.csv"]:
             continue
         all_files += 1
 
     with open(input_dir() / "all.json") as f:
         all_json = json.load(f)
 
+    count = 0
     for fn in os.listdir(input_dir()):
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
-        if fn in ["auto_fixed.py", "__init__.py", "all.json"]:
+        if fn in ["auto_fixed.py", "__init__.py", "all.json", "all.csv"]:
             continue
         with open(input_dir() / fn, "r") as fh:
-            g = parse_blocks(fh, origin=fn, do="json")
-            count = 0
+            cell_rows = (line.rstrip("\n").split(";") for line in fh)
+            g = parse_blocks(cell_rows, origin=fn, do="json")
+
             for tp, tt in g:
-                if True:
-                    if tp == BlockType.TABLE:
-                        count += 1
-                        jstr = json.dumps(tt, cls=StarTableJsonEncoder, ensure_ascii=False)
-                        if fn != "all.csv":
-                            jobj = json.loads(jstr)
-                            assert jobj == all_json.get(fn)
+                if tp == BlockType.TABLE:
+                    """  compare generic object
+                         i.e. containing None instead of pd.NaT, np.nan &c.
+                    """
+                    count += 1
+                    jstr = json.dumps(tt, cls=StarTableJsonEncoder, ensure_ascii=False)
+                    jobj = json.loads(jstr)
+                    assert jobj == all_json[fn]
+    assert count == all_files
