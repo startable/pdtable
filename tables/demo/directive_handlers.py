@@ -2,7 +2,7 @@ import functools
 from pathlib import Path
 
 from tables.ancillary_blocks import Directive
-from tables.readers.read_csv import read_file_csv
+from tables.readers.read_csv import read_csv
 from tables.store import BlockGenerator, BlockType
 
 
@@ -42,7 +42,7 @@ def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> B
             directive: Directive = block
             if directive.name == "include":
                 for filename in directive.lines:
-                    yield from deep_handler(read_file_csv(Path(input_dir) / filename))
+                    yield from deep_handler(read_csv(Path(input_dir) / filename))
             else:
                 yield block_type, block
         else:

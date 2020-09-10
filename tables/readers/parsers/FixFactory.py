@@ -4,7 +4,6 @@ import numpy as np
 
 import sys
 
-
 class FixFactory:
     """ base class for auto-correcting startable.csv input files
 
@@ -16,8 +15,6 @@ class FixFactory:
                 db_store(self.TableName,(self.TableColumn,self.TableRow))
                 dfval = FixFactory.fix_illegal_cell_value(self, vtype, value)
                 return dfval
-
-
 
     """
 
@@ -81,30 +78,35 @@ class FixFactory:
     def Verbose(self, value: bool):
         self._dbg = value
 
-    def fix_duplicate_column_name(self, col: int, input_columns: List[str]) -> str:
+    def fix_duplicate_column_name(self, column_name: str, input_columns: List[str]) -> str:
         """
-            The column_name: input_columns[col] alreadt exists
+            The column_name already exists in  input_columns
             This method should provide a unique replacement name
 
         """
         if self.Verbose:
             print(
-                f"FixFacory: fix duplicate column ({col}) {input_columns[col]} in table: {self.TableName}"
+                f"FixFacory: fix duplicate column ({self.TableColumn}) {column_name} in table: {self.TableName}"
             )
-        # TTT : check
-        return "-fix-"
 
-    def fix_missing_column_name(self, col: int, input_columns: List[str]) -> str:
+        for sq in range(1000):
+            test = f"{column_name}_fixed_{sq:03}"
+            print(f"test: {test}")
+            if not test in input_columns:
+                return test
+
+        return "{column_name}-fixed"
+
+    def fix_missing_column_name(self, input_columns: List[str]) -> str:
         """
-            The column_name: input_columns[col] is empty
+            The column_name: self.TableColumn is empty
             This method should provide a unique replacement name
         """
         if self.Verbose:
             print(
-                f"FixFacory: fix missing column ({col}) {input_columns} in table: {self.TableName}"
+                f"FixFacory: fix missing column ({self.TableColumn}) {input_columns} in table: {self.TableName}"
             )
-        # TTT : check
-        return "-missing-"
+        return self.fix_duplicate_column_name("missing",input_columns)
 
     def fix_missing_rows_in_column_data(
         self, row: int, row_data: List[str], num_columns: int

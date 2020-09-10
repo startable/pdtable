@@ -24,20 +24,20 @@ autoFixed = {
     "cols1.csv": """
         **farm_cols1;
         your_farm my_farm farms_galore
-        species;num;flt;dt;-fix-
-        text;-;kg;datetime;kg
-        chicken;2.0;3.0;2020-07-01 00:00:00;3.21
-        pig;4.0;39.0;2020-07-02 00:00:00;39.1
-        goat;4.0;-;-;1.1
-        zybra;4.0;-;-;2.1
-        cow;-;200.0;-;200.2
-        goose;2.0;9.0;-;9.1
-        1234;-;-;-;7.11
+        species;num;flt;dt;flt_fixed_000;flt_fixed_001
+        text;-;kg;datetime;kg;kg
+        chicken;2.0;3.0;2020-07-01 00:00:00;3.21;1.0
+        pig;4.0;39.0;2020-07-02 00:00:00;39.1;2.1
+        goat;4.0;-;-;1.1;3.2
+        zybra;4.0;-;-;2.1;4.3
+        cow;-;200.0;-;200.2;5.4
+        goose;2.0;9.0;-;9.1;6.5
+        1234;-;-;-;7.11;7.6
     """,
     "cols2.csv": """
         **farm_cols2;
         your_farm my_farm farms_galore
-        species;num;-missing-;dt;flt
+        species;num;missing_fixed_000;dt;flt
         text;-;kg;datetime;kg
         chicken;2.0;3.0;2020-07-01 00:00:00;3.21
         pig;4.0;39.0;2020-07-02 00:00:00;39.1
@@ -94,6 +94,18 @@ autoFixed = {
         zybra;-;-
         cow;-;200.0
         goose;2.0;9.0
+    """,
+    "json1.csv": """
+        **farm_json1;
+        your_farm my_farm farms_galore
+        species;dt;num;flt;dt2;encode
+        text;datetime;-;kg;datetime;onoff
+        "chicken";-;2.0;-;2020-07-01 00:00:00;1
+        pig;2020-07-02 00:00:00;4.0;39.0;2020-07-02 00:00:00;0
+        goat;-;-;-;-;0
+        z'ybra;-;4.0;-;-;1
+        'cow';-;-;200.0;-;1
+        goose;-;2.0;9.0;-;0
     """,
     "row1.csv": """
         **farm_row1;

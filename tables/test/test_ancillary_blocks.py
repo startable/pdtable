@@ -4,7 +4,7 @@ from textwrap import dedent
 
 from ..ancillary_blocks import Directive, MetadataBlock
 from ..demo.directive_handlers import handle_includes
-from ..readers.read_csv import read_stream_csv
+from ..readers.parsers.blocks import parse_blocks
 from ..store import BlockType
 
 
@@ -27,7 +27,7 @@ def test_directive():
 
 def test_handle_includes():
     # TODO move directive handler stuff to a /demo package or something
-    dat = dedent(r"""
+    cell_rows = [line.split(";") for line in dedent(r"""
         ***include
         incl_1.csv
         incl_2.csv
@@ -39,9 +39,9 @@ def test_handle_includes():
         home;0
         work;14
         beach;19
-        """)
+        """).strip().split("\n")]
 
-    bg = handle_includes(read_stream_csv(StringIO(dat), sep=";"),
+    bg = handle_includes(parse_blocks(cell_rows),
                          input_dir=Path(__file__).parent / "input", recursive=True)
     bl = list(bg)
     tables = [b for t, b in bl if t == BlockType.TABLE]

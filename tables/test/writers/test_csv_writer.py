@@ -5,8 +5,8 @@ import pandas as pd
 
 import tables
 from tables import write_csv, Table
-from .._csv import _table_to_csv
-from ...table_metadata import ColumnFormat
+from tables.writers._csv import _table_to_csv
+from tables.table_metadata import ColumnFormat
 
 
 def test__table_to_csv():
