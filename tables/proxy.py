@@ -1,4 +1,4 @@
-from typing import Union, Dict, List, Optional
+from typing import Union, Dict, List, Optional, Set
 
 import pandas as pd
 
@@ -140,8 +140,8 @@ class Table:
         return self.metadata.name
 
     @property
-    def destinations(self) -> str:
-        return ", ".join(s for s in self.metadata.destinations)
+    def destinations(self) -> Set[str]:
+        return self.metadata.destinations
 
     @units.setter
     def units(self, unit_values):
