@@ -81,29 +81,13 @@ def test_FAT():
             continue
 
         with open(input_dir() / fn, "r") as fh:
-            g = read_csv(fh, origin=f'"{fn}"')
+            g = read_csv(fh, origin=f'"{fn}"',to="jsondata")
             count = 0
             for tp, tt in g:
                 if tp == BlockType.TABLE:
                     count += 1
-                    """  compare generic object
-                         i.e. containing None instead of pd.NaT, np.nan &c.
-                    """
                     if fn != "all.csv":
-                        jdata = table_to_json_data(tt)
-
-                        # translate to generic JSON
-                        jstr = json.dumps(jdata, cls=StarTableJsonEncoder, ensure_ascii=False)
-                        print("\njstr:")
-                        print(jstr)
-
-                        jobj = json.loads(jstr)
-
-                        print("\njobj:")
-                        print(jobj)
-                        print("\nall_json[fn]:")
-                        print(all_json[fn])
-                        assert jobj == all_json[fn]
+                        assert tt == all_json[fn]
 
             if fn == "all.csv":
                 assert count == all_files - 1

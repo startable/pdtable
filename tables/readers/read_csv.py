@@ -19,7 +19,7 @@ def read_csv(
     sep: str = None,
     origin: str = None,
     fixer: FixFactory = None,
-    do: str = "pdtable",
+    to: str = "pdtable",
 ) -> BlockGenerator:
     """Read starTable blocks from CSV file or text stream, yielding them one block at a time.
 
@@ -36,7 +36,7 @@ def read_csv(
         fixer:
             Customized FixFactory instance to be used instead of default fixer.
             fixer corrects simple errors in source stream.
-        as:
+        to:
             StarTable return type
               "pdtable": pdtable.Table
               "jsondata": dict (json serializable object)
@@ -59,7 +59,7 @@ def read_csv(
         "sep": sep,
         "origin": origin,
         "fixer": fixer,
-        "do": do
+        "to": to
     }
 
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:

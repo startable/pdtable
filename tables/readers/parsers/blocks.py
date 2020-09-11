@@ -20,7 +20,8 @@ For each of these:
 - The output is a pdtable representation of a StarTable block type.
 
 """
-
+import sys
+import traceback
 from typing import Sequence, Optional, Tuple, Any, Iterable, Union, Dict, List
 import pandas as pd
 
@@ -78,18 +79,6 @@ def make_table(
         )
     )
 
-def make_jsondata_table(
-        cells: CellGrid, origin: Optional[TableOriginCSV] = None
-) -> Table:
-    table_name = cells[0][0][2:]
-    # TODO: here we could filter on table_name; only parse tables of interest
-    # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
-
-    table_data = make_table_json_precursor(cells, origin)
-
-    return pure_json_obj(table_data)
-
-
 _block_factory_lookup = {
     BlockType.METADATA: make_metadata_block,
     BlockType.DIRECTIVE: make_directive,
@@ -117,15 +106,11 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
     Yields:
         Blocks.
     """
-    do = kwargs.get("do")
-    if do is None or do == "pdtable":
-        _block_factory_lookup[BlockType.TABLE] = make_table
-    elif do == "jsondata":
-        _block_factory_lookup[BlockType.TABLE] = make_jsondata_table
-    elif do == "cellgrid":
-        pass
-    else:
-        print(f"TBD: handle read_csv table type: {do}")
+    to = kwargs.get("to")
+    if(to is None):
+        kwargs["to"] = to = "pdtable"
+    elif to not in {"pdtable", "jsondata", "cellgrid"}:
+        print(f"TBD: handle read_csv table type: {to}")
         assert 0
 
     origin = kwargs.get("origin")
@@ -171,7 +156,19 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
 
         if next_block_type is not None:
             # Current block has ended. Emit it.
-            yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+            # TBC: embed in make_block
+            if this_block_type == BlockType.TABLE:
+                if cell_grid:
+                    if(to == "cellgrid"):
+                        yield this_block_type, cell_grid
+                    elif(to == "jsondata"):
+                        table_data = make_table_json_precursor(cell_grid, origin)
+                        yield this_block_type, pure_json_obj(table_data)
+                    else:
+                        yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+            else:
+                yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+
             # TODO augment TableOriginCSV with one tailored for Excel
             # Prepare to read next block
             cell_grid = []
@@ -180,13 +177,18 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
 
         cell_grid.append(row)
 
-    # TTT TBD: kwargs down to make_block's !
-    # TTT TBC: skip factory wrapping here
-    if cell_grid:
-        if(do == "cellgrid"):
-            yield this_block_type, cell_grid
-        else:
-            yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+    if this_block_type == BlockType.TABLE:
+        # TBC: embed in make_block
+        if cell_grid:
+            if(to == "cellgrid"):
+                yield this_block_type, cell_grid
+            elif(to == "jsondata"):
+                table_data = make_table_json_precursor(cell_grid, origin)
+                yield this_block_type,pure_json_obj(table_data)
+            else:
+                yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+    else:
+        yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
 
     _myFixFactory = FixFactory()
 

@@ -119,7 +119,6 @@ def test_FAT():
         Compare objects to stored target objects (input_dir() / all.json)
 
     """
-
     all_files = 0
     for fn in os.listdir(input_dir()):
         path = input_dir() / fn
@@ -142,7 +141,7 @@ def test_FAT():
         with open(input_dir() / fn, "r") as fh:
             cell_rows = (line.rstrip("\n").split(";") for line in fh)
             # TBD: use read_csv
-            g = parse_blocks(cell_rows, {"origin":f'"{fn}"', "do":"jsondata"})
+            g = parse_blocks(cell_rows, {"origin":f'"{fn}"', "to":"jsondata"})
 
             for tp, tt in g:
                 if tp == BlockType.TABLE:
@@ -150,10 +149,15 @@ def test_FAT():
                          i.e. containing None instead of pd.NaT, np.nan &c.
                     """
                     count += 1
-                    print("tt:")
+
+                    print("-oOo- tt:")
                     print(tt)
+                    print("-oOo- target:")
+                    print(all_json[fn])
                     assert tt == all_json[fn]
-                    jstr = json.dumps(tt, cls=StarTableJsonEncoder, ensure_ascii=False)
-                    jobj = json.loads(jstr)
-                    assert jobj == all_json[fn]
+
+#                    jstr = json.dumps(tt, cls=StarTableJsonEncoder, ensure_ascii=False)
+#                    jobj = json.loads(jstr)
+#                    assert jobj == all_json[fn]
+
     assert count == all_files
