@@ -15,7 +15,7 @@ from .parsers.FixFactory import FixFactory
 
 
 def read_csv(
-    source: Union[str, PathLike, TextIO], sep: str = None, fixer: FixFactory = None
+    source: Union[str, PathLike, TextIO], sep: str = None, origin: str = None, fixer: FixFactory = None
 ) -> BlockGenerator:
     """Read starTable blocks from CSV file or text stream, yielding them one block at a time.
 
@@ -27,6 +27,8 @@ def read_csv(
             the stream.
         sep:
             Optional; CSV field delimiter. Default is ';'.
+        origin:
+            Optional; Table location
         fixer:
             Customized FixFactory instance to be used instead of default fixer.
             fixer corrects simple errors in source stream.
@@ -39,6 +41,9 @@ def read_csv(
     if sep is None:
         sep = tables.CSV_SEP
 
+    if origin is None:
+        origin = str(source)
+
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
-        yield from parse_blocks(cell_rows, origin=str(source), fixer=fixer)
+        yield from parse_blocks(cell_rows, origin=origin, fixer=fixer)

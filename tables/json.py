@@ -19,7 +19,7 @@ class StarTableJsonEncoder(json.JSONEncoder):
         if isinstance(obj, set):
             return list(obj)
         if isinstance(obj, TableOriginCSV):
-            return str(obj)
+            return obj._file_name
         if isinstance(obj, datetime.datetime):
             jval = str(obj)
             return jval if jval != "NaT" else None
@@ -46,11 +46,35 @@ def table_to_json_data(table: Table) -> JsonData:
     """
 
     table_data = {"name": table.name, "origin": table.metadata.origin,
-                  "destinations": table.metadata.destinations,
+                  "destinations": { dst: None for dst in table.metadata.destinations },
                   "units": table.units
                   }
     table_data["columns"] = {}
     for cname in table.column_names:
         table_data["columns"][cname] = [vv for vv in table.df[cname]]
-    return table_data
+    return pure_json(table_data)
 
+_cnv = {
+     dict : lambda obj: {kk: pure_json(obj[kk]) for kk in obj.keys() },
+     list : lambda obj: [pure_json(kk) for kk in obj ],
+    float : lambda obj: obj if (not np.isnan(obj)) else None
+}
+
+def pure_json(obj):
+    """ return JSON serializable version of obj
+    """
+    tp = type(obj)
+    if(tp in _cnv.keys()):
+        return _cnv[tp](obj)
+
+    if tp in { int, str, bool} or obj is None:
+        return obj
+
+    if isinstance(obj, TableOriginCSV):
+        return obj._file_name
+    elif isinstance(obj, datetime.datetime):
+        jval = str(obj)
+        return jval if jval != "NaT" else None
+    else:
+        print(f"TBD: pure_json, Handle type: {type(obj)}")
+        assert 0

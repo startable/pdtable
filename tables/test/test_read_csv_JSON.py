@@ -54,7 +54,7 @@ def test_json_pdtable():
             "log": [True, False, True, False, True, False],
         },
         "units": ["text", "-", "kg", "onoff"],
-        "destinations": ["your_farm my_farm farms_galore"],
+        "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None},
         "origin": '"types1.csv" row 1',
     }
     json_pdtab = tables.proxy.Table(
@@ -63,15 +63,11 @@ def test_json_pdtable():
             units=table_data["units"],
             metadata=tables.table_metadata.TableMetadata(
                 name=table_data["name"],
-                destinations={dest for dest in table_data["destinations"]},
+                destinations= {dest for dest in table_data["destinations"]},
                 origin=table_data["origin"],
             ),
         )
     )
-    print("\npandas_pdtab")
-    print(pandas_pdtab)
-    print("\njson_pdtab")
-    print(json_pdtab)
     assert pandas_pdtab.equals(json_pdtab)
 
 
@@ -145,7 +141,7 @@ def test_FAT():
             continue
         with open(input_dir() / fn, "r") as fh:
             cell_rows = (line.rstrip("\n").split(";") for line in fh)
-            g = parse_blocks(cell_rows, origin=fn, do="json")
+            g = parse_blocks(cell_rows, origin=f"\"{fn}\"", do="json")
 
             for tp, tt in g:
                 if tp == BlockType.TABLE:

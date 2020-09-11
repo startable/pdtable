@@ -1,8 +1,8 @@
 import os
-from io import StringIO
+import json
 from pathlib import Path
-from textwrap import dedent
 
+from tables import StarTableJsonEncoder,table_to_json_data
 from tables.readers.read_csv import read_csv
 from tables.writers._csv import _table_to_csv
 from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
@@ -68,6 +68,10 @@ def test_FAT():
             continue
         all_files += 1
 
+    # load targets
+    with open(input_dir() / "all.json") as f:
+        all_json = json.load(f)
+
     for fn in os.listdir(input_dir()):
         print(f"-oOo- read {fn}")
         path = input_dir() / fn
@@ -77,17 +81,29 @@ def test_FAT():
             continue
 
         with open(input_dir() / fn, "r") as fh:
-            g = read_csv(fh)
+            g = read_csv(fh,origin=f"\"{fn}\"")
             count = 0
             for tp, tt in g:
                 if tp == BlockType.TABLE:
                     count += 1
-                    with StringIO() as out:
-                        _table_to_csv(tt, out, sep=";", na_rep="-")
-                        test_output = out.getvalue().strip()
+                    """  compare generic object
+                         i.e. containing None instead of pd.NaT, np.nan &c.
+                    """
+                    if(fn != "all.csv"):
+                       jdata = table_to_json_data(tt)
 
-                    if fn != "all.csv":
-                        assert test_output == dedent(autoFixed[fn]).strip()
+                       # translate to generic JSON
+                       jstr = json.dumps(jdata, cls=StarTableJsonEncoder, ensure_ascii=False)
+                       print("\njstr:")
+                       print(jstr)
+
+                       jobj = json.loads(jstr)
+
+                       print("\njobj:")
+                       print(jobj)
+                       print("\nall_json[fn]:")
+                       print(all_json[fn])
+                       assert jobj == all_json[fn]
 
             if fn == "all.csv":
                 assert count == all_files - 1

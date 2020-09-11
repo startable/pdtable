@@ -66,10 +66,10 @@
          "kg",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"cols1.csv\" row 2"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"cols1.csv\""
    }
    ,
    "cols2.csv":
@@ -129,10 +129,10 @@
          "datetime",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"cols2.csv\" row 2"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"cols2.csv\""
    }
    ,
    "ex0.csv":{
@@ -168,10 +168,10 @@
          "-",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"ex0.csv\" row 9"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"ex0.csv\""
    },
    "ex1.csv":{
       "name":"farm_animals1",
@@ -206,10 +206,10 @@
          "-",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"ex1.csv\" row 1"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"ex1.csv\""
    },
    "ex2.csv":{
       "name":"farm_animals2",
@@ -244,10 +244,10 @@
          "-",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"ex2.csv\" row 1"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"ex2.csv\""
    },
    "ex3.csv":{
       "name":"farm_animals3",
@@ -282,10 +282,10 @@
          "-",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"ex3.csv\" row 1"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"ex3.csv\""
    },
    "json1.csv":{
       "name":"farm_json1",
@@ -347,10 +347,10 @@
          "datetime",
          "onoff"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"json1.csv\" row 2"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"json1.csv\""
    },
    "row1.csv":{
       "name":"farm_row1",
@@ -385,10 +385,10 @@
          "-",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"row1.csv\" row 2"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"row1.csv\""
    },
    "row2.csv":{
       "name":"farm_row2",
@@ -423,10 +423,10 @@
          "-",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"row2.csv\" row 1"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"row2.csv\""
    },
    "types1.csv":{
       "name":"farm_types1",
@@ -470,10 +470,10 @@
          "kg",
          "onoff"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"types1.csv\" row 1"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"types1.csv\""
    },
    "types2.csv":{
       "name":"farm_types2",
@@ -517,10 +517,10 @@
          "kg",
          "datetime"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"types2.csv\" row 2"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"types2.csv\""
    },
    "types3.csv":{
       "name":"farm_types3",
@@ -600,10 +600,10 @@
          "kg",
          "onoff"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"types3.csv\" row 2"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"types3.csv\""
    },
    "units1.csv":{
       "name":"farm_units1",
@@ -641,9 +641,9 @@
          "-",
          "kg"
       ],
-      "destinations":[
-         "your_farm my_farm farms_galore"
-      ],
-      "origin":"\"units1.csv\" row 1"
+      "destinations": {
+         "your_farm": null, "my_farm": null, "farms_galore": null
+      },
+      "origin":"\"units1.csv\""
    }
 }
