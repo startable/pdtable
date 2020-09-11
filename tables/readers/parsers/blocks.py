@@ -71,7 +71,7 @@ def make_table(
             pd.DataFrame(table_data["columns"]),
             units=table_data["units"],
             metadata=TableMetadata(
-                name=table_data["name"], destinations=table_data["destinations"],
+                name=table_data["name"], destinations=set(table_data["destinations"].keys()),
                 origin=table_data["origin"]
             ),
         )
@@ -208,7 +208,9 @@ def make_table_json_precursor(
 ) -> JsonData:
     table_name = cells[0][0][2:]
     _myFixFactory.TableName = table_name
-    destinations = {cells[1][0].strip()}
+
+    # internally hold destinations as json-compatible dict
+    destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
 
     # handle multiple columns w. same name
     col_names_raw = cells[2]
@@ -241,7 +243,6 @@ def make_table_json_precursor(
             raise ValueError(
                 f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
             ) from e
-
     return {
         "name": table_name,
         "columns": columns,

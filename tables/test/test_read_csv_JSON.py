@@ -68,6 +68,10 @@ def test_json_pdtable():
             ),
         )
     )
+    print("\npandas_pdtab")
+    print(pandas_pdtab)
+    print("\njson_pdtab")
+    print(json_pdtab)
     assert pandas_pdtab.equals(json_pdtab)
 
 
