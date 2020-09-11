@@ -30,6 +30,7 @@ from ... import pdtable, Table
 from ...ancillary_blocks import MetadataBlock, Directive
 from ...store import BlockType, BlockGenerator
 from ...table_metadata import TableOriginCSV, TableMetadata
+from tables._json import pure_json_obj
 
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
@@ -77,6 +78,17 @@ def make_table(
         )
     )
 
+def make_jsondata_table(
+        cells: CellGrid, origin: Optional[TableOriginCSV] = None
+) -> Table:
+    table_name = cells[0][0][2:]
+    # TODO: here we could filter on table_name; only parse tables of interest
+    # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
+
+    table_data = make_table_json_precursor(cells, origin)
+
+    return pure_json_obj(table_data)
+
 
 _block_factory_lookup = {
     BlockType.METADATA: make_metadata_block,
@@ -90,35 +102,37 @@ def make_block(block_type: BlockType, cells: CellGrid, origin) -> Tuple[BlockTyp
     return block_type, cells if factory is None else factory(cells, origin)
 
 
-def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None, fixer=None,
-                 do: str = "Table") -> BlockGenerator:
+def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
     """Parses blocks from a single sheet as rows of cells.
 
     Takes an iterable of cell rows and parses it into blocks.
 
     Args:
         cell_rows: Iterable of cell rows, where each row is a sequence of cells.
+    kwargs:
         origin: A thing.
         fixer: Also a thing, but different.
-        do: Determines what the output is. # TODO revisit this API
+        do: generate Table of this type ("pdtable", "jsondata", "cellgrid")
 
     Yields:
         Blocks.
     """
-    # Loop seems clunky with repeated init and emit clauses -- could probably be cleaned up
-    # but I haven't seen how.
-    # Template data handling is half-hearted, mostly because of doubts on StarTable syntax
-    # Must all template data have leading `:`?
-    # In any case, avoiding row-wise emit for multi-line template data should be a priority.
-
-    if do == "Table":
+    do = kwargs.get("do")
+    if do is None or do == "pdtable":
         _block_factory_lookup[BlockType.TABLE] = make_table
+    elif do == "jsondata":
+        _block_factory_lookup[BlockType.TABLE] = make_jsondata_table
+    elif do == "cellgrid":
+        pass
     else:
-        _block_factory_lookup[BlockType.TABLE] = make_table_json_precursor
+        print(f"TBD: handle read_csv table type: {do}")
+        assert 0
 
+    origin = kwargs.get("origin")
     if origin is None:
         origin = "Stream"
 
+    fixer = kwargs.get("fixer")
     global _myFixFactory
     if fixer is not None:
         if type(fixer) is type:
@@ -166,8 +180,13 @@ def parse_blocks(cell_rows: Iterable[Sequence], origin: Optional[str] = None, fi
 
         cell_grid.append(row)
 
+    # TTT TBD: kwargs down to make_block's !
+    # TTT TBC: skip factory wrapping here
     if cell_grid:
-        yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+        if(do == "cellgrid"):
+            yield this_block_type, cell_grid
+        else:
+            yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
 
     _myFixFactory = FixFactory()
 

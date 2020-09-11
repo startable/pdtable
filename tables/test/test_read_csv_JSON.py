@@ -41,7 +41,7 @@ def test_json_pdtable():
     ]
     pandas_pdtab = None
     # with io.StringIO(csv_src) as fh:
-    g = parse_blocks(cell_rows, origin='"types1.csv" row 1')
+    g = parse_blocks(cell_rows, {"origin": '"types1.csv" row 1'})
     for tp, tab in g:
         pandas_pdtab = tab
 
@@ -63,7 +63,7 @@ def test_json_pdtable():
             units=table_data["units"],
             metadata=tables.table_metadata.TableMetadata(
                 name=table_data["name"],
-                destinations= {dest for dest in table_data["destinations"]},
+                destinations={dest for dest in table_data["destinations"]},
                 origin=table_data["origin"],
             ),
         )
@@ -141,7 +141,8 @@ def test_FAT():
             continue
         with open(input_dir() / fn, "r") as fh:
             cell_rows = (line.rstrip("\n").split(";") for line in fh)
-            g = parse_blocks(cell_rows, origin=f"\"{fn}\"", do="json")
+            # TBD: use read_csv
+            g = parse_blocks(cell_rows, {"origin":f'"{fn}"', "do":"jsondata"})
 
             for tp, tt in g:
                 if tp == BlockType.TABLE:
@@ -149,6 +150,9 @@ def test_FAT():
                          i.e. containing None instead of pd.NaT, np.nan &c.
                     """
                     count += 1
+                    print("tt:")
+                    print(tt)
+                    assert tt == all_json[fn]
                     jstr = json.dumps(tt, cls=StarTableJsonEncoder, ensure_ascii=False)
                     jobj = json.loads(jstr)
                     assert jobj == all_json[fn]

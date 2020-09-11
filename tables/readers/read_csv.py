@@ -15,7 +15,11 @@ from .parsers.FixFactory import FixFactory
 
 
 def read_csv(
-    source: Union[str, PathLike, TextIO], sep: str = None, origin: str = None, fixer: FixFactory = None
+    source: Union[str, PathLike, TextIO],
+    sep: str = None,
+    origin: str = None,
+    fixer: FixFactory = None,
+    do: str = "pdtable",
 ) -> BlockGenerator:
     """Read starTable blocks from CSV file or text stream, yielding them one block at a time.
 
@@ -32,6 +36,13 @@ def read_csv(
         fixer:
             Customized FixFactory instance to be used instead of default fixer.
             fixer corrects simple errors in source stream.
+        as:
+            StarTable return type
+              "pdtable": pdtable.Table
+              "jsondata": dict (json serializable object)
+              "cellgrids": List[List[obj]] (raw input cells)
+
+            TBV: Table, JsonData, CellGrid ?
 
     Yields:
         Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive,
@@ -44,6 +55,13 @@ def read_csv(
     if origin is None:
         origin = str(source)
 
+    kwargs = {
+        "sep": sep,
+        "origin": origin,
+        "fixer": fixer,
+        "do": do
+    }
+
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
-        yield from parse_blocks(cell_rows, origin=origin, fixer=fixer)
+        yield from parse_blocks(cell_rows, kwargs)
