@@ -3,9 +3,9 @@ import json
 
 import numpy as np
 
-from tables import Table
-from tables.readers.parsers.blocks import make_table, JsonData
-from tables.table_metadata import TableOriginCSV
+from . import Table
+from .readers.parsers.blocks import make_table, JsonData
+from .table_metadata import TableOriginCSV
 
 
 class StarTableJsonEncoder(json.JSONEncoder):

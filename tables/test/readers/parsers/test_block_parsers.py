@@ -1,7 +1,7 @@
 from io import StringIO
 
 from textwrap import dedent
-import tables.proxy
+from tables.proxy import Table
 from tables.readers.parsers.blocks import make_metadata_block, make_directive, make_table, parse_blocks
 from tables.store import TableBundle, BlockType
 
@@ -44,7 +44,7 @@ file_bytes;file_date;file_name;has_table;
     t = make_table(cells).df
     assert t.file_bytes[0] == 15373
 
-    tt = tables.proxy.Table(t)
+    tt = Table(t)
     assert tt.name == 'input_files_derived'
     assert set(tt.metadata.destinations) == {'all'}
     assert tt.units == ['-', 'text', 'text', 'onoff']
@@ -65,7 +65,7 @@ def test_make_table__parses_onoff_column():
     assert table_df.file_bytes[0] == 15373
     assert table_df.has_table[0] == False
     assert table_df.has_table[1] == True
-    tt = tables.proxy.Table(table_df)
+    tt = Table(table_df)
     assert tt.name == 'input_files_derived'
     assert set(tt.metadata.destinations) == {'all'}
     assert tt.units == ['-', 'text', 'onoff']

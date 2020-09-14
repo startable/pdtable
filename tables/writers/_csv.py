@@ -3,7 +3,7 @@ from contextlib import nullcontext
 from typing import Iterable, TextIO, Union
 
 import tables as tables_module
-from tables.store import TableBundle
+from ..store import TableBundle
 from ._represent import _represent_row_elements
 from .. import Table
 

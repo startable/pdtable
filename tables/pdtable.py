@@ -50,7 +50,7 @@ import pandas as pd
 import warnings
 from typing import Set, Dict, Optional, Iterable
 
-from tables.table_metadata import TableMetadata, ColumnMetadata, TableData
+from .table_metadata import TableMetadata, ColumnMetadata, TableData
 
 _TABLE_DATA_FIELD_NAME = '_table_data'
 

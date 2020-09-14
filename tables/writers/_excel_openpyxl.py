@@ -9,8 +9,8 @@ except ImportError:
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 
 
-from tables import Table
-from tables.writers._represent import _represent_row_elements
+from .. import Table
+from ._represent import _represent_row_elements
 
 
 def write_excel_openpyxl(na_rep, out, tables):

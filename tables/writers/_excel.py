@@ -8,7 +8,7 @@ only when write_excel() is called for the first time.
 """
 
 
-from tables.store import TableBundle
+from ..store import TableBundle
 from typing import Iterable, Union
 import os
 

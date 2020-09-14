@@ -1,9 +1,9 @@
 import functools
 from pathlib import Path
 
-from tables.ancillary_blocks import Directive
-from tables.readers.read_csv import read_csv
-from tables.store import BlockGenerator, BlockType
+from ..ancillary_blocks import Directive
+from ..readers.read_csv import read_csv
+from ..store import BlockGenerator, BlockType
 
 
 def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> BlockGenerator:
