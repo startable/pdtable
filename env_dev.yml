@@ -17,6 +17,7 @@ dependencies:
   - flake8
   - flake8-comprehensions
 # DEV
+  - twine
   - black
   - jupyter
   - jupyterlab
