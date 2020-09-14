@@ -2,7 +2,7 @@ import os
 from contextlib import nullcontext
 from typing import Iterable, TextIO, Union
 
-import tables as tables_module
+import pdtable
 from ..store import TableBundle
 from ._represent import _represent_row_elements
 from .. import Table
@@ -34,7 +34,7 @@ def write_csv(
             If overriding this default, use another value compliant with the StarTable standard.
     """
     if sep is None:
-        sep = tables_module.CSV_SEP
+        sep = pdtable.CSV_SEP
 
     if isinstance(tables, Table):
         # For convenience, pack single table in an iterable

@@ -8,7 +8,7 @@ from contextlib import nullcontext
 from os import PathLike
 from typing import TextIO, Union
 
-import tables
+import pdtable
 from .parsers.blocks import parse_blocks, BlockType
 from ..store import BlockGenerator
 from .parsers.FixFactory import FixFactory
@@ -37,7 +37,7 @@ def read_csv(
 
     """
     if sep is None:
-        sep = tables.CSV_SEP
+        sep = pdtable.CSV_SEP
 
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)

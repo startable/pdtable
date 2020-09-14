@@ -1,9 +1,9 @@
 from io import StringIO
 
 from textwrap import dedent
-from tables.proxy import Table
-from tables.readers.parsers.blocks import make_metadata_block, make_directive, make_table, parse_blocks
-from tables.store import TableBundle, BlockType
+from pdtable.proxy import Table
+from pdtable.readers.parsers.blocks import make_metadata_block, make_directive, make_table, parse_blocks
+from pdtable.store import TableBundle, BlockType
 
 
 def test_make_metadata_block():

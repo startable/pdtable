@@ -2,7 +2,7 @@ from typing import Union, Dict, List, Optional, Set
 
 import pandas as pd
 
-from .pdtable import PandasTable, get_table_data, is_pdtable, make_pdtable, \
+from .pandastable import PandasTable, get_table_data, is_pdtable, make_pdtable, \
     set_units, add_column
 from .table_metadata import TableMetadata, ColumnMetadata, TableData
 

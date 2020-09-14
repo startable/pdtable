@@ -3,10 +3,10 @@ from textwrap import dedent
 
 import pandas as pd
 
-import tables
-from tables import write_csv, Table
-from tables.writers._csv import _table_to_csv
-from tables.table_metadata import ColumnFormat
+import pdtable
+from pdtable import write_csv, Table
+from pdtable.writers._csv import _table_to_csv
+from pdtable.table_metadata import ColumnFormat
 
 
 def test__table_to_csv():
@@ -138,7 +138,7 @@ def test__write_csv__uses_altered_default_csv_separator(monkeypatch):
     # Change the default CSV separator
     # Using monkeypatch in lieu of just 'tables.CSV_SEP = ","'
     # so that this alteration of the default is only visible in this test.
-    monkeypatch.setattr(tables, "CSV_SEP", ",")
+    monkeypatch.setattr(pdtable, "CSV_SEP", ",")
 
     # Make a table with content of various units
     t = Table(pd.DataFrame({"place": ["home", "work", "beach", "wonderland"],

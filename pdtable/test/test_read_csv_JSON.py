@@ -6,9 +6,9 @@ from textwrap import dedent
 import pandas as pd
 
 from ..json import StarTableJsonEncoder, json_data_to_table, table_to_json_data
-from ..pdtable import make_pdtable
+from ..pandastable import make_pdtable
 from ..readers.parsers.blocks import make_table, parse_blocks
-from ..readers.read_csv import tables
+from ..readers.read_csv import pdtable
 from ..store import BlockType
 
 
@@ -57,11 +57,11 @@ def test_json_pdtable():
         "destinations": ["your_farm my_farm farms_galore"],
         "origin": '"types1.csv" row 1',
     }
-    json_pdtab = tables.proxy.Table(
+    json_pdtab = pdtable.proxy.Table(
         make_pdtable(
             pd.DataFrame(table_data["columns"]),
             units=table_data["units"],
-            metadata=tables.table_metadata.TableMetadata(
+            metadata=pdtable.table_metadata.TableMetadata(
                 name=table_data["name"],
                 destinations={dest for dest in table_data["destinations"]},
                 origin=table_data["origin"],

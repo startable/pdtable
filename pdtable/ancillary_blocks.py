@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-import tables
+import pdtable
 
 
 class MetadataBlock(dict):
@@ -11,7 +11,7 @@ class MetadataBlock(dict):
         self.origin = origin
 
     def __repr__(self):
-        sep = tables.CSV_SEP
+        sep = pdtable.CSV_SEP
         return "\n".join(f"{k}:{sep}{self[k]}{sep}" for k in self)
 
 
@@ -23,6 +23,6 @@ class Directive:
     origin: Optional[str] = None
 
     def __repr__(self):
-        return f"***{self.name}{tables.CSV_SEP}\n" + "\n".join(self.lines)
+        return f"***{self.name}{pdtable.CSV_SEP}\n" + "\n".join(self.lines)
 
 

@@ -26,7 +26,8 @@ import pandas as pd
 
 from .FixFactory import FixFactory
 from .columns import parse_column
-from ... import pdtable, Table
+from ... import pandastable
+from ...proxy import Table
 from ...ancillary_blocks import MetadataBlock, Directive
 from ...store import BlockType, BlockGenerator
 from ...table_metadata import TableOriginCSV, TableMetadata
@@ -67,7 +68,7 @@ def make_table(
 
     table_data = make_table_json_precursor(cells, origin)
     return Table(
-        pdtable.make_pdtable(
+        pandastable.make_pdtable(
             pd.DataFrame(table_data["columns"]),
             units=table_data["units"],
             metadata=TableMetadata(
