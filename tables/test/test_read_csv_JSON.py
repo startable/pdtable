@@ -151,3 +151,28 @@ def test_FAT():
                     assert tt == all_json[fn]
 
     assert count == all_files
+
+from .._json import pure_json_obj
+import numpy as np
+def test_pure_json_obj():
+    """ Unit test pure_json_obj / json_esc
+    """
+    obj = {
+        'k1': 'k1 w. "quotes"',
+        'nix': None,
+        'no-flt': np.nan,
+        'no-date': pd.NaT,
+        'flt': 1.23,
+        'int': 123
+    }
+    json_obj = pure_json_obj(obj)
+    # verify that json_obj is directly json serializable
+    jstr = json.dumps(json_obj)
+    assert len(jstr) > 0
+    assert json_obj['k1'] == 'k1 w. \"quotes\"'
+    assert json_obj['nix'] is None
+    assert json_obj['no-flt'] is None
+    assert json_obj['no-date'] is None
+    assert json_obj['flt'] == 1.23
+    assert json_obj['int'] == 123
+
