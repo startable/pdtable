@@ -5,11 +5,11 @@ from textwrap import dedent
 
 import pandas as pd
 
-from ..json import StarTableJsonEncoder, json_data_to_table, table_to_json_data
-from ..pdtable import make_pdtable
-from ..readers.parsers.blocks import make_table, parse_blocks
-from ..readers.read_csv import tables
-from ..store import BlockType
+from tables import json_data_to_table, table_to_json_data
+from tables import make_pdtable
+from tables import make_table, parse_blocks
+from tables import Table,TableMetadata
+from tables import BlockType
 
 
 def input_dir() -> Path:
@@ -57,11 +57,11 @@ def test_json_pdtable():
         "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None},
         "origin": '"types1.csv" row 1',
     }
-    json_pdtab = tables.proxy.Table(
+    json_pdtab = Table(
         make_pdtable(
             pd.DataFrame(table_data["columns"]),
             units=table_data["units"],
-            metadata=tables.table_metadata.TableMetadata(
+            metadata=TableMetadata(
                 name=table_data["name"],
                 destinations={dest for dest in table_data["destinations"]},
                 origin=table_data["origin"],
