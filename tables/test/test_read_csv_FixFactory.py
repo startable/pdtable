@@ -73,7 +73,6 @@ def test_FAT():
         all_json = json.load(f)
 
     for fn in os.listdir(input_dir()):
-        print(f"-oOo- read {fn}")
         path = input_dir() / fn
         if not os.path.isfile(path):
             continue
@@ -81,7 +80,7 @@ def test_FAT():
             continue
 
         with open(input_dir() / fn, "r") as fh:
-            g = read_csv(fh, origin=f'"{fn}"',to="jsondata")
+            g = read_csv(fh, origin=f'"{fn}"', to="jsondata")
             count = 0
             for tp, tt in g:
                 if tp == BlockType.TABLE:

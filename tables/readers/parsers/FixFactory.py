@@ -4,6 +4,7 @@ import numpy as np
 
 import sys
 
+
 class FixFactory:
     """ base class for auto-correcting startable.csv input files
 
@@ -91,7 +92,6 @@ class FixFactory:
 
         for sq in range(1000):
             test = f"{column_name}_fixed_{sq:03}"
-            print(f"test: {test}")
             if not test in input_columns:
                 return test
 
@@ -106,7 +106,7 @@ class FixFactory:
             print(
                 f"FixFacory: fix missing column ({self.TableColumn}) {input_columns} in table: {self.TableName}"
             )
-        return self.fix_duplicate_column_name("missing",input_columns)
+        return self.fix_duplicate_column_name("missing", input_columns)
 
     def fix_missing_rows_in_column_data(
         self, row: int, row_data: List[str], num_columns: int

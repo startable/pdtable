@@ -39,10 +39,6 @@ CellGrid = Sequence[Sequence]
 # Typing alias: Json-like data structure of nested "objects" (dict) and "arrays" (list).
 JsonData = Union[Dict[str, "JsonData"], List["JsonData"], str, float, int, bool, None]
 
-# TBC: wrap in specific reader instance, this is global for all threads
-_myFixFactory = FixFactory()
-# TODO remove hard-coded coupling to this module-level instance of FixFactory; pass as arg instead
-
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None) -> MetadataBlock:
     mb = MetadataBlock(origin)
@@ -60,24 +56,24 @@ def make_directive(cells: CellGrid, origin: Optional[str] = None) -> Directive:
     return Directive(name, directive_lines, origin)
 
 
-def make_table(
-        cells: CellGrid, origin: Optional[TableOriginCSV] = None
-) -> Table:
+def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None) -> Table:
     table_name = cells[0][0][2:]
     # TODO: here we could filter on table_name; only parse tables of interest
     # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
 
-    table_data = make_table_json_precursor(cells, origin)
+    table_data = make_table_json_precursor(cells, {"origin": origin})
     return Table(
         pdtable.make_pdtable(
             pd.DataFrame(table_data["columns"]),
             units=table_data["units"],
             metadata=TableMetadata(
-                name=table_data["name"], destinations=set(table_data["destinations"].keys()),
-                origin=table_data["origin"]
+                name=table_data["name"],
+                destinations=set(table_data["destinations"].keys()),
+                origin=table_data["origin"],
             ),
         )
     )
+
 
 _block_factory_lookup = {
     BlockType.METADATA: make_metadata_block,
@@ -107,7 +103,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
         Blocks.
     """
     to = kwargs.get("to")
-    if(to is None):
+    if to is None:
         kwargs["to"] = to = "pdtable"
     elif to not in {"pdtable", "jsondata", "cellgrid"}:
         print(f"TBD: handle read_csv table type: {to}")
@@ -118,15 +114,16 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
         origin = "Stream"
 
     fixer = kwargs.get("fixer")
-    global _myFixFactory
     if fixer is not None:
         if type(fixer) is type:
-            _myFixFactory = fixer()
+            kwargs["fixer"] = fixer()
         else:
-            _myFixFactory = fixer
-    assert _myFixFactory is not None
-
-    _myFixFactory.FileName = origin
+            assert isinstance(kwargs["fixer"], FixFactory)
+            pass  # use instance supplied
+    else:
+        kwargs["fixer"] = FixFactory()
+    assert kwargs["fixer"] is not None
+    kwargs["fixer"].FileName = origin
 
     def is_blank(cell):
         """
@@ -159,15 +156,19 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
             # TBC: embed in make_block
             if this_block_type == BlockType.TABLE:
                 if cell_grid:
-                    if(to == "cellgrid"):
+                    if to == "cellgrid":
                         yield this_block_type, cell_grid
-                    elif(to == "jsondata"):
-                        table_data = make_table_json_precursor(cell_grid, origin)
+                    elif to == "jsondata":
+                        table_data = make_table_json_precursor(cell_grid, kwargs)
                         yield this_block_type, pure_json_obj(table_data)
                     else:
-                        yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+                        yield make_block(
+                            this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row)
+                        )
             else:
-                yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+                yield make_block(
+                    this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row)
+                )
 
             # TODO augment TableOriginCSV with one tailored for Excel
             # Prepare to read next block
@@ -180,20 +181,20 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
     if this_block_type == BlockType.TABLE:
         # TBC: embed in make_block
         if cell_grid:
-            if(to == "cellgrid"):
+            if to == "cellgrid":
                 yield this_block_type, cell_grid
-            elif(to == "jsondata"):
-                table_data = make_table_json_precursor(cell_grid, origin)
-                yield this_block_type,pure_json_obj(table_data)
+            elif to == "jsondata":
+                table_data = make_table_json_precursor(cell_grid, kwargs)
+                yield this_block_type, pure_json_obj(table_data)
             else:
-                yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
+                yield make_block(
+                    this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row)
+                )
     else:
         yield make_block(this_block_type, cell_grid, TableOriginCSV(origin, this_block_1st_row))
 
-    _myFixFactory = FixFactory()
 
-
-def preprocess_column_names(col_names_raw):
+def preprocess_column_names(col_names_raw: List[str], fixer: FixFactory):
     """
        handle known issues in column_names
     """
@@ -212,32 +213,34 @@ def preprocess_column_names(col_names_raw):
             names[cname] = 0
             column_names.append(cname)
         else:
-            _myFixFactory.TableColumn = col
-            _myFixFactory.TableColumNames = column_names  # so far
+            fixer.TableColumn = col
+            fixer.TableColumNames = column_names  # so far
             if len(cname) == 0:
-                cname = _myFixFactory.fix_missing_column_name(input_columns=column_names)
+                cname = fixer.fix_missing_column_name(input_columns=column_names)
             elif cname in names:
-                cname = _myFixFactory.fix_duplicate_column_name(cname, input_columns=column_names)
+                cname = fixer.fix_duplicate_column_name(cname, input_columns=column_names)
             assert cname not in names
             names[cname] = 0
             column_names.append(cname)
     return column_names
 
 
-def make_table_json_precursor(
-        cells: CellGrid, origin: Optional[TableOriginCSV] = None
-) -> JsonData:
+def make_table_json_precursor(cells: CellGrid, kwargs={}) -> JsonData:
+
     table_name = cells[0][0][2:]
-    _myFixFactory.TableName = table_name
+
+    fixer = kwargs.get("fixer")
+    if fixer is None:
+        fixer = FixFactory()
+    fixer.TableName = table_name
 
     # internally hold destinations as json-compatible dict
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
 
     # handle multiple columns w. same name
     col_names_raw = cells[2]
-    column_names = preprocess_column_names(col_names_raw)
-    _myFixFactory.TableColumNames = column_names
-    # TODO: _myFixFactory.TableColumNames (typo!) is assigned 4 times but never read... Use?
+    column_names = preprocess_column_names(col_names_raw, fixer)
+    fixer.TableColumNames = column_names
 
     n_col = len(column_names)
     units = cells[3][:n_col]
@@ -249,7 +252,7 @@ def make_table_json_precursor(
     # ensure all data columns are populated
     for irow, row in enumerate(column_data):
         if len(row) < n_col:
-            fix_row = _myFixFactory.fix_missing_rows_in_column_data(
+            fix_row = fixer.fix_missing_rows_in_column_data(
                 row=irow, row_data=row, num_columns=n_col
             )
             column_data[irow] = fix_row
@@ -258,8 +261,8 @@ def make_table_json_precursor(
     columns = dict()
     for name, unit, values in zip(column_names, units, zip(*column_data)):
         try:
-            _myFixFactory.TableColumn = name
-            columns[name] = parse_column(unit, values, _myFixFactory)
+            fixer.TableColumn = name
+            columns[name] = parse_column(unit, values, fixer)
         except ValueError as e:
             raise ValueError(
                 f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
@@ -269,5 +272,5 @@ def make_table_json_precursor(
         "columns": columns,
         "units": units,
         "destinations": destinations,
-        "origin": origin
+        "origin": kwargs.get("origin"),
     }

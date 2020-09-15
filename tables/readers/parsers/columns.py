@@ -42,7 +42,16 @@ def _parse_text_column(values: Iterable, fixer: FixFactory = None):
 
 def _onoff_to_bool(val) -> bool:
     """Converts typical onoff columns values to bools"""
-    conversions = {0: False, 1: True, False: False, True: True, "0": False, "1": True, "false": False, "true": True}
+    conversions = {
+        0: False,
+        1: True,
+        False: False,
+        True: True,
+        "0": False,
+        "1": True,
+        "false": False,
+        "true": True,
+    }
     return conversions[normalize_if_str(val)]
 
 
