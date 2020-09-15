@@ -63,11 +63,12 @@ if Path.cwd().name == "doc":
 # %% [markdown]
 # ## The `Table` aspect
 #
-# The table aspect present the table with a focus on surrounding metadata.
+# The table aspect presents the table with a focus on surrounding metadata.
 # Data manipulation functions exist, and more are easily added -- but focus is on metadata.
 
 # %%
-from pdtable import pandastable, Table
+from pdtable import pandastable
+from pdtable.proxy import Table
 
 # %%
 t = Table(name='mytable')
@@ -93,6 +94,9 @@ t['b']
 
 # %%
 t.units
+
+# %%
+str(t)
 
 # %%
 t.metadata
