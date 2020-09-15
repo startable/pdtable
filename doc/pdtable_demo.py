@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -16,19 +17,20 @@
 # %% [markdown]
 # # Demo of `pdtable`
 #
-# The `pdtable` module allows working with StarTable tables as pandas dataframes.
+# The `pdtable` package allows working with StarTable tables as pandas dataframes while consistently keeping track of StarTable-specific metadata such as table destinations and column units.
 #
-# This is implemented by providing both `Table` and `PandasTable` (dataframe) interfaces to the same object. 
+# This is implemented by providing two interfaces to the same backing object:
+# - `PandasTable` is derived from `pandas.DataFrame`. It carries the data and is the interface of choice for interacting with the data using the pandas API, with all the convenience that this entails.  It also carries StarTable metadata, but in a less accessible way. 
+# - `Table` is a stateless façade for a backing `PandasTable` object. The `Table` API gives convenient access to StarTable-specific metadata such as column units, and table destinations and origin. 
 #
-# This notebook provides a demo of how this works, see the `pdtable` docs for a discussion of the implementation.
+# This notebook provides a demo of how this works. See the `pdtable` docstring for a discussion of the implementation.
 #
 # ## Idea
 #
 # The central idea is that as much as possible of the table information is stored as a pandas dataframe,
 # and that the remaining information is stored as a `TableData` object attached to the dataframe as registered metadata.
 # Further, access to the full table datastructure is provided through a facade object (of class `Table`). `Table` objects
-# have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded
-# afterwards:
+# have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded afterwards:
 #
 # ```
 # dft = make_pdtable(...)
@@ -37,10 +39,11 @@
 #
 # Advantages of this approach are that:
 #
-# 1. Code can be written for (and tested with) pandas dataframes and still operate on `pdtable` objects.
-#    This avoids unnecessary coupling to the startable project.
-# 2. The table access methods of pandas are available for use by consumer code. This both saves the work
-#    of making startable-specific access methods, and likely allows better performance and documentation.
+# 1. Code can be written for (and tested with) pandas dataframes and still operate on `PandasTable` objects.
+#    This frees client code from necessarily being coupled to the startable project. 
+#    A first layer of client code can read and manipulate StarTable data, and then pass it on as a (`PandasTable`-flavoured) `pandas.DataFrame` to a further layer having no knowledge of `pdtable`. 
+# 2. The access methods of pandas `DataFrames`, `Series`, etc. are available for use by consumer code via the `PandasTable` interface. This both saves the work
+#    of re-implementing similar access methods on a StarTable-specific object, and likely allows better performance and documentation.
 
 # %%
 # %load_ext autoreload
@@ -48,7 +51,8 @@
 import pandas as pd
 
 # %%
-# Workaround: notebooks don't have repo root in sys.path
+# Workaround for this demo in notebook form: 
+# Notebooks don't have repo root in sys.path
 # Better solutions are welcome...
 import sys
 from pathlib import Path
@@ -63,7 +67,7 @@ if Path.cwd().name == "doc":
 # %% [markdown]
 # ## The `Table` aspect
 #
-# The table aspect presents the table with a focus on surrounding metadata.
+# The table aspect presents the table with a focus on StarTable metadata.
 # Data manipulation functions exist, and more are easily added -- but focus is on metadata.
 
 # %%
@@ -107,7 +111,7 @@ t2 = Table(pd.DataFrame({'c': [1,2,3], 'd': [4,5,6]}), name='table2', units=['m'
 t2
 
 # %% [markdown]
-# ## The dataframe aspect
+# ## The `PandasTable` / `pd.DataFrame` aspect
 #
 # Both the table contents and metadata displayed and manipulated throught the `Table`-class is stored as a `PandasTable` object, which is a normal pandas dataframe with two modifications:
 #
