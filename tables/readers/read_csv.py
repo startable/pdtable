@@ -6,6 +6,7 @@ an CSV file or stream as a Iterable of cell rows, where each row is a sequence o
 """
 from contextlib import nullcontext
 from os import PathLike
+import io
 from typing import TextIO, Union
 
 import tables
@@ -53,7 +54,10 @@ def read_csv(
         sep = tables.CSV_SEP
 
     if origin is None:
-        origin = str(source)
+        if hasattr(source,"name"):
+            origin = source.name
+        else:
+            origin = str(source)
 
     kwargs = {
         "sep": sep,
@@ -64,4 +68,4 @@ def read_csv(
 
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
-        yield from parse_blocks(cell_rows, kwargs)
+        yield from parse_blocks(cell_rows, **kwargs)

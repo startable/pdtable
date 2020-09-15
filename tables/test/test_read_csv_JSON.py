@@ -41,7 +41,7 @@ def test_json_pdtable():
     ]
     pandas_pdtab = None
     # with io.StringIO(csv_src) as fh:
-    g = parse_blocks(cell_rows, {"origin": '"types1.csv" row 1'})
+    g = parse_blocks(cell_rows, **{"origin": '"types1.csv" row 1'})
     for tp, tab in g:
         pandas_pdtab = tab
 
@@ -140,8 +140,7 @@ def test_FAT():
             continue
         with open(input_dir() / fn, "r") as fh:
             cell_rows = (line.rstrip("\n").split(";") for line in fh)
-            # TBD: use read_csv
-            g = parse_blocks(cell_rows, {"origin": f'"{fn}"', "to": "jsondata"})
+            g = parse_blocks(cell_rows, **{"origin": f'"{fn}"', "to": "jsondata"})
 
             for tp, tt in g:
                 if tp == BlockType.TABLE:

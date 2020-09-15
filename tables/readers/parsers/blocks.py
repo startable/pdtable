@@ -61,7 +61,7 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None) -> Tabl
     # TODO: here we could filter on table_name; only parse tables of interest
     # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
 
-    table_data = make_table_json_precursor(cells, {"origin": origin})
+    table_data = make_table_json_precursor(cells, origin = origin)
     return Table(
         pdtable.make_pdtable(
             pd.DataFrame(table_data["columns"]),
@@ -87,7 +87,7 @@ def make_block(block_type: BlockType, cells: CellGrid, origin) -> Tuple[BlockTyp
     return block_type, cells if factory is None else factory(cells, origin)
 
 
-def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
+def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     """Parses blocks from a single sheet as rows of cells.
 
     Takes an iterable of cell rows and parses it into blocks.
@@ -159,7 +159,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
                     if to == "cellgrid":
                         yield this_block_type, cell_grid
                     elif to == "jsondata":
-                        table_data = make_table_json_precursor(cell_grid, kwargs)
+                        table_data = make_table_json_precursor(cell_grid, **kwargs)
                         yield this_block_type, pure_json_obj(table_data)
                     else:
                         yield make_block(
@@ -184,7 +184,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], kwargs={}) -> BlockGenerator:
             if to == "cellgrid":
                 yield this_block_type, cell_grid
             elif to == "jsondata":
-                table_data = make_table_json_precursor(cell_grid, kwargs)
+                table_data = make_table_json_precursor(cell_grid, **kwargs)
                 yield this_block_type, pure_json_obj(table_data)
             else:
                 yield make_block(
@@ -225,7 +225,7 @@ def preprocess_column_names(col_names_raw: List[str], fixer: FixFactory):
     return column_names
 
 
-def make_table_json_precursor(cells: CellGrid, kwargs={}) -> JsonData:
+def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonData:
 
     table_name = cells[0][0][2:]
 
