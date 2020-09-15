@@ -2,10 +2,9 @@ import os
 import json
 from pathlib import Path
 
-from tables.readers.read_csv import FixFactory, BlockType
+from tables import FixFactory, BlockType
 from tables import StarTableJsonEncoder, table_to_json_data
-from tables.readers.read_csv import read_csv
-from tables.writers._csv import _table_to_csv
+from tables import read_csv
 from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
 
 
