@@ -67,7 +67,7 @@ if Path.cwd().name == "doc":
 # Data manipulation functions exist, and more are easily added -- but focus is on metadata.
 
 # %%
-from tables import pdtable, Table
+from pdtable import pandastable, Table
 
 # %%
 t = Table(name='mytable')
@@ -119,7 +119,7 @@ Table(df)
 
 # %%
 # Interacting with table metadata form  without the Table proxy is slightly verbose
-df2 = pdtable.make_pdtable(
+df2 = pandastable.make_pdtable(
     pd.DataFrame({'c': [1,2,3], 'd': [4,5,6]}), 
     name='table2', 
     units=['m', 'kg'])
