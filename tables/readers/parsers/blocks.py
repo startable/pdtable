@@ -272,7 +272,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonData:
         print(f"\nWarning: {fixer.Warnings} data errors fixed while parsing\n")
 
     if(fixer.Errors > 0):
-        print(f"\nError: {fixer.Errors} column errors fixed while parsing\n")
+        sys.stderr.write(f"\nError: {fixer.Errors} column errors fixed while parsing\n")
 
     return {
         "name": table_name,

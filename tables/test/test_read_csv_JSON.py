@@ -178,3 +178,30 @@ def test_pure_json_obj():
     assert json_obj["no-date"] is None
     assert json_obj["flt"] == 1.23
     assert json_obj["int"] == 123
+
+
+def test_preserve_column_order():
+    """ Unit test
+        Verify that column order is preserved when translating btw. jsondata
+        and pdtable.Table
+    """
+    lines_target = [
+        ["**col_order"],
+        ["dst2 dst2 dst2"],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        ["pig"     , 1     , 2     , 3     , 4     ],
+        ["goat"    , 1     , 2     , 3     , 4     ],
+        ["zybra"   , 1     , 2     , 3     , 4     ],
+        ["cow"     , 1     , 2     , 3     , 4     ],
+        ["goose"   , 1     , 2     , 3     , 4     ],
+    ]
+
+    pandas_pdtab = make_table(lines_target)
+    js = table_to_json_data(pandas_pdtab)
+    pdtab = json_data_to_table(js)
+    assert pdtab.df.iloc[0][3] == 3
+    assert pdtab.df.iloc[1][1] == 1
+    assert pdtab.df.iloc[2][4] == 4
+    assert pandas_pdtab.equals(pdtab)
