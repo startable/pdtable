@@ -3,4 +3,4 @@
 
 def test_pdtable_demo():
     # Just import the jupytext script to run it
-    import doc.pdtable_demo
+    import examples.pdtable_demo

@@ -57,8 +57,8 @@ import pandas as pd
 import sys
 from pathlib import Path
 
-if Path.cwd().name == "doc":
-    # Maybe we're in a notebook in the /reporting/doc folder
+if Path.cwd().name == "examples":
+    # Maybe we're in a notebook in the /examples folder
     repo_root_dir = str(Path.cwd().parent)
     if repo_root_dir not in sys.path:
         sys.path.append(repo_root_dir)
