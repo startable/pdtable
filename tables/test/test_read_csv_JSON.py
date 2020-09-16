@@ -201,9 +201,17 @@ def test_preserve_column_order():
     # fmt: on
 
     pandas_pdtab = make_table(lines_target)
-    js = table_to_json_data(pandas_pdtab)
-    pdtab = json_data_to_table(js)
+    js_obj = table_to_json_data(pandas_pdtab)
+    pdtab = json_data_to_table(js_obj)
     assert pdtab.df.iloc[0][3] == 3
     assert pdtab.df.iloc[1][1] == 1
     assert pdtab.df.iloc[2][4] == 4
     assert pandas_pdtab.equals(pdtab)
+
+    # now verify from json-string
+    jstr = json.dumps(js_obj)
+    print(jstr)
+    js_obj_from_json = json.loads(jstr)
+    pdtab_from_json = json_data_to_table(js_obj_from_json)
+
+    assert pandas_pdtab.equals(pdtab_from_json)
