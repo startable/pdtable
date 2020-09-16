@@ -161,7 +161,11 @@ print(f'Metadata columns after update:\n{df_renamed._table_data.columns}\n')
 # %% [markdown]
 # ### Reading
 # The functions `read_excel()` and `read_csv()` do what it says on the tin.
-# `read_csv()` can read from files as well as text streams.
+# `read_csv()` can read from files as well as text streams. 
+#
+# These generate tuples of (`BlockType`, `block`) where
+# * `block` is a StarTable block
+# * `BlockType` is an enum that indicates which type of StarTable block `block` is. Possible values: `DIRECTIVE`, `TABLE`, `TEMPLATE_ROW`, `METADATA`, and `BLANK`. 
 
 # %%
 from io import StringIO
@@ -199,6 +203,7 @@ csv_data =  StringIO(dedent("""\
 # Reader function returns a generator; unroll it in a list for convenience.
 block_list = list(read_csv(csv_data))
 assert len(block_list) == 6  # includes blanks
+
 
 
 
