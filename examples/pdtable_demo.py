@@ -21,7 +21,7 @@
 #
 # This is implemented by providing two interfaces to the same backing object:
 # - `PandasTable` is derived from `pandas.DataFrame`. It carries the data and is the interface of choice for interacting with the data using the pandas API, with all the convenience that this entails.  It also carries StarTable metadata, but in a less accessible way. 
-# - `Table` is a stateless façade for a backing `PandasTable` object. The `Table` API gives convenient access to StarTable-specific metadata such as column units, and table destinations and origin. 
+# - `Table` is a stateless façade for a backing `PandasTable` object. `Table` is the interface of choice for convenient access to StarTable-specific metadata such as column units, and table destinations and origin. Some data manipulation is also possible in the `Table` interface, though this functionality is limited. 
 #
 # This notebook provides a demo of how this works. See the `pdtable` docstring for a discussion of the implementation.
 #
@@ -48,6 +48,8 @@
 # %%
 # %load_ext autoreload
 # %autoreload 2
+from textwrap import dedent
+
 import pandas as pd
 
 # %%
@@ -151,5 +153,64 @@ print(f'Metadata columns before update triggered by access:\n{df_renamed._table_
 print(Table(df_renamed))
 print(f'Metadata columns after update:\n{df_renamed._table_data.columns}\n')
 
-# %%
+# %% [markdown]
+# ## I/O
+# StarTable data can be read from, and written to, CSV files and Excel workbooks. 
 
+
+# %% [markdown]
+# ### Reading
+# The functions `read_excel()` and `read_csv()` do what it says on the tin.
+# `read_csv()` can read from files as well as text streams.
+
+# %%
+from io import StringIO
+from pdtable import read_csv
+
+# Let's make some StarTable data and put it in a text stream.
+csv_data =  StringIO(dedent("""\
+    author: ;XYODA     ;
+    purpose:;Save the galaxy
+
+    ***gunk
+    grok
+    jiggyjag
+
+    **places;
+    all
+    place;distance;ETA;is_hot
+    text;km;datetime;onoff
+    home;0.0;2020-08-04 08:00:00;1
+    work;1.0;2020-08-04 09:00:00;0
+    beach;2.0;2020-08-04 17:00:00;1
+    wonderland;-;-;0
+
+    **farm_animals;;;
+    your_farm my_farm other_farm;;;
+    species;n_legs;avg_weight;
+    text;-;kg;
+    chicken;2;2;
+    pig;4;89;
+    cow;4;200;
+    unicorn;4;NaN;
+    """))
+
+# Read the stream. Syntax is the same if reading CSV file. 
+# Reader function returns a generator; unroll it in a list for convenience.
+block_list = list(read_csv(csv_data))
+assert len(block_list) == 6  # includes blanks
+
+
+
+
+# %%
+# The reader generates tuples of (BlockType, block)
+print(block_list[0])
+print(block_list[1])
+print(block_list[2])
+print(block_list[3])
+
+for t, b in block_list:
+    print(t, type(b))
+
+# %%
