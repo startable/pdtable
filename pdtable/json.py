@@ -1,31 +1,6 @@
-import datetime
-import json
-
-import numpy as np
-
+from pdtable._json import to_json_serializable
 from . import Table
 from .readers.parsers.blocks import make_table, JsonData
-from .table_metadata import TableOriginCSV
-from pdtable._json import to_json_serializable
-
-
-class StarTableJsonEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            if f"{obj.dtype}" == "float64":
-                # https://stackoverflow.com/questions/26921836/correct-way-to-test-for-numpy-dtype
-                return [val if (not np.isnan(val)) else None for val in obj.tolist()]
-            else:
-                return obj.tolist()
-        if isinstance(obj, set):
-            return list(obj)
-        if isinstance(obj, TableOriginCSV):
-            return obj._file_name
-        if isinstance(obj, datetime.datetime):
-            jval = str(obj)
-            return jval if jval != "NaT" else None
-
-        return json.JSONEncoder.default(self, obj)
 
 
 def json_data_to_table(table_json_data: JsonData) -> Table:
