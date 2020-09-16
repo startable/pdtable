@@ -41,7 +41,7 @@ def read_csv(
             StarTable return type
               "pdtable": pdtable.Table
               "jsondata": dict (json serializable object)
-              "cellgrids": List[List[obj]] (raw input cells)
+              "cellgrid": List[List[obj]] (raw input cells)
 
             TBV: Table, JsonData, CellGrid ?
 
@@ -54,17 +54,12 @@ def read_csv(
         sep = pdtable.CSV_SEP
 
     if origin is None:
-        if hasattr(source,"name"):
+        if hasattr(source, "name"):
             origin = source.name
         else:
             origin = str(source)
 
-    kwargs = {
-        "sep": sep,
-        "origin": origin,
-        "fixer": fixer,
-        "to": to
-    }
+    kwargs = {"sep": sep, "origin": origin, "fixer": fixer, "to": to}
 
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
