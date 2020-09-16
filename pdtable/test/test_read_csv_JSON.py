@@ -166,23 +166,25 @@ def test_pure_json_obj():
     """ Unit test pure_json_obj / json_esc
     """
     obj = {
-        "k1": 'k1 w. "quotes"',
+        "k1": r'k1 w. \"quotes"',
         "nix": None,
         "no-flt": np.nan,
         "no-date": pd.NaT,
         "flt": 1.23,
         "int": 123,
     }
-    json_obj = pure_json_obj(obj)
-    # verify that json_obj is directly json serializable
-    jstr = json.dumps(json_obj)
-    assert len(jstr) > 0
-    assert json_obj["k1"] == 'k1 w. "quotes"'
-    assert json_obj["nix"] is None
-    assert json_obj["no-flt"] is None
-    assert json_obj["no-date"] is None
-    assert json_obj["flt"] == 1.23
-    assert json_obj["int"] == 123
+    js_obj = pure_json_obj(obj)
+
+    # verify that js_obj is directly json serializable
+    jstr = json.dumps(js_obj)
+    js_obj_from_json = json.loads(jstr)
+
+    assert js_obj_from_json["k1"] == obj["k1"]
+    assert js_obj_from_json["nix"] is None
+    assert js_obj_from_json["no-flt"] is None
+    assert js_obj_from_json["no-date"] is None
+    assert js_obj_from_json["flt"] == obj["flt"]
+    assert js_obj_from_json["int"] == obj["int"]
 
 
 def test_preserve_column_order():
