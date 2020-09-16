@@ -87,7 +87,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     table_name = cells[0][0][2:]
 
     fixer = kwargs["fixer"] if "fixer" in kwargs else FixFactory()
-    fixer.TableName = table_name
+    fixer.table_name = table_name
 
     # internally hold destinations as json-compatible dict
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
@@ -116,18 +116,18 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     columns = dict()
     for name, unit, values in zip(column_names, units, zip(*column_data)):
         try:
-            fixer.TableColumn = name
+            fixer.column_name = name
             columns[name] = parse_column(unit, values, fixer)
         except ValueError as e:
             raise ValueError(
                 f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
             ) from e
 
-    if fixer.Warnings > 0:
-        print(f"\nWarning: {fixer.Warnings} data errors fixed while parsing\n")
+    if fixer.warnings > 0:
+        print(f"\nWarning: {fixer.warnings} data errors fixed while parsing\n")
 
-    if fixer.Errors > 0:
-        sys.stderr.write(f"\nError: {fixer.Errors} column errors fixed while parsing\n")
+    if fixer.errors > 0:
+        sys.stderr.write(f"\nError: {fixer.errors} column errors fixed while parsing\n")
 
     return {
         "name": table_name,
@@ -220,7 +220,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     else:
         kwargs["fixer"] = FixFactory()
     assert kwargs["fixer"] is not None
-    kwargs["fixer"].FileName = origin
+    kwargs["fixer"].origin = origin
 
     def is_blank(cell):
         """
@@ -286,7 +286,7 @@ def preprocess_column_names(col_names_raw: List[str], fixer: FixFactory):
             names[cname] = 0
             column_names.append(cname)
         else:
-            fixer.TableColumn = col
+            fixer.column_name = col
             fixer.TableColumNames = column_names  # so far
             if len(cname) == 0:
                 cname = fixer.fix_missing_column_name(input_columns=column_names)

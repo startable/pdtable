@@ -62,7 +62,7 @@ def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
             bool_values.append(_onoff_to_bool(val))
         except KeyError as err:
             if fixer is not None:
-                fixer.TableRow = row  # TBC: index
+                fixer.table_row = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("onoff", val)
                 bool_values.append(fix_value)
             else:
@@ -95,14 +95,14 @@ def _parse_float_column(values: Iterable, fixer: FixFactory = None):
                 float_values.append(_float_converters_by_1st_char[val[0]](val))
             except (KeyError, ValueError) as err:
                 if fixer is not None:
-                    fixer.TableRow = row  # TBC: index
+                    fixer.table_row = row  # TBC: index
                     fix_value = fixer.fix_illegal_cell_value("float", val)
                     float_values.append(fix_value)
                 else:
                     raise ValueError("Illegal value in numerical column", val) from err
         else:
             if fixer is not None:
-                fixer.TableRow = row  # TBC: index
+                fixer.table_row = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("float", val)
                 float_values.append(fix_value)
             else:
@@ -131,14 +131,14 @@ def _parse_datetime_column(values: Iterable, fixer: FixFactory = None):
             except ValueError as err:
                 # TBC: register exc !?
                 if fixer is not None:
-                    fixer.TableRow = row  # TBC: index
+                    fixer.table_row = row  # TBC: index
                     fix_value = fixer.fix_illegal_cell_value("datetime", val)
                     datetime_values.append(fix_value)
                 else:
                     raise ValueError("Illegal value in datetime column", val) from err
         else:
             if fixer is not None:
-                fixer.TableRow = row  # TBC: index
+                fixer.table_row = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("datetime", val)
                 datetime_values.append(fix_value)
             else:

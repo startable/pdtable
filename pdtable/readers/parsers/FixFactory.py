@@ -1,8 +1,7 @@
-from typing import List, Tuple, Any, Dict
-import pandas as pd
-import numpy as np
+from typing import List, Any
 
-import sys
+import numpy as np
+import pandas as pd
 
 
 class FixFactory:
@@ -21,81 +20,41 @@ class FixFactory:
 
     # Store legend of what's fixed + API
     def __init__(self):
-        self.ctx = {}
         self._dbg = False
         self._errors = 0
         self._warnings = 0
 
-    @property
-    def FileName(self):
-        """
-           Position context, current origin / input filename
-        """
-        return self.ctx.get("FileName")
-
-    @FileName.setter
-    def FileName(self, val):
-        self.ctx["FileName"] = val
+        # Context info
+        self.origin = None
+        self.table_name = None
+        self.column_name = None
+        self.table_row = None
 
     @property
-    def TableName(self):
+    def verbose(self):
         """
-           Position context, current table
-        """
-        return self.ctx.get("TableName")
-
-    @TableName.setter
-    def TableName(self, val):
-        self.ctx["TableName"] = val
-
-    @property
-    def TableColumn(self):
-        """
-           Position context, current column
-        """
-        return self.ctx.get("TableColumn")
-
-    @TableColumn.setter
-    def TableColumn(self, val):
-        self.ctx["TableColumn"] = val
-
-    @property
-    def TableRow(self):
-        """
-           Position context, current row
-        """
-        return self.ctx.get("TableRow")
-
-    @TableRow.setter
-    def TableRow(self, val):
-        self.ctx["TableRow"] = val
-
-    @property
-    def Verbose(self):
-        """
-        if Verbose: print debug info in fix_* methods
+        if verbose: print debug info in fix_* methods
         """
         return self._dbg
 
-    @Verbose.setter
-    def Verbose(self, value: bool):
+    @verbose.setter
+    def verbose(self, value: bool):
         self._dbg = value
 
     @property
-    def Warnings(self):
+    def warnings(self):
         """
         Number of simple fixes
         """
         return self._warnings
 
     @property
-    def Errors(self):
+    def errors(self):
         """
         Number of error fixes:
             fix_missing_column_name, fix_missing_rows_in_column_data
         """
         return self._errors
-
 
     def fix_duplicate_column_name(self, column_name: str, input_columns: List[str]) -> str:
         """
@@ -103,15 +62,15 @@ class FixFactory:
             This method should provide a unique replacement name
 
         """
-        if self.Verbose:
+        if self.verbose:
             print(
-                f"FixFacory: fix duplicate column ({self.TableColumn}) {column_name} in table: {self.TableName}"
+                f"FixFactory: fix duplicate column ({self.column_name}) {column_name} in table: {self.table_name}"
             )
 
         self._errors += 1
         for sq in range(1000):
             test = f"{column_name}_fixed_{sq:03}"
-            if not test in input_columns:
+            if test not in input_columns:
                 return test
 
         return "{column_name}-fixed"
@@ -121,9 +80,9 @@ class FixFactory:
             The column_name: self.TableColumn is empty
             This method should provide a unique replacement name
         """
-        if self.Verbose:
+        if self.verbose:
             print(
-                f"FixFacory: fix missing column ({self.TableColumn}) {input_columns} in table: {self.TableName}"
+                f"FixFactory: fix missing column ({self.column_name}) {input_columns} in table: {self.table_name}"
             )
         return self.fix_duplicate_column_name("missing", input_columns)
 
@@ -135,8 +94,8 @@ class FixFactory:
             This method should return the entire row of length num_columns
             by providing the missing default values
         """
-        if self.Verbose:
-            print(f"FixFacory: fix missing data in row ({row}) in table: {self.TableName}")
+        if self.verbose:
+            print(f"FixFactory: fix missing data in row ({row}) in table: {self.table_name}")
         row_data.extend(["NaN" for cc in range(num_columns - len(row_data))])
         self._errors += 1
         return row_data
@@ -149,11 +108,11 @@ class FixFactory:
             Supported vtypes in { "onoff", "datetime", "-", "float" }
         """
         defaults = {"onoff": False, "datetime": pd.NaT, "float": np.NaN, "-": np.NaN}
-        if self.Verbose:
-            print(f'FixFacory: illegal {vtype} value "{value}" in table {self.TableName}')
-        dfval = defaults.get(vtype)
+        if self.verbose:
+            print(f'FixFactory: illegal {vtype} value "{value}" in table {self.table_name}')
+        default_val = defaults.get(vtype)
         self._warnings += 1
-        if not dfval is None:
-            return dfval
+        if default_val is not None:
+            return default_val
         else:
             return defaults["-"]
