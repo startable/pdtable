@@ -52,11 +52,11 @@ def test_get_table_data(dft):
 
 
 def test_column(dft):
-    c = Column(dft, 'cola')
-    assert c.unit == pandastable.get_table_data(dft).columns['cola'].unit
-    c.unit = 'm'
-    assert c.unit == 'm'
-    assert c.unit == pandastable.get_table_data(dft).columns['cola'].unit
+    c = Column(dft, "cola")
+    assert c.unit == pandastable.get_table_data(dft).columns["cola"].unit
+    c.unit = "m"
+    assert c.unit == "m"
+    assert c.unit == pandastable.get_table_data(dft).columns["cola"].unit
 
     # pandas docs say that indirect assignment is flaky
     # c.values[2] = 7
@@ -79,7 +79,7 @@ def test_table(dft):
     assert t.name == "foo"
     assert t.destinations == {"baz", "bar"}
     assert pandastable.is_pdtable(t.df)
-    
+
     assert t["cola"].unit == "-"
     t["cola"].unit = "km"
     assert pandastable.get_table_data(t.df).columns["cola"].unit == "km"
@@ -97,8 +97,8 @@ def test_df_operations(data_ab, data_cd):
     r = pd.concat([t_ab, t_ab], axis=0, sort=False, ignore_index=True)  # vertical concat
     assert r.shape == (8, 2)
 
-    t_ab2 = pandastable.make_pdtable(pd.DataFrame(data_ab), name='ab')
-    Table(t_ab2)['cola'].unit = 'm'
+    t_ab2 = pandastable.make_pdtable(pd.DataFrame(data_ab), name="ab")
+    Table(t_ab2)["cola"].unit = "m"
 
     with pytest.raises(pandastable.InvalidTableCombineError):
         # Fail on units for cola
