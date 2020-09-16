@@ -15,4 +15,4 @@ from .readers.parsers.blocks import make_table, parse_blocks
 from .pandastable import make_pdtable
 from .writers._csv import write_csv
 from .writers._excel import write_excel
-from .json import StarTableJsonEncoder,json_data_to_table,table_to_json_data
+from .json import json_data_to_table, table_to_json_data

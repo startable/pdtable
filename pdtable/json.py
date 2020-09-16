@@ -6,7 +6,7 @@ import numpy as np
 from . import Table
 from .readers.parsers.blocks import make_table, JsonData
 from .table_metadata import TableOriginCSV
-from pdtable._json import pure_json_obj
+from pdtable._json import to_json_serializable
 
 
 class StarTableJsonEncoder(json.JSONEncoder):
@@ -55,5 +55,4 @@ def table_to_json_data(table: Table) -> JsonData:
     table_data["columns"] = {}
     for cname in table.column_names:
         table_data["columns"][cname] = [vv for vv in table.df[cname]]
-    return pure_json_obj(table_data)
-
+    return to_json_serializable(table_data)

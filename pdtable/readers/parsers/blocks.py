@@ -1,6 +1,6 @@
-"""Parsers to convert uncontrolled cell grids into pdtable representations of StarTable blocks.
+"""Parsers to convert uncontrolled cell grids into representations of StarTable blocks.
 
-Central idea is that parse_blocks() emits a stream of StarBlock objects.
+parse_blocks() emits a stream of blocks objects.
 This in principle allows early abort of reads as well as generic postprocessing (
 as discussed in store-module docstring).
 
@@ -17,18 +17,24 @@ For each of these:
   Rows need not be of equal length; only the relevant portion of a cell grid will be parsed
   depending on the relevant block type.
 
-- The output is a pdtable representation of a StarTable block type.
+- The output is a representation of the StarTable block, either as:
+  - A pdtable-style block object e.g. Table
+  - A JSON-like data structure ready for serialization via e.g. json.dump()  (only implemented for
+    table blocks at this stage); or
+  - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
+import datetime
 import sys
-from typing import Sequence, Optional, Tuple, Any, Iterable, List
+from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union, Dict
 
 import pandas as pd
+import numpy as np
 
 from .FixFactory import FixFactory
 from .columns import parse_column
 from ... import pandastable
-from ..._json import pure_json_obj, JsonData, JsonDataPrecursor
+from ..._json import to_json_serializable, JsonData
 from ...ancillary_blocks import MetadataBlock, Directive
 from ...proxy import Table
 from ...store import BlockType, BlockGenerator
@@ -36,6 +42,18 @@ from ...table_metadata import TableOriginCSV, TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
+# Typing alias: Same as JsonData, extended with a few non-JSON-native but readily JSONable types
+JsonDataPrecursor = Union[
+    Dict[str, "JsonDataPrecursor"],
+    List["JsonDataPrecursor"],
+    np.ndarray,
+    str,
+    float,
+    int,
+    bool,
+    None,
+    datetime.datetime,
+]
 
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None, **_) -> MetadataBlock:
@@ -143,7 +161,7 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **_) ->
 def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     """Parses cell grid into a JSON-ready data structure."""
     impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
-    return pure_json_obj(impure_json)
+    return to_json_serializable(impure_json)
 
 
 def make_block(block_type: BlockType, cells: CellGrid, origin, **kwargs) -> Tuple[BlockType, Any]:

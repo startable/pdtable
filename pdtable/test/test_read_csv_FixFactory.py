@@ -1,15 +1,9 @@
-import os
 import json
+import os
 from pathlib import Path
 
-from pdtable.readers.read_csv import read_csv
-from pdtable.writers._csv import _table_to_csv
-from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
-from ..store import BlockType
 from pdtable import FixFactory, BlockType
-from pdtable import StarTableJsonEncoder, table_to_json_data
 from pdtable import read_csv
-from .input.with_errors.auto_fixed import autoFixed
 
 
 def input_dir() -> Path:

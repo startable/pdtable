@@ -5,16 +5,11 @@ from textwrap import dedent
 
 import pandas as pd
 
-from ..json import StarTableJsonEncoder, json_data_to_table, table_to_json_data
-from ..pandastable import make_pdtable
-from ..readers.parsers.blocks import make_table, parse_blocks
-from ..readers.read_csv import pdtable
-from ..store import BlockType
+from pdtable import BlockType
+from pdtable import Table, TableMetadata
 from pdtable import json_data_to_table, table_to_json_data
 from pdtable import make_pdtable
 from pdtable import make_table, parse_blocks
-from pdtable import Table, TableMetadata
-from pdtable import BlockType
 
 
 def input_dir() -> Path:
@@ -158,7 +153,7 @@ def test_FAT():
     assert count == all_files
 
 
-from .._json import pure_json_obj
+from .._json import to_json_serializable
 import numpy as np
 
 
@@ -173,7 +168,7 @@ def test_pure_json_obj():
         "flt": 1.23,
         "int": 123,
     }
-    js_obj = pure_json_obj(obj)
+    js_obj = to_json_serializable(obj)
 
     # verify that js_obj is directly json serializable
     jstr = json.dumps(js_obj)
