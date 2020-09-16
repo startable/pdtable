@@ -185,6 +185,7 @@ def test_preserve_column_order():
         Verify that column order is preserved when translating btw. jsondata
         and pdtable.Table
     """
+    # fmt: off
     lines_target = [
         ["**col_order"],
         ["dst2 dst2 dst2"],
@@ -197,6 +198,7 @@ def test_preserve_column_order():
         ["cow"     , 1     , 2     , 3     , 4     ],
         ["goose"   , 1     , 2     , 3     , 4     ],
     ]
+    # fmt: on
 
     pandas_pdtab = make_table(lines_target)
     js = table_to_json_data(pandas_pdtab)
