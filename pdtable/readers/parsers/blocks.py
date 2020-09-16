@@ -55,12 +55,20 @@ def make_directive(cells: CellGrid, origin: Optional[str] = None, **_) -> Direct
 
 
 def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
+    """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
+
+    Parses cell grid to a JSON-like data structure of nested "objects" (dict), "arrays" (list),
+    and values, including values with types that map 1:1 to JSON-native types, as well as some
+    value types that don't directly map JSON types.
+
+    This JSON data "precursor" can then be sent for further processing:
+    - Parsing to pdtable-style Table block object
+    - Conversion to a "pure" JSON data object in which all values are of JSON-native types.
+    """
 
     table_name = cells[0][0][2:]
 
-    fixer = kwargs.get("fixer")
-    if fixer is None:
-        fixer = FixFactory()
+    fixer = kwargs["fixer"] if "fixer" in kwargs else FixFactory()
     fixer.TableName = table_name
 
     # internally hold destinations as json-compatible dict
@@ -113,30 +121,33 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
 
 def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **_) -> Table:
+    """Parses cell grid into a pdtable-style Table block object."""
     table_name = cells[0][0][2:]
     # TODO: here we could filter on table_name; only parse tables of interest
     # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
 
-    impure_json = make_table_json_precursor(cells, origin=origin)
+    json_precursor = make_table_json_precursor(cells, origin=origin)
     return Table(
         pandastable.make_pdtable(
-            pd.DataFrame(impure_json["columns"]),
-            units=impure_json["units"],
+            pd.DataFrame(json_precursor["columns"]),
+            units=json_precursor["units"],
             metadata=TableMetadata(
-                name=impure_json["name"],
-                destinations=set(impure_json["destinations"].keys()),
-                origin=impure_json["origin"],
+                name=json_precursor["name"],
+                destinations=set(json_precursor["destinations"].keys()),
+                origin=json_precursor["origin"],
             ),
         )
     )
 
 
 def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
+    """Parses cell grid into a JSON-ready data structure."""
     impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
     return pure_json_obj(impure_json)
 
 
 def make_block(block_type: BlockType, cells: CellGrid, origin, **kwargs) -> Tuple[BlockType, Any]:
+    """Dispatches cell grid to the proper parser, depending on block type and desired output type"""
     if block_type == BlockType.METADATA:
         factory = make_metadata_block
     elif block_type == BlockType.DIRECTIVE:
