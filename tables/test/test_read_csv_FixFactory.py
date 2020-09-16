@@ -5,11 +5,11 @@ from pathlib import Path
 from tables import FixFactory, BlockType
 from tables import StarTableJsonEncoder, table_to_json_data
 from tables import read_csv
-from .input.test_read_csv_pragmatic.auto_fixed import autoFixed
+from .input.with_errors.auto_fixed import autoFixed
 
 
 def input_dir() -> Path:
-    return Path(__file__).parent / "input/test_read_csv_pragmatic"
+    return Path(__file__).parent / "input/with_errors"
 
 
 def test_columns_duplicate():

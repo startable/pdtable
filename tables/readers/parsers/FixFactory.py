@@ -23,6 +23,8 @@ class FixFactory:
     def __init__(self):
         self.ctx = {}
         self._dbg = False
+        self._errors = 0
+        self._warnings = 0
 
     @property
     def FileName(self):
@@ -79,6 +81,22 @@ class FixFactory:
     def Verbose(self, value: bool):
         self._dbg = value
 
+    @property
+    def Warnings(self):
+        """
+        Number of simple fixes
+        """
+        return self._warnings
+
+    @property
+    def Errors(self):
+        """
+        Number of error fixes:
+            fix_missing_column_name, fix_missing_rows_in_column_data
+        """
+        return self._errors
+
+
     def fix_duplicate_column_name(self, column_name: str, input_columns: List[str]) -> str:
         """
             The column_name already exists in  input_columns
@@ -90,6 +108,7 @@ class FixFactory:
                 f"FixFacory: fix duplicate column ({self.TableColumn}) {column_name} in table: {self.TableName}"
             )
 
+        self._errors += 1
         for sq in range(1000):
             test = f"{column_name}_fixed_{sq:03}"
             if not test in input_columns:
@@ -119,6 +138,7 @@ class FixFactory:
         if self.Verbose:
             print(f"FixFacory: fix missing data in row ({row}) in table: {self.TableName}")
         row_data.extend(["NaN" for cc in range(num_columns - len(row_data))])
+        self._errors += 1
         return row_data
 
     def fix_illegal_cell_value(self, vtype: str, value: str) -> Any:
@@ -132,6 +152,7 @@ class FixFactory:
         if self.Verbose:
             print(f'FixFacory: illegal {vtype} value "{value}" in table {self.TableName}')
         dfval = defaults.get(vtype)
+        self._warnings += 1
         if not dfval is None:
             return dfval
         else:

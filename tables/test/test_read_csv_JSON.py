@@ -13,7 +13,7 @@ from tables import BlockType
 
 
 def input_dir() -> Path:
-    return Path(__file__).parent / "input/test_read_csv_pragmatic"
+    return Path(__file__).parent / "input/with_errors"
 
 
 def test_json_pdtable():
