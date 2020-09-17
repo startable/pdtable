@@ -3,8 +3,8 @@ from os import PathLike
 from typing import Optional, Any, Tuple, Iterable
 
 from . import units, Table
-from .store import TableBundle, BlockType
-from .readers.read_csv import read_csv
+from pdtable import TableBundle, BlockType
+from pdtable import read_csv
 
 
 def normalized_table_generator(unit_policy, ts: Iterable[Tuple[BlockType, Optional[Any]]]):

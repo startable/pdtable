@@ -20,7 +20,7 @@ from typing import Iterable, Sequence
 import numpy as np
 import pandas as pd
 
-from .FixFactory import FixFactory
+from pdtable import FixFactory
 
 
 def normalize_if_str(x):
