@@ -75,6 +75,7 @@ def test_json_data_to_pdtable():
     """ ensure dict-obj to pdtable conversion
         compare to target created w. make_table(List[List]])
     """
+    # Make a table using the cell grid parser
     lines_target = [
         ["**farm_types1"],
         ["your_farm my_farm farms_galore"],
@@ -88,9 +89,10 @@ def test_json_data_to_pdtable():
         ["goose", 2, 9, 0],
     ]
 
-    pandas_pdtab = make_table(lines_target)
+    table_from_cell_grid = make_table(lines_target)
 
-    table_data = {
+    # Make an identical table, but starting from JSON
+    table_json_data = {
         "name": "farm_types1",
         "columns": {
             "species": ["chicken", "pig", "goat", "zybra", "cow", "goose"],
@@ -103,13 +105,14 @@ def test_json_data_to_pdtable():
         "origin": '"types1.csv" row 1',
     }
 
-    json_pdtab = json_data_to_table(table_data)
-    assert pandas_pdtab.equals(json_pdtab)
+    table_from_json = json_data_to_table(table_json_data)
 
-    # reverse
-    table_data_back = table_to_json_data(json_pdtab)
-    json_pdtab_back = json_data_to_table(table_data)
-    assert pandas_pdtab.equals(json_pdtab_back)
+    assert table_from_cell_grid.equals(table_from_json)
+
+    # Round trip
+    table_json_data_back = table_to_json_data(table_from_json)
+    table_from_json_round_trip = json_data_to_table(table_json_data_back)
+    assert table_from_cell_grid.equals(table_from_json_round_trip)
 
 
 def test_FAT():

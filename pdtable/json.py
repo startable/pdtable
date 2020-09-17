@@ -8,7 +8,7 @@ def json_data_to_table(table_json_data: JsonData) -> Table:
     """
     lines_json = []
     lines_json.append([f'**{table_json_data["name"]}'])
-    lines_json.append([f"{dst}" for dst in table_json_data["destinations"]])
+    lines_json.append([" ".join(table_json_data["destinations"])])
     lines_json.append([f"{cname}" for cname in table_json_data["columns"].keys()])
     lines_json.append([f"{unit}" for unit in table_json_data["units"]])
     json_rows = list(map(list, zip(*table_json_data["columns"].values())))  # transposed columns
