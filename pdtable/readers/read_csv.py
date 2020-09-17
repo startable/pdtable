@@ -10,10 +10,11 @@ import io
 from typing import TextIO, Union
 
 import pdtable
-from .parsers.blocks import parse_blocks, BlockType
-from ..store import BlockGenerator
-from .parsers.FixFactory import FixFactory
+from .parsers.blocks import parse_blocks
+from pdtable import BlockGenerator, BlockType
 
+from typing import ClassVar
+FixFactory = ClassVar
 
 def read_csv(
     source: Union[str, PathLike, TextIO],

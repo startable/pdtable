@@ -1,7 +1,6 @@
 from pdtable._json import to_json_serializable
-from . import Table
-from .readers.parsers.blocks import make_table, JsonData
-
+from pdtable import Table
+from pdtable import make_table, JsonData
 
 def json_data_to_table(table_json_data: JsonData) -> Table:
     """  translate table-dictionary (JSON-like) to Table

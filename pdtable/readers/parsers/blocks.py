@@ -31,13 +31,13 @@ from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union, Dict
 import pandas as pd
 import numpy as np
 
-from .FixFactory import FixFactory
+from pdtable import FixFactory
 from .columns import parse_column
 from ... import pandastable
 from ..._json import to_json_serializable, JsonData
 from ...ancillary_blocks import MetadataBlock, Directive
-from ...proxy import Table
-from ...store import BlockType, BlockGenerator
+from pdtable import Table
+from pdtable import BlockType, BlockGenerator
 from ...table_metadata import TableOriginCSV, TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
