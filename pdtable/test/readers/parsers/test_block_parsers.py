@@ -46,7 +46,7 @@ def test_make_directive():
     assert d.lines == ["bar", "baz"]
 
 
-def test_make_table():
+def test_make_table__with_backslashes():
     cells = [
         [cell.strip() for cell in line.split(";")]
         for line in dedent(

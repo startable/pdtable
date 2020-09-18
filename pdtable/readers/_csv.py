@@ -10,7 +10,9 @@ from os import PathLike
 from typing import TextIO, Union, Callable
 
 import pdtable  # Required to read dynamically set pdtable.CSV_SEP
-from .. import BlockGenerator, BlockType, FixFactory
+from .. import BlockType
+from ..store import BlockGenerator
+from .parsers.FixFactory import FixFactory
 from .parsers.blocks import parse_blocks
 
 

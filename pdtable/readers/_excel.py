@@ -14,7 +14,8 @@ from os import PathLike
 from typing import Union, Callable
 
 from .parsers.blocks import parse_blocks
-from .. import FixFactory, BlockType
+from .parsers.FixFactory import FixFactory
+from .. import BlockType
 from ..store import BlockGenerator
 
 
