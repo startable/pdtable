@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from pdtable.readers.parsers.blocks import make_table, parse_blocks
-from pdtable.readers.read_excel import read_excel
+from pdtable.readers._excel import read_excel
 from pdtable import Table
 from pdtable.store import BlockType
 
@@ -99,4 +99,3 @@ def test_read_excel():
     # Assert read tables are equal to the expected ones
     for te, tr in zip(expected_tables, tables_read):
         assert te.equals(tr)
-

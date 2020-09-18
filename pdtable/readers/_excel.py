@@ -31,6 +31,7 @@ def read_excel(path: PathLike) -> BlockGenerator:
     """
     try:
         import openpyxl
+
         # from ._read_excel_openpyxl import parse_blocks
         wb = openpyxl.load_workbook(path)
         for ws in wb.worksheets:
@@ -43,4 +44,3 @@ def read_excel(path: PathLike) -> BlockGenerator:
             "Tried using: 'openpyxl'.\n"
             "Please install openpyxl for Excel I/O support."
         ) from err
-
