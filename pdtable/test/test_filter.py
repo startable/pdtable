@@ -2,7 +2,8 @@ import json
 import os
 from pathlib import Path
 
-from pdtable import parse_blocks, BlockType
+from .. import BlockType
+from ..readers.parsers import parse_blocks
 
 
 def input_dir() -> Path:

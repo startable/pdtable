@@ -20,7 +20,7 @@ from typing import Iterable, Sequence
 import numpy as np
 import pandas as pd
 
-from pdtable import FixFactory
+from .FixFactory import FixFactory
 
 
 def normalize_if_str(x):
@@ -70,10 +70,11 @@ def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
     return np.array(bool_values, dtype=np.bool)
 
 
-def _float_convert(val:str) -> float:
+def _float_convert(val: str) -> float:
     if val in {"", "nan", "-"}:
         return np.nan
     return float(val)
+
 
 def _parse_float_column(values: Iterable, fixer: FixFactory = None):
     float_values = []

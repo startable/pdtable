@@ -3,6 +3,7 @@ from typing import List, Any
 import numpy as np
 import pandas as pd
 
+
 class FixFactory:
     """ base class for auto-correcting startable.csv input files
 
@@ -16,6 +17,7 @@ class FixFactory:
                 return dfval
 
     """
+
     # Store legend of what's fixed + API
     def __init__(self):
         self._dbg = False

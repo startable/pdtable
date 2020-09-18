@@ -14,10 +14,9 @@ def normalized_table_generator(unit_policy, ts: Iterable[Tuple[BlockType, Option
         yield token_type, token
 
 
-def read_bundle_from_csv(input_path: PathLike,
-                         sep: Optional[str] = ';',
-                         unit_policy: Optional[units.UnitPolicy] = None
-                         ) -> TableBundle:
+def read_bundle_from_csv(
+    input_path: PathLike, sep: Optional[str] = ";", unit_policy: Optional[units.UnitPolicy] = None
+) -> TableBundle:
     """Read single csv-file to TableBundle"""
     # TODO this function is not used anywhere. Not clear what its purpose is.
     inputs = read_csv(input_path, sep)

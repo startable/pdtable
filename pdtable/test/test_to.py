@@ -1,5 +1,6 @@
 from pathlib import Path
-from pdtable import parse_blocks, BlockType, Table
+from pdtable import BlockType, Table
+from ..readers.parsers import parse_blocks
 
 
 def input_dir() -> Path:

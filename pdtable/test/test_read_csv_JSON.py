@@ -8,8 +8,9 @@ import pandas as pd
 from pdtable import BlockType
 from pdtable import Table, TableMetadata
 from pdtable import json_data_to_table, table_to_json_data
-from pdtable import make_pdtable
-from pdtable import make_table, parse_blocks
+from ..pandastable import make_pdtable
+from ..readers.parsers import parse_blocks
+from ..readers.parsers.blocks import make_table
 from .._json import to_json_serializable
 import numpy as np
 

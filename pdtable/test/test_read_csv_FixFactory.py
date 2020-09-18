@@ -2,9 +2,11 @@ import json
 import os
 from pathlib import Path
 
-from pdtable import FixFactory, BlockType
-from pdtable import read_csv, parse_blocks
-from pdtable import make_table, table_to_json_data
+from .. import FixFactory, BlockType
+from .. import read_csv
+from ..readers.parsers import parse_blocks
+from ..readers.parsers.blocks import make_table
+from pdtable import table_to_json_data
 
 
 def input_dir() -> Path:
@@ -116,7 +118,9 @@ def test_FAT():
             else:
                 assert count == 1
 
+
 import pytest
+
 
 def test_stop_on_errors():
     """ Unit test FixFactory.stop_on_errors
@@ -159,10 +163,10 @@ def test_stop_on_errors():
     for typ, tab in parse_blocks(table_lines, fixer=fix, to="cellgrid"):
         if typ != BlockType.TABLE:
             continue
-        if(tab[0][0] == "**tab_ok"):
+        if tab[0][0] == "**tab_ok":
             assert tab[4][3] == 3.14
             pi += 1
-        if(tab[0][0] == "**tab_errors"):
+        if tab[0][0] == "**tab_errors":
             assert tab[4][3] == "Ten"
 
     assert pi == 3  # 😉
@@ -188,4 +192,4 @@ def test_converter():
     assert js_obj["columns"]["a3"][0] is None
     assert js_obj["columns"]["a4"][1] == 3.14
 
-    assert fix.fixes == 2 # Nine and Ten
+    assert fix.fixes == 2  # Nine and Ten

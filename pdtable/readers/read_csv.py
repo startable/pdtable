@@ -14,7 +14,9 @@ from .parsers.blocks import parse_blocks
 from pdtable import BlockGenerator, BlockType
 
 from typing import ClassVar
+
 FixFactory = ClassVar
+
 
 def read_csv(
     source: Union[str, PathLike, TextIO],
