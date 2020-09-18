@@ -1,14 +1,16 @@
-from io import StringIO
-
+import numpy as np
+import pandas as pd
+import datetime as dt
 from textwrap import dedent
-from pdtable.proxy import Table
-from pdtable.readers.parsers.blocks import (
+
+from ....proxy import Table
+from ....store import TableBundle, BlockType
+from ....readers.parsers.blocks import (
     make_metadata_block,
     make_directive,
     make_table,
     parse_blocks,
 )
-from pdtable.store import TableBundle, BlockType
 
 
 def test_make_metadata_block():
@@ -44,6 +46,37 @@ def test_make_directive():
     d = make_directive(cells)
     assert d.name == "foo"
     assert d.lines == ["bar", "baz"]
+
+
+def test_make_table():
+    lines = [
+        ["**foo", None, None, None],
+        ["all", None, None, None],
+        ["place", "distance", "ETA", "is_hot"],
+        ["text", "km", "datetime", "onoff"],
+        ["home", 0.0, dt.datetime(2020, 8, 4, 8, 0, 0), 1],
+        ["work", 1.0, dt.datetime(2020, 8, 4, 9, 0, 0), 0],
+        ["beach", 2.0, dt.datetime(2020, 8, 4, 17, 0, 0), 1],
+        ["wonderland", "-", "-", "FALSE"],
+    ]
+
+    t = make_table(lines)
+
+    assert t.name == "foo"
+    assert set(t.metadata.destinations) == {"all"}
+    assert t.column_names == ["place", "distance", "ETA", "is_hot"]
+    assert t.units == ["text", "km", "datetime", "onoff"]
+
+    df = pd.DataFrame(
+        [
+            ["home", 0.0, dt.datetime(2020, 8, 4, 8, 0, 0), True],
+            ["work", 1.0, dt.datetime(2020, 8, 4, 9, 0, 0), False],
+            ["beach", 2.0, dt.datetime(2020, 8, 4, 17, 0, 0), True],
+            ["wonderland", np.nan, np.nan, False],
+        ],
+        columns=["place", "distance", "ETA", "is_hot"],
+    )
+    pd.testing.assert_frame_equal(t.df, df)
 
 
 def test_make_table__with_backslashes():
