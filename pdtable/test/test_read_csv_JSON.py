@@ -10,6 +10,8 @@ from pdtable import Table, TableMetadata
 from pdtable import json_data_to_table, table_to_json_data
 from pdtable import make_pdtable
 from pdtable import make_table, parse_blocks
+from .._json import to_json_serializable
+import numpy as np
 
 
 def input_dir() -> Path:
@@ -63,7 +65,7 @@ def test_json_pdtable():
             units=table_data["units"],
             metadata=TableMetadata(
                 name=table_data["name"],
-                destinations={dest for dest in table_data["destinations"]},
+                destinations=set(table_data["destinations"]),
                 origin=table_data["origin"],
             ),
         )
@@ -154,10 +156,6 @@ def test_FAT():
                     assert tt == all_json[fn]
 
     assert count == all_files
-
-
-from .._json import to_json_serializable
-import numpy as np
 
 
 def test_pure_json_obj():

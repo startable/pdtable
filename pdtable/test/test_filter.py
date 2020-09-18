@@ -4,8 +4,10 @@ from pathlib import Path
 
 from pdtable import parse_blocks, BlockType
 
+
 def input_dir() -> Path:
     return Path(__file__).parent / "input/with_errors"
+
 
 def test_filter_make_table():
     """ Unit test
@@ -39,11 +41,11 @@ def test_filter_make_table():
         [ ],
     ]
     # fmt: on
-    def filter(tp:BlockType,tn:str) -> bool:
-        return tp == BlockType.TABLE and tn[0] == 'i'
+    def filter(tp: BlockType, tn: str) -> bool:
+        return tp == BlockType.TABLE and tn[0] == "i"
 
     tables = []
-    for tp,tt in parse_blocks(lines_input,filter=filter):
+    for tp, tt in parse_blocks(lines_input, filter=filter):
         tables.append(tt)
 
     assert len(tables) == 2
