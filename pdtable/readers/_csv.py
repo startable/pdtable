@@ -25,12 +25,13 @@ def read_csv(
     """Reads StarTable data from a CSV file or text stream, yielding one block at a time.
 
     Reads StarTable data from a CSV-format file or text stream. StarTable blocks are parsed from
-    this data and yielded one at a time as a (block_type, block) tuple, where
+    this data and yielded one at a time as a (block_type, block_content) tuple, where
     - 'block_type' is a BlockType enum indicating which of the StarTable block types this is (table,
       metadata, directive, template); and
-    - 'block' is the block content.
+    - 'block_content' is the block content.
 
-    'block' is given as one of the following data types, depending on the 'to' argument passed:
+    'block_content' is presented as one of the following data types, depending on the 'to' argument
+    passed:
     - A pdtable.Table object,
     - A JSON serializable object (structure of nested dicts and lists of JSON-mappable values); or
     - A list of list of values, representing the raw cell grid (row and columns from the CSV data).
