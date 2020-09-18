@@ -187,9 +187,5 @@ def test_converter():
     js_obj = table_to_json_data(pandas_pdtab)
     assert js_obj["columns"]["a3"][0] is None
     assert js_obj["columns"]["a4"][1] == 3.14
-    #
-    # TBD: Nine is internally cast as NaN
-    # Fix this so that fixes correctly represents # actual errors in input
-    #
-    # assert fix.fixes == 2 # Nine and Ten
-    assert fix.fixes == 1  # hack ! TTT TBD !
+
+    assert fix.fixes == 2 # Nine and Ten

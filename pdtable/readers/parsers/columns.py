@@ -70,14 +70,10 @@ def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
     return np.array(bool_values, dtype=np.bool)
 
 
-_float_converters_by_1st_char = {
-    "N": lambda val: np.nan,
-    "n": lambda val: np.nan,
-    "-": lambda val: np.nan if (len(val) == 1) else float(val),
-}  # TODO is switching on 1st char a good idea? "Nine" would give a NaN, where "Eight" would crash
-for ch in "+0123456789":
-    _float_converters_by_1st_char[ch] = lambda val: float(val)
-
+def _float_convert(val:str) -> float:
+    if val in {"", "nan", "-"}:
+        return np.nan
+    return float(val)
 
 def _parse_float_column(values: Iterable, fixer: FixFactory = None):
     float_values = []
@@ -92,7 +88,7 @@ def _parse_float_column(values: Iterable, fixer: FixFactory = None):
         if isinstance(val, str) and len(val) > 0:
             try:
                 # Parsing the string as one of the expected things (a number or missing value)
-                float_values.append(_float_converters_by_1st_char[val[0]](val))
+                float_values.append(_float_convert(val))
             except (KeyError, ValueError) as err:
                 if fixer is not None:
                     fixer.table_row = row  # TBC: index
