@@ -36,7 +36,15 @@ def test_read_excel():
 def test_read_excel__applies_filter():
 
     # Make a filter
-    # def is
+    def is_table_about_spelling(block_type: BlockType, block_name: str) -> bool:
+        return block_type == BlockType.TABLE and "spelling" in block_name
 
-    # Read tables from file
-    blocks = list(read_excel(Path(__file__).parent / "input" / "foo.xlsx"))
+    # Read blocks from file
+    blocks = list(
+        read_excel(Path(__file__).parent / "input" / "foo.xlsx", filter=is_table_about_spelling)
+    )
+
+    # Assert only that one table block was parsed
+    assert len(blocks) == 1
+    table: Table = blocks[0][1]
+    assert table.name == "spelling_numbers"
