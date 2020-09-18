@@ -166,7 +166,9 @@ def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     return to_json_serializable(impure_json)
 
 
-def make_block(block_type: BlockType, cells: CellGrid, origin, **kwargs) -> Tuple[BlockType, Any]:
+def make_block(
+    block_type: BlockType, cells: CellGrid, origin, **kwargs
+) -> Tuple[Optional[BlockType], Optional[Any]]:
     """Dispatches cell grid to the proper parser, depending on block type and desired output type"""
     block_name = ""
     if block_type == BlockType.METADATA:
@@ -185,10 +187,10 @@ def make_block(block_type: BlockType, cells: CellGrid, origin, **kwargs) -> Tupl
     else:
         factory = None
 
-    filter = kwargs.get("filter")
-    if filter:
-        assert callable(filter)
-        if not filter(block_type, block_name):
+    block_filter = kwargs.get("filter")
+    if block_filter:
+        assert callable(block_filter)
+        if not block_filter(block_type, block_name):
             return None, None
 
     return block_type, cells if factory is None else factory(cells, origin, **kwargs)
@@ -262,9 +264,9 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
         if next_block_type is not None:
             # Current block has ended. Emit it.
             kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-            tp, tt = make_block(this_block_type, cell_grid, **kwargs)
-            if tp is not None:
-                yield tp, tt
+            block_type, block = make_block(this_block_type, cell_grid, **kwargs)
+            if block_type is not None:
+                yield block_type, block
 
             # TODO augment TableOriginCSV with one tailored for Excel
             # Prepare to read next block
@@ -275,11 +277,11 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
         cell_grid.append(row)
 
     if cell_grid:
-        # Block terminated by EOF. Emit it.
+        # Block ended with EOF. Emit it.
         kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-        tp, tt = make_block(this_block_type, cell_grid, **kwargs)
-        if tp is not None:
-            yield tp, tt
+        block_type, block = make_block(this_block_type, cell_grid, **kwargs)
+        if block_type is not None:
+            yield block_type, block
 
 
 def preprocess_column_names(col_names_raw: List[str], fixer: FixFactory):
