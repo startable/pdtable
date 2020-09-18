@@ -7,7 +7,7 @@ an CSV file or stream as a Iterable of cell rows, where each row is a sequence o
 from contextlib import nullcontext
 from os import PathLike
 import io
-from typing import TextIO, Union
+from typing import TextIO, Union, Callable
 
 import pdtable
 from .parsers.blocks import parse_blocks
@@ -24,6 +24,7 @@ def read_csv(
     origin: str = None,
     fixer: FixFactory = None,
     to: str = "pdtable",
+    filter: Callable[[BlockType, str], bool] = None,
 ) -> BlockGenerator:
     """Read starTable blocks from CSV file or text stream, yielding them one block at a time.
 
@@ -47,6 +48,9 @@ def read_csv(
               "cellgrid": List[List[obj]] (raw input cells)
 
             TBV: Table, JsonData, CellGrid ?
+        filter:
+            A callable that returns true if a block meeting a supplied combination of
+            (BlockType, block_name) is to be parsed, and false if it is to be ignored and discarded.
 
     Yields:
         Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive,
@@ -62,7 +66,7 @@ def read_csv(
         else:
             origin = str(source)
 
-    kwargs = {"sep": sep, "origin": origin, "fixer": fixer, "to": to}
+    kwargs = {"sep": sep, "origin": origin, "fixer": fixer, "to": to, "filter": filter}
 
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
