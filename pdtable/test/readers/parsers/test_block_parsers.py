@@ -183,6 +183,52 @@ def test_parse_blocks():
 
 
 def test_parse_blocks__filters_correctly():
+    """ Unit test
+        Verify that misc. float input are handled consistently
+    """
+    # Make some input data cell rows
+    # fmt: off
+    cell_rows = [
+        ["**incl_1"],
+        ["dst2"],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        [ ],
+        ["**xcl_1"],
+        ["dst2"],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        [ ],
+        ["**incl_2"],
+        ["dst2"],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        [ ],
+        ["**xcl_2"],
+        ["dst2"],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        [ ],
+    ]
+    # fmt: on
+
+    # Make some interesting block filter
+    def table_whose_name_starts_with_i(tp: BlockType, tn: str) -> bool:
+        """Only keeps table blocks whose name starts with 'i', filters out everything else"""
+        return tp == BlockType.TABLE and tn[0] == "i"
+
+    # Filter and parse the blocks
+    tables = [b for _, b in parse_blocks(cell_rows, filter=table_whose_name_starts_with_i)]
+
+    assert len(tables) == 2
+    assert tables[0].name == "incl_1"
+
+
+def test_parse_blocks__filters_correctly_for_different_output_types():
     """ API test, parse_blocks:
         Verify that parse_blocks filters correctly and parses correctly to different output types
     """
@@ -212,22 +258,18 @@ def test_parse_blocks__filters_correctly():
     # fmt: on
 
     # Make some interesting block filter
-    def my_table_filter(tp: BlockType, tn: str) -> bool:
+    def table_asking_to_be_kept(tp: BlockType, tn: str) -> bool:
         """Only keeps table blocks named 'keep_me!', filters out everything else"""
         return tp == BlockType.TABLE and tn == "keep_me!"
 
     # Parse the input, filtering it using that filter, and returning different output types
-    cell_grid = []
-    for tp, tt in parse_blocks(cell_rows, filter=my_table_filter, to="cellgrid"):
-        cell_grid.append(tt)
-
-    json_data = []
-    for tp, tt in parse_blocks(cell_rows, filter=my_table_filter, to="jsondata"):
-        json_data.append(tt)
-
-    tables = []
-    for tp, tt in parse_blocks(cell_rows, filter=my_table_filter, to="pdtable"):
-        tables.append(tt)
+    cell_grid = [
+        b for _, b in parse_blocks(cell_rows, filter=table_asking_to_be_kept, to="cellgrid")
+    ]
+    json_data = [
+        b for _, b in parse_blocks(cell_rows, filter=table_asking_to_be_kept, to="jsondata")
+    ]
+    tables = [b for _, b in parse_blocks(cell_rows, filter=table_asking_to_be_kept, to="pdtable")]
 
     # Expected result from filtering and parsing to those different output types?
     assert len(cell_grid) == 1
