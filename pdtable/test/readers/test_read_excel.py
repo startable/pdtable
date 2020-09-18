@@ -31,3 +31,12 @@ def test_read_excel():
     # Assert read tables are equal to the expected ones
     for te, tr in zip(expected_tables, tables_read):
         assert te.equals(tr)
+
+
+def test_read_excel__applies_filter():
+
+    # Make a filter
+    # def is
+
+    # Read tables from file
+    blocks = list(read_excel(Path(__file__).parent / "input" / "foo.xlsx"))

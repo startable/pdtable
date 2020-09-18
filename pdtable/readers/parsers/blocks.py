@@ -59,7 +59,7 @@ JsonDataPrecursor = Union[
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None, **_) -> MetadataBlock:
     mb = MetadataBlock(origin)
     for row in cells:
-        if len(row) > 1:
+        if len(row) > 1 and row[0] is not None:
             key_field = row[0].strip()
             if len(key_field) > 0 and key_field[-1] == ":":
                 mb[key_field[:-1]] = row[1].strip()
