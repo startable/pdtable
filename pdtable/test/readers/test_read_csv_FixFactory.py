@@ -2,10 +2,10 @@ import json
 import os
 from pathlib import Path
 
-from .. import FixFactory, BlockType
-from .. import read_csv
-from ..readers.parsers import parse_blocks
-from ..readers.parsers.blocks import make_table
+from pdtable import FixFactory, BlockType
+from pdtable import read_csv
+from pdtable.readers.parsers import parse_blocks
+from pdtable.readers.parsers.blocks import make_table
 from pdtable import table_to_json_data
 
 
