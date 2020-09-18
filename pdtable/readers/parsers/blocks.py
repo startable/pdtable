@@ -138,13 +138,11 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     }
 
 
-def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **_) -> Table:
+def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwargs) -> Table:
     """Parses cell grid into a pdtable-style Table block object."""
     table_name = cells[0][0][2:]
-    # TODO: here we could filter on table_name; only parse tables of interest
-    # TTT TBD: filer on table_name : evt. før dette kald, hvor **er identificeret
 
-    json_precursor = make_table_json_precursor(cells, origin=origin)
+    json_precursor = make_table_json_precursor(cells, origin=origin,**kwargs)
     return Table(
         pandastable.make_pdtable(
             pd.DataFrame(json_precursor["columns"]),
@@ -166,11 +164,13 @@ def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
 
 def make_block(block_type: BlockType, cells: CellGrid, origin, **kwargs) -> Tuple[BlockType, Any]:
     """Dispatches cell grid to the proper parser, depending on block type and desired output type"""
+    block_name = ""
     if block_type == BlockType.METADATA:
         factory = make_metadata_block
     elif block_type == BlockType.DIRECTIVE:
         factory = make_directive
     elif block_type == BlockType.TABLE:
+        block_name = cells[0][0][2:]
         to = kwargs.get("to")
         if to == "cellgrid":
             factory = lambda c, *_, **__: c  # Just regurgitate the unprocessed cell grid
@@ -180,6 +180,12 @@ def make_block(block_type: BlockType, cells: CellGrid, origin, **kwargs) -> Tupl
             factory = make_table
     else:
         factory = None
+
+    filter = kwargs.get("filter")
+    if filter:
+        assert callable(filter)
+        if not filter(block_type,block_name):
+            return None, None
 
     return block_type, cells if factory is None else factory(cells, origin, **kwargs)
 
@@ -251,7 +257,9 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
         if next_block_type is not None:
             # Current block has ended. Emit it.
             kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-            yield make_block(this_block_type, cell_grid, **kwargs)
+            tp,tt = make_block(this_block_type, cell_grid, **kwargs)
+            if tp is not None:
+                yield tp,tt
 
             # TODO augment TableOriginCSV with one tailored for Excel
             # Prepare to read next block
@@ -264,7 +272,9 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     if cell_grid:
         # Block terminated by EOF. Emit it.
         kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-        yield make_block(this_block_type, cell_grid, **kwargs)
+        tp,tt = make_block(this_block_type, cell_grid, **kwargs)
+        if tp is not None:
+            yield tp,tt
 
 
 def preprocess_column_names(col_names_raw: List[str], fixer: FixFactory):
