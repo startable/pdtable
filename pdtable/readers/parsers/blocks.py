@@ -123,6 +123,10 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
                 f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
             ) from e
 
+    if(fixer.fixes > 0 and fixer.stop_on_errors):
+        txt = f"Error(s): stop after {fixer.fixes} errors in input table '{fixer.table_name}'"
+        raise ValueError(txt)
+
     if fixer._warnings > 0:
         print(f"\nWarning: {fixer._warnings} data errors fixed while parsing\n")
 
@@ -227,6 +231,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
         kwargs["fixer"] = FixFactory()
     assert kwargs["fixer"] is not None
     kwargs["fixer"].origin = origin
+    kwargs["fixer"].reset_fixes()
 
     def is_blank(cell):
         """

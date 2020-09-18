@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from pdtable import FixFactory, BlockType
-from pdtable import read_csv
+from pdtable import read_csv, parse_blocks
 from pdtable import make_table, table_to_json_data
 
 
@@ -115,6 +115,57 @@ def test_FAT():
                 assert count == all_files - 1
             else:
                 assert count == 1
+
+import pytest
+
+def test_stop_on_errors():
+    """ Unit test FixFactory.stop_on_errors
+    """
+    # fmt: off
+    table_lines = [
+        ["**tab_ok"],
+        ["dst1"],
+        [ "a1"  , "a2"  , "a3"  , "a4"  ],
+        [ "-"   , "-"   , "-"   , "-"   ],
+        [ 1     , 2     , 3     , 3.14  ],
+        [],
+        ["**tab_errors"],
+        ["dst1"],
+        [ "a1"  , "a2"  , "a3"  , "a4"  ],
+        [ "-"   , "-"   , "-"   , "-"   ],
+        [ "NaN" , "nan" , "Nine", "Ten" ],
+        [ 1     , 2     , 3     , 4     ],
+    ]
+    # fmt: on
+
+    fix = FixFactory()
+    fix.stop_on_errors = True
+    pi = 0
+    with pytest.raises(ValueError):
+        for typ, tab in parse_blocks(table_lines, fixer=fix, to="pdtable"):
+            if typ != BlockType.TABLE:
+                continue
+            assert tab.df["a4"][0] == 3.14
+            pi += 1
+
+    with pytest.raises(ValueError):
+        for typ, tab in parse_blocks(table_lines, fixer=fix, to="jsondata"):
+            if typ != BlockType.TABLE:
+                continue
+            assert tab["columns"]["a4"][0] == 3.14
+            pi += 1
+
+    # cellgrid does not parse values, i.e. no ValueError
+    for typ, tab in parse_blocks(table_lines, fixer=fix, to="cellgrid"):
+        if typ != BlockType.TABLE:
+            continue
+        if(tab[0][0] == "**tab_ok"):
+            assert tab[4][3] == 3.14
+            pi += 1
+        if(tab[0][0] == "**tab_errors"):
+            assert tab[4][3] == "Ten"
+
+    assert pi == 3  # 😉
 
 
 def test_converter():

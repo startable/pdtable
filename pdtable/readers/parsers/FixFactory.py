@@ -21,6 +21,7 @@ class FixFactory:
         self._dbg = False
         self._errors = 0
         self._warnings = 0
+        self._stop_on_errors = 0
 
         # Context info
         self.origin = None
@@ -40,9 +41,27 @@ class FixFactory:
         self._dbg = value
 
     @property
+    def stop_on_errors(self):
+        """
+        Raise exception if errors detected in input
+        """
+        return self._stop_on_errors
+
+    @stop_on_errors.setter
+    def stop_on_errors(self, value: bool):
+        if value:
+            self._dbg = True
+        self._stop_on_errors = value
+
+    @property
     def fixes(self):
         """ Number of warnings and errors fixed in input """
         return self._errors + self._warnings
+
+    def reset_fixes(self):
+        """ reset warning and error count """
+        self._errors = 0
+        self._warnings = 0
 
     def fix_duplicate_column_name(self, column_name: str, input_columns: List[str]) -> str:
         """
