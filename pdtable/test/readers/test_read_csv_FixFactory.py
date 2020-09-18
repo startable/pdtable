@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 
-from pdtable import FixFactory, BlockType
+from pdtable import ParseFixer, BlockType
 from pdtable import read_csv
 from pdtable.readers.parsers import parse_blocks
 from pdtable.readers.parsers.blocks import make_table
@@ -15,7 +15,7 @@ def input_dir() -> Path:
 
 def test_columns_duplicate():
     """
-       Verify that default FixFactory corrects duplicate column names
+       Verify that default ParseFixer corrects duplicate column names
 
     """
     tab = None
@@ -34,7 +34,7 @@ def test_columns_duplicate():
 
 def test_columns_missing():
     """
-       Verify that default FixFactory corrects missing column name
+       Verify that default ParseFixer corrects missing column name
 
     """
     tab = None
@@ -50,12 +50,12 @@ def test_columns_missing():
     assert tab.df["flt"][6] == 7.11
 
 
-def test_custom_FixFactory():
-    """ Test custom FixFactory
-        Verify that read_csv uses custom FixFactory
+def test_custom_ParseFixer():
+    """ Test custom ParseFixer
+        Verify that read_csv uses custom ParseFixer
     """
 
-    class fix_pi(FixFactory):
+    class fix_pi(ParseFixer):
         def __init__(self):
             super().__init__()
 
@@ -64,7 +64,7 @@ def test_custom_FixFactory():
             if vtype == "float":
                 return 22.0 / 7.0
             else:
-                fix_value = FixFactory.fix_illegal_cell_value(self, vtype, value)
+                fix_value = ParseFixer.fix_illegal_cell_value(self, vtype, value)
                 return fix_value
 
     with open(input_dir() / "types3.csv", "r") as fh:
@@ -81,7 +81,7 @@ def test_FAT():
     """ Factory Acceptance Test
 
         Verify that we are able to read all files in ./input
-        Using default FixFactory
+        Using default ParseFixer
     """
     all_files = 0
     ignore_files = ["auto_fixed.py", "__init__.py", "all.json"]
@@ -123,7 +123,7 @@ import pytest
 
 
 def test_stop_on_errors():
-    """ Unit test FixFactory.stop_on_errors
+    """ Unit test ParseFixer.stop_on_errors
     """
     # fmt: off
     table_lines = [
@@ -142,7 +142,7 @@ def test_stop_on_errors():
     ]
     # fmt: on
 
-    fix = FixFactory()
+    fix = ParseFixer()
     fix.stop_on_errors = True
     pi = 0
     with pytest.raises(ValueError):
@@ -186,7 +186,7 @@ def test_converter():
         [ 1     , 2     , 3     , 3.14  ],
     ]
     # fmt: on
-    fix = FixFactory()
+    fix = ParseFixer()
     pandas_pdtab = make_table(table_lines, fixer=fix)
     js_obj = table_to_json_data(pandas_pdtab)
     assert js_obj["columns"]["a3"][0] is None

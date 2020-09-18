@@ -4,16 +4,16 @@ import numpy as np
 import pandas as pd
 
 
-class FixFactory:
-    """ base class for auto-correcting startable.csv input files
+class ParseFixer:
+    """ base class for auto-correcting errors and irregularities when parsing StarTable data
 
         * Possible specialization:
 
-        class fixErrors(FixFactory):
+        class fixErrors(ParseFixer):
             # augment existing method
             def fix_illegal_cell_value(self, vtype, value):
                 db_store(self.TableName,(self.TableColumn,self.TableRow))
-                dfval = FixFactory.fix_illegal_cell_value(self, vtype, value)
+                dfval = ParseFixer.fix_illegal_cell_value(self, vtype, value)
                 return dfval
 
     """
@@ -73,7 +73,7 @@ class FixFactory:
         """
         if self.verbose:
             print(
-                f"FixFactory: fix duplicate column ({self.column_name}) {column_name} in table: {self.table_name}"
+                f"ParseFixer: fix duplicate column ({self.column_name}) {column_name} in table: {self.table_name}"
             )
 
         self._errors += 1
@@ -91,7 +91,7 @@ class FixFactory:
         """
         if self.verbose:
             print(
-                f"FixFactory: fix missing column ({self.column_name}) {input_columns} in table: {self.table_name}"
+                f"ParseFixer: fix missing column ({self.column_name}) {input_columns} in table: {self.table_name}"
             )
         return self.fix_duplicate_column_name("missing", input_columns)
 
@@ -104,7 +104,7 @@ class FixFactory:
             by providing the missing default values
         """
         if self.verbose:
-            print(f"FixFactory: fix missing data in row ({row}) in table: {self.table_name}")
+            print(f"ParseFixer: fix missing data in row ({row}) in table: {self.table_name}")
         row_data.extend(["NaN" for cc in range(num_columns - len(row_data))])
         self._errors += 1
         return row_data
@@ -118,7 +118,7 @@ class FixFactory:
         """
         defaults = {"onoff": False, "datetime": pd.NaT, "float": np.NaN, "-": np.NaN}
         if self.verbose:
-            print(f'FixFactory: illegal {vtype} value "{value}" in table {self.table_name}')
+            print(f'ParseFixer: illegal {vtype} value "{value}" in table {self.table_name}')
         default_val = defaults.get(vtype)
         self._warnings += 1
         if default_val is not None:

@@ -8,7 +8,7 @@ from ...store import BlockType
 def test_read_excel():
 
     # Prepare the expected tables.
-    # Note: not testing datetime columns due to upstream bug in openpyxl:
+    # Note: deliberately not testing datetime columns due to upstream bug in openpyxl:
     # timestamps are off by one microsecond.
     # https://foss.heptapod.net/openpyxl/openpyxl/-/issues/1493
 

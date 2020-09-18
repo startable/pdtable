@@ -14,7 +14,7 @@ from os import PathLike
 from typing import Union, Callable
 
 from .parsers.blocks import parse_blocks
-from .parsers.FixFactory import FixFactory
+from .parsers.fixer import ParseFixer
 from .. import BlockType
 from ..store import BlockGenerator
 
@@ -22,7 +22,7 @@ from ..store import BlockGenerator
 def read_excel(
     path: Union[str, PathLike],
     origin=None,
-    fixer: FixFactory = None,
+    fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
 ) -> BlockGenerator:

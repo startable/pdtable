@@ -31,7 +31,7 @@ from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union, Dict
 import pandas as pd
 import numpy as np
 
-from .FixFactory import FixFactory
+from .fixer import ParseFixer
 from .columns import parse_column
 from ... import pandastable
 from ..._json import to_json_serializable, JsonData
@@ -86,7 +86,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
     table_name = cells[0][0][2:]
 
-    fixer = kwargs["fixer"] if "fixer" in kwargs else FixFactory()
+    fixer = kwargs["fixer"] if "fixer" in kwargs else ParseFixer()
     fixer.table_name = table_name
 
     # internally hold destinations as json-compatible dict
@@ -227,10 +227,10 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
             # It's a class, not an instance. Make an instance here.
             kwargs["fixer"] = fixer()
         else:
-            assert isinstance(kwargs["fixer"], FixFactory)
+            assert isinstance(kwargs["fixer"], ParseFixer)
             pass  # It's an instance. Use the instance.
     else:
-        kwargs["fixer"] = FixFactory()
+        kwargs["fixer"] = ParseFixer()
     assert kwargs["fixer"] is not None
     kwargs["fixer"].origin = origin
     kwargs["fixer"].reset_fixes()
@@ -284,7 +284,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
             yield block_type, block
 
 
-def preprocess_column_names(col_names_raw: List[str], fixer: FixFactory):
+def preprocess_column_names(col_names_raw: List[str], fixer: ParseFixer):
     """
        handle known issues in column_names
     """

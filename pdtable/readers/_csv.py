@@ -12,7 +12,7 @@ from typing import TextIO, Union, Callable
 import pdtable  # Required to read dynamically set pdtable.CSV_SEP
 from .. import BlockType
 from ..store import BlockGenerator
-from .parsers.FixFactory import FixFactory
+from .parsers.fixer import ParseFixer
 from .parsers.blocks import parse_blocks
 
 
@@ -20,7 +20,7 @@ def read_csv(
     source: Union[str, PathLike, TextIO],
     sep: str = None,
     origin: str = None,
-    fixer: FixFactory = None,
+    fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
 ) -> BlockGenerator:
@@ -60,7 +60,7 @@ def read_csv(
             Optional; Table location
 
         fixer:
-            Customized FixFactory instance to be used instead of default fixer.
+            Customized ParseFixer instance to be used instead of default fixer.
             fixer corrects simple errors in source stream.
 
         to:

@@ -20,7 +20,7 @@ from typing import Iterable, Sequence
 import numpy as np
 import pandas as pd
 
-from .FixFactory import FixFactory
+from .fixer import ParseFixer
 
 
 def normalize_if_str(x):
@@ -35,7 +35,7 @@ def is_missing_data_marker(x):
     return normalize_if_str(x) in {"-", "nan"}
 
 
-def _parse_text_column(values: Iterable, fixer: FixFactory = None):
+def _parse_text_column(values: Iterable, fixer: ParseFixer = None):
     # Ensure that 'values' is a Sequence, else np.array() will not unpack it
     return np.array(values if isinstance(values, Sequence) else list(values), dtype=np.str)
 
@@ -55,7 +55,7 @@ def _onoff_to_bool(val) -> bool:
     return conversions[normalize_if_str(val)]
 
 
-def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
+def _parse_onoff_column(values: Iterable, fixer: ParseFixer = None):
     bool_values = []
     for row, val in enumerate(values):
         try:
@@ -76,7 +76,7 @@ def _float_convert(val: str) -> float:
     return float(val)
 
 
-def _parse_float_column(values: Iterable, fixer: FixFactory = None):
+def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
     float_values = []
     for row, val in enumerate(values):
         if isinstance(val, float) or isinstance(val, int):
@@ -111,7 +111,7 @@ def _parse_float_column(values: Iterable, fixer: FixFactory = None):
 _to_datetime = lambda val: pd.NaT if val in ["-", "nan"] else pd.to_datetime(val, dayfirst=True)
 
 
-def _parse_datetime_column(values: Iterable, fixer: FixFactory = None):
+def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
     datetime_values = []
     for row, val in enumerate(values):
         if isinstance(val, datetime.datetime):
@@ -150,7 +150,7 @@ _column_parsers["onoff"] = _parse_onoff_column
 _column_parsers["datetime"] = _parse_datetime_column
 
 
-def parse_column(unit_indicator: str, values: Iterable, fixer: FixFactory = None) -> np.ndarray:
+def parse_column(unit_indicator: str, values: Iterable, fixer: ParseFixer = None) -> np.ndarray:
     """Parses column values to the intended data type as per the column's unit indicator.
 
     Parses column values to a consistent internal representation.

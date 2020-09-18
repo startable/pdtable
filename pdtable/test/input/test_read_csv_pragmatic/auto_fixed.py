@@ -2,7 +2,7 @@
     module containing auto-fixed input files from this directory
     need to be updated:
         1) when additional test-input are added
-        2) when default FixFactory are modified
+        2) when default ParseFixer are modified
         3) redo all.csv:
             rm -f all.csv
             cat *.csv > all.csv

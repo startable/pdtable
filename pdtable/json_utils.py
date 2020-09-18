@@ -13,7 +13,7 @@ def json_data_to_table(table_json_data: JsonData) -> Table:
     lines_json.append([f"{unit}" for unit in table_json_data["units"]])
     json_rows = list(map(list, zip(*table_json_data["columns"].values())))  # transposed columns
     lines_json.extend(json_rows)
-    # note: this allows us to use FixFactory !
+    # note: this allows us to use ParseFixer !
     return make_table(lines_json, origin=table_json_data["origin"])
 
 
