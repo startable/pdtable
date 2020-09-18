@@ -1,21 +1,17 @@
 """Interface to read starTables from CSV
 
-This is a thin wrapper around parse_blocks(). The only thing it does is to present the contents of
-an CSV file or stream as a Iterable of cell rows, where each row is a sequence of values.
+This is a thin wrapper around parse_blocks(). The only thing it does is present the contents of
+a CSV file or stream as a Iterable of cell rows, where each row is a sequence of values.
 
 """
 from contextlib import nullcontext
 from os import PathLike
-import io
+
 from typing import TextIO, Union, Callable
 
-import pdtable
+import pdtable  # Required to read dynamically set pdtable.CSV_SEP
+from .. import BlockGenerator, BlockType, FixFactory
 from .parsers.blocks import parse_blocks
-from pdtable import BlockGenerator, BlockType
-
-from typing import ClassVar
-
-FixFactory = ClassVar
 
 
 def read_csv(
@@ -53,20 +49,24 @@ def read_csv(
             If a file path, then this file gets opened, and then closed after reading.
             If a stream, then it is left open after reading; the caller is responsible for managing
             the stream.
+
         sep:
             Optional; CSV field delimiter. Default is ';'.
+
         origin:
             Optional; Table location
+
         fixer:
             Customized FixFactory instance to be used instead of default fixer.
             fixer corrects simple errors in source stream.
-        to:
-            StarTable return type
-              "pdtable": pdtable.Table
-              "jsondata": dict (json serializable object)
-              "cellgrid": List[List[obj]] (raw input cells)
 
-            TBV: Table, JsonData, CellGrid ?
+        to:
+            Determines the data type of the yielded blocks. Can be either of:
+            - 'pdtable' (Default): pdtable.Table and other pdtable-style block objects
+            - 'jsondata': JSON serializable objects (nested structure of dicts, lists, and
+              JSON-mappable values) that can be passed directly to json.dump()
+            - 'cellgrid': A grid of raw input cells i.e. a List[List[values]]
+
         filter:
             A callable that takes a (BlockType, block_name) tuple, and returns true if a block
             meeting this description is to be parsed, or false if it is to be ignored and discarded.
