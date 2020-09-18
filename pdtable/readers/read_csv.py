@@ -26,7 +26,26 @@ def read_csv(
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
 ) -> BlockGenerator:
-    """Read starTable blocks from CSV file or text stream, yielding them one block at a time.
+    """Reads StarTable data from a CSV file or text stream, yielding one block at a time.
+
+    Reads StarTable data from a CSV-format file or text stream. StarTable blocks are parsed from
+    this data and yielded one at a time as a (block_type, block) tuple, where
+    - 'block_type' is a BlockType enum indicating which of the StarTable block types this is (table,
+      metadata, directive, template); and
+    - 'block' is the block content.
+
+    'block' is given as one of the following data types, depending on the 'to' argument passed:
+    - A pdtable.Table object,
+    - A JSON serializable object (structure of nested dicts and lists of JSON-mappable values); or
+    - A list of list of values, representing the raw cell grid (row and columns from the CSV data).
+
+    Blocks can be filtered prior to parsing, by passing a callable as 'filter' argument. This can
+    reduce reading time substantially when reading a subset of tables from an otherwise large file
+    or stream. Only those blocks for which 'filter' returns True are fully parsed. Other blocks
+    are parsed only superficially i.e. only the block's top-left cell, which is just
+    enough to recognize block type and name to pass to 'filter', thus avoiding the much more
+    expensive task of parsing the entire block, e.g. the values in all columns and rows of a large
+    table.
 
     Args:
         source:
@@ -49,8 +68,8 @@ def read_csv(
 
             TBV: Table, JsonData, CellGrid ?
         filter:
-            A callable that returns true if a block meeting a supplied combination of
-            (BlockType, block_name) is to be parsed, and false if it is to be ignored and discarded.
+            A callable that takes a (BlockType, block_name) tuple, and returns true if a block
+            meeting this description is to be parsed, or false if it is to be ignored and discarded.
 
     Yields:
         Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive,
