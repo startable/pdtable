@@ -123,11 +123,11 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
                 f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
             ) from e
 
-    if fixer.warnings > 0:
-        print(f"\nWarning: {fixer.warnings} data errors fixed while parsing\n")
+    if fixer._warnings > 0:
+        print(f"\nWarning: {fixer._warnings} data errors fixed while parsing\n")
 
-    if fixer.errors > 0:
-        sys.stderr.write(f"\nError: {fixer.errors} column errors fixed while parsing\n")
+    if fixer._errors > 0:
+        sys.stderr.write(f"\nError: {fixer._errors} column errors fixed while parsing\n")
 
     return {
         "name": table_name,

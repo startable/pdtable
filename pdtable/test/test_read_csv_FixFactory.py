@@ -116,3 +116,23 @@ def test_FAT():
                 assert count == all_files - 1
             else:
                 assert count == 1
+
+from pdtable import make_table,table_to_json_data
+def test_converter():
+    """ Unit test
+        Verify that misc. float input are handled consistently
+    """
+    # fmt: off
+    lines_target = [
+        ["**flt_errors"],
+        ["dst1"],
+        [ "a1"  , "a2"  , "a3"  , "a4"  ],
+        [ "-"   , "-"   , "-"   , "-"   ],
+        [ "NaN" , "nan" , "Nine", "Ten" ],
+        [ 1     , 2     , 3     , 4     ],
+    ]
+    # fmt: on
+    fix = FixFactory()
+    pandas_pdtab = make_table(lines_target,fixer=fix)
+    js_obj = table_to_json_data(pandas_pdtab)
+    assert fix.fixes == 1 # Nine and Ten

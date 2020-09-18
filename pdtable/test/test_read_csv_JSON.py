@@ -215,7 +215,6 @@ def test_preserve_column_order():
 
     # now verify from json-string
     jstr = json.dumps(js_obj)
-    print(jstr)
     js_obj_from_json = json.loads(jstr)
     pdtab_from_json = json_data_to_table(js_obj_from_json)
 

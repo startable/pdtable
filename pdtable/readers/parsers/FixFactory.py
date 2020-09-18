@@ -3,7 +3,6 @@ from typing import List, Any
 import numpy as np
 import pandas as pd
 
-
 class FixFactory:
     """ base class for auto-correcting startable.csv input files
 
@@ -17,7 +16,6 @@ class FixFactory:
                 return dfval
 
     """
-
     # Store legend of what's fixed + API
     def __init__(self):
         self._dbg = False
@@ -42,19 +40,9 @@ class FixFactory:
         self._dbg = value
 
     @property
-    def warnings(self):
-        """
-        Number of simple fixes
-        """
-        return self._warnings
-
-    @property
-    def errors(self):
-        """
-        Number of error fixes:
-            fix_missing_column_name, fix_missing_rows_in_column_data
-        """
-        return self._errors
+    def fixes(self):
+        """ Number of warnings and errors fixed in input """
+        return self._errors + self._warnings
 
     def fix_duplicate_column_name(self, column_name: str, input_columns: List[str]) -> str:
         """
