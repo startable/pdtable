@@ -23,16 +23,14 @@ import pandas as pd
 from .fixer import ParseFixer
 
 
-def normalize_if_str(x):
-    """If it's a string, strip it and make it lowercase. If isn't a string, leave it alone."""
-    if isinstance(x, str):
-        return x.strip().lower()
-    return x
+def normalize_if_str(val):
+    """If it's a string, strip it and make it lowercase. Otherwise, leave it alone."""
+    return val.strip().lower() if isinstance(val, str) else val
 
 
-def is_missing_data_marker(x):
+def is_missing_data_marker(normalized_val):
     """Return True if, after normalization, it's a valid StarTable missing-data marker"""
-    return normalize_if_str(x) in {"-", "nan"}
+    return normalize_if_str(normalized_val) in {"-", "nan"}
 
 
 def _parse_text_column(values: Iterable, fixer: ParseFixer = None):
