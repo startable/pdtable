@@ -50,7 +50,7 @@ def test_columns_missing():
     assert tab.df["flt"][6] == 7.11
 
 
-def test_custom_ParseFixer():
+def test_custom_fixer():
     """ Test custom ParseFixer
         Verify that read_csv uses custom ParseFixer
     """

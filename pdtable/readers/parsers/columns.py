@@ -69,7 +69,7 @@ def _parse_onoff_column(values: Iterable, fixer: ParseFixer = None):
 
 
 def _float_convert(val: str) -> float:
-    if val in {"", "nan", "-"}:
+    if val in {"nan", "-"}:
         return np.nan
     return float(val)
 
@@ -82,9 +82,10 @@ def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
             float_values.append(float(val))
             continue
 
-        # It's something else than a number. Presumably a string.
-        val = normalize_if_str(val)
-        if isinstance(val, str) and len(val) > 0:
+        # It's something else than a number.
+        if isinstance(val, str):
+            # It's a string.
+            val = normalize_if_str(val)
             try:
                 # Parsing the string as one of the expected things (a number or missing value)
                 float_values.append(_float_convert(val))
@@ -96,6 +97,7 @@ def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
                 else:
                     raise ValueError("Illegal value in numerical column", val) from err
         else:
+            # It isn't even a string. WTF let the fixer have a shot at it.
             if fixer is not None:
                 fixer.table_row = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("float", val)
