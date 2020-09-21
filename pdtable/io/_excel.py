@@ -1,13 +1,11 @@
-"""Interface to read StarTable data from an Excel workbook file.
-
-This is a thin wrapper around parse_blocks(). The only thing it does is to present the contents of
-an Excel workbook as a Iterable of cell rows, where each row is a sequence of values.
+"""Interface to read/write Tables from/to an Excel workbook.
 
 The only Excel I/O engine supported right now is 'openpyxl', but this module can
-be extended to support others.
+be extended to support others readers such as 'xlrd' and writers such as 'xlsxwriter'.
 
-openpyxl (and eventually other engines) are not required at install time;
-only when read_excel() is called for the first time.
+openpyxl (and eventually other engines) are not required at install time; only when the functions
+requiring them (read_excel() or write_excel()) are called for the first time.
+
 """
 import os
 from os import PathLike
@@ -69,6 +67,9 @@ def write_excel(
 
     Writes table blocks to an Excel workbook file.
     Values are formatted to comply with the StarTable standard where necessary and possible.
+
+    This is a thin wrapper around parse_blocks(). The only thing it does is to present the contents
+    of an Excel workbook as a Iterable of cell rows, where each row is a sequence of values.
 
     Args:
         tables:
