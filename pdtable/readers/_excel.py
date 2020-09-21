@@ -11,13 +11,23 @@ only when read_excel() is called for the first time.
 """
 
 from os import PathLike
+from typing import Union, Callable
 
 from .parsers.blocks import parse_blocks
+from .parsers.fixer import ParseFixer
+from .. import BlockType
 from ..store import BlockGenerator
 
 
-def read_excel(path: PathLike) -> BlockGenerator:
+def read_excel(
+    path: Union[str, PathLike],
+    origin=None,
+    fixer: ParseFixer = None,
+    to: str = "pdtable",
+    filter: Callable[[BlockType, str], bool] = None,
+) -> BlockGenerator:
     """Reads StarTable blocks from an Excel workbook.
+    # TODO copy most of read_csv() docstring over
 
     Reads StarTable blocks from an Excel workbook file at the specified path.
     Yields them one at a time as a tuple: (block type, block content)
@@ -26,16 +36,21 @@ def read_excel(path: PathLike) -> BlockGenerator:
         path:
             Path of workbook to read.
 
+
+
     Yields:
         Tuples of the form (block type, block content)
     """
+
+    kwargs = {"origin": origin, "fixer": fixer, "to": to, "filter": filter}
+
     try:
         import openpyxl
-        # from ._read_excel_openpyxl import parse_blocks
+
         wb = openpyxl.load_workbook(path)
         for ws in wb.worksheets:
             cell_rows = ws.iter_rows(values_only=True)
-            yield from parse_blocks(cell_rows)
+            yield from parse_blocks(cell_rows, **kwargs)
 
     except ImportError as err:
         raise ImportError(
@@ -43,4 +58,3 @@ def read_excel(path: PathLike) -> BlockGenerator:
             "Tried using: 'openpyxl'.\n"
             "Please install openpyxl for Excel I/O support."
         ) from err
-
