@@ -6,8 +6,10 @@ from ..readers.parsers.blocks import parse_blocks
 
 
 def test_bundle_from_csv():
-    cell_rows = [line.split(";") for line in dedent(
-        r"""
+    cell_rows = [
+        line.split(";")
+        for line in dedent(
+            r"""
     **foo
     all
     column
@@ -26,7 +28,10 @@ def test_bundle_from_csv():
     15373;a;0;
     15326;b;1;
     """
-    ).strip().split("\n")]
+        )
+        .strip()
+        .split("\n")
+    ]
 
     # with StringIO(lines) as f:
     table = TableBundle(parse_blocks(cell_rows))

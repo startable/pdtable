@@ -20,40 +20,47 @@ from typing import Iterable, Sequence
 import numpy as np
 import pandas as pd
 
-from .FixFactory import FixFactory
+from .fixer import ParseFixer
 
 
-def normalize_if_str(x):
-    """If it's a string, strip it and make it lowercase. If isn't a string, leave it alone."""
-    if isinstance(x, str):
-        return x.strip().lower()
-    return x
+def normalize_if_str(val):
+    """If it's a string, strip it and make it lowercase. Otherwise, leave it alone."""
+    return val.strip().lower() if isinstance(val, str) else val
 
 
-def is_missing_data_marker(x):
+def is_missing_data_marker(normalized_val):
     """Return True if, after normalization, it's a valid StarTable missing-data marker"""
-    return normalize_if_str(x) in {"-", "nan"}
+    return normalize_if_str(normalized_val) in {"-", "nan"}
 
 
-def _parse_text_column(values: Iterable, fixer: FixFactory = None):
+def _parse_text_column(values: Iterable, fixer: ParseFixer = None):
     # Ensure that 'values' is a Sequence, else np.array() will not unpack it
     return np.array(values if isinstance(values, Sequence) else list(values), dtype=np.str)
 
 
 def _onoff_to_bool(val) -> bool:
     """Converts typical onoff columns values to bools"""
-    conversions = {0: False, 1: True, False: False, True: True, "0": False, "1": True, "false": False, "true": True}
+    conversions = {
+        0: False,
+        1: True,
+        False: False,
+        True: True,
+        "0": False,
+        "1": True,
+        "false": False,
+        "true": True,
+    }
     return conversions[normalize_if_str(val)]
 
 
-def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
+def _parse_onoff_column(values: Iterable, fixer: ParseFixer = None):
     bool_values = []
     for row, val in enumerate(values):
         try:
             bool_values.append(_onoff_to_bool(val))
         except KeyError as err:
             if fixer is not None:
-                fixer.TableRow = row  # TBC: index
+                fixer.table_row = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("onoff", val)
                 bool_values.append(fix_value)
             else:
@@ -61,16 +68,13 @@ def _parse_onoff_column(values: Iterable, fixer: FixFactory = None):
     return np.array(bool_values, dtype=np.bool)
 
 
-_float_converters_by_1st_char = {
-    "N": lambda val: np.nan,
-    "n": lambda val: np.nan,
-    "-": lambda val: np.nan if (len(val) == 1) else float(val),
-}  # TODO is switching on 1st char a good idea? "Nine" would give a NaN, where "Eight" would crash
-for ch in "+0123456789":
-    _float_converters_by_1st_char[ch] = lambda val: float(val)
+def _float_convert(val: str) -> float:
+    if val in {"nan", "-"}:
+        return np.nan
+    return float(val)
 
 
-def _parse_float_column(values: Iterable, fixer: FixFactory = None):
+def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
     float_values = []
     for row, val in enumerate(values):
         if isinstance(val, float) or isinstance(val, int):
@@ -78,22 +82,24 @@ def _parse_float_column(values: Iterable, fixer: FixFactory = None):
             float_values.append(float(val))
             continue
 
-        # It's something else than a number. Presumably a string.
-        val = normalize_if_str(val)
-        if isinstance(val, str) and len(val) > 0:
+        # It's something else than a number.
+        if isinstance(val, str):
+            # It's a string.
+            val = normalize_if_str(val)
             try:
                 # Parsing the string as one of the expected things (a number or missing value)
-                float_values.append(_float_converters_by_1st_char[val[0]](val))
+                float_values.append(_float_convert(val))
             except (KeyError, ValueError) as err:
                 if fixer is not None:
-                    fixer.TableRow = row  # TBC: index
+                    fixer.table_row = row  # TBC: index
                     fix_value = fixer.fix_illegal_cell_value("float", val)
                     float_values.append(fix_value)
                 else:
                     raise ValueError("Illegal value in numerical column", val) from err
         else:
+            # It isn't even a string. WTF let the fixer have a shot at it.
             if fixer is not None:
-                fixer.TableRow = row  # TBC: index
+                fixer.table_row = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("float", val)
                 float_values.append(fix_value)
             else:
@@ -105,7 +111,7 @@ def _parse_float_column(values: Iterable, fixer: FixFactory = None):
 _to_datetime = lambda val: pd.NaT if val in ["-", "nan"] else pd.to_datetime(val, dayfirst=True)
 
 
-def _parse_datetime_column(values: Iterable, fixer: FixFactory = None):
+def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
     datetime_values = []
     for row, val in enumerate(values):
         if isinstance(val, datetime.datetime):
@@ -122,14 +128,14 @@ def _parse_datetime_column(values: Iterable, fixer: FixFactory = None):
             except ValueError as err:
                 # TBC: register exc !?
                 if fixer is not None:
-                    fixer.TableRow = row  # TBC: index
+                    fixer.table_row = row  # TBC: index
                     fix_value = fixer.fix_illegal_cell_value("datetime", val)
                     datetime_values.append(fix_value)
                 else:
                     raise ValueError("Illegal value in datetime column", val) from err
         else:
             if fixer is not None:
-                fixer.TableRow = row  # TBC: index
+                fixer.table_row = row  # TBC: index
                 fix_value = fixer.fix_illegal_cell_value("datetime", val)
                 datetime_values.append(fix_value)
             else:
@@ -144,7 +150,7 @@ _column_parsers["onoff"] = _parse_onoff_column
 _column_parsers["datetime"] = _parse_datetime_column
 
 
-def parse_column(unit_indicator: str, values: Iterable, fixer: FixFactory = None) -> np.ndarray:
+def parse_column(unit_indicator: str, values: Iterable, fixer: ParseFixer = None) -> np.ndarray:
     """Parses column values to the intended data type as per the column's unit indicator.
 
     Parses column values to a consistent internal representation.

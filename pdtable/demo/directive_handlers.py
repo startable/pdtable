@@ -2,7 +2,7 @@ import functools
 from pathlib import Path
 
 from ..ancillary_blocks import Directive
-from ..readers.read_csv import read_csv
+from ..readers._csv import read_csv
 from ..store import BlockGenerator, BlockType
 
 
@@ -35,7 +35,11 @@ def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> B
 
     """
 
-    deep_handler = functools.partial(handle_includes, input_dir=input_dir, recursive=recursive) if recursive else lambda x: x
+    deep_handler = (
+        functools.partial(handle_includes, input_dir=input_dir, recursive=recursive)
+        if recursive
+        else lambda x: x
+    )
 
     for block_type, block in bg:
         if block_type == BlockType.DIRECTIVE:

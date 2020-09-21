@@ -1,1 +1,1 @@
-from .columns import parse_column
+from .blocks import parse_blocks

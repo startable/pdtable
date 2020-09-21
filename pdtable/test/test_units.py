@@ -26,7 +26,9 @@ def test_convert_values(unit_policy):
 
 def test_update_table(unit_policy):
 
-    cells = [[cell.strip() for cell in line.split(";")] for line in dedent(
+    cells = [
+        [cell.strip() for cell in line.split(";")]
+        for line in dedent(
             r"""
     **input_files_derived;
     all;
@@ -37,7 +39,8 @@ def test_update_table(unit_policy):
     """
         )
         .strip()
-        .split("\n")]
+        .split("\n")
+    ]
     t = make_table(cells)
 
     normalize_table_in_place(unit_policy, t)

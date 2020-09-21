@@ -2,8 +2,14 @@ from typing import Union, Dict, List, Optional, Set
 
 import pandas as pd
 
-from .pandastable import PandasTable, get_table_data, is_pdtable, make_pdtable, \
-    set_units, add_column
+from .pandastable import (
+    PandasTable,
+    get_table_data,
+    is_pdtable,
+    make_pdtable,
+    set_units,
+    add_column,
+)
 from .table_metadata import TableMetadata, ColumnMetadata, TableData
 
 
@@ -15,6 +21,7 @@ class Column:
           Something like this would be needed if we are to change type of column
           via proxy interface. Alternative is to use "add_column()"
     """
+
     def __init__(self, df: PandasTable, name: str, table_data: TableData = None):
         self._name = name
         self._values = df[name]
@@ -77,13 +84,16 @@ class Table:
     Note on performance: the Table class will check table_data against dataframe on each call.
     For situations where this is unacceptable for performance, use direct dataframe access methods.
     """
+
     def __init__(self, df: Union[None, PandasTable, pd.DataFrame] = None, **kwargs):
         if not (df is not None and is_pdtable(df)):
             # Creating a new table: initialize PandasTable
             df = make_pdtable(df if df is not None else pd.DataFrame(), **kwargs)
         elif kwargs:
-            raise Exception(f'Got unexpected keyword arguments when creating Table object from '
-                            f'existing pandas table: {kwargs}')
+            raise Exception(
+                f"Got unexpected keyword arguments when creating Table object from "
+                f"existing pandas table: {kwargs}"
+            )
         self._df = df
 
     @property
@@ -117,7 +127,6 @@ class Table:
         assert table.column_metadata['foo'].unit == table['foo'].unit
         """
         return self.table_data.columns
-
 
     # TODO: Rename columns -> column_names
     @property
@@ -185,7 +194,7 @@ class Table:
         """
         df = self._df.copy()
         cm = self.column_metadata
-        df.columns = [f'{c} [{cm[c].unit}]' for c in df.columns]
+        df.columns = [f"{c} [{cm[c].unit}]" for c in df.columns]
         return df
 
     def __repr__(self):
@@ -216,8 +225,9 @@ class Table:
         to having different data types.
         """
         if isinstance(other, self.__class__):
-            return self.__metadata_comp_key() == other.__metadata_comp_key() \
-                   and _df_elements_all_equal_or_same(self._df, other._df)
+            self_key = self.__metadata_comp_key()
+            other_key = other.__metadata_comp_key()
+            return self_key == other_key and _df_elements_all_equal_or_same(self._df, other._df)
             # Had to implement this custom equality checker for DataFrames because,
             # as of pandas 1.1.0, stupid pandas.DataFrame.equals return False when elements have
             # different dtypes e.g. 10 and 10.0 are considered 'not equal'. In StarTable, a number
