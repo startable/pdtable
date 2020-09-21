@@ -11,7 +11,7 @@ from pdtable.io import json_data_to_table, table_to_json_data
 from pdtable.pandastable import make_pdtable
 from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
-from pdtable.io import to_json_serializable
+from pdtable.io._json import to_json_serializable
 import numpy as np
 
 

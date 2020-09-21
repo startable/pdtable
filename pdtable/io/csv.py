@@ -1,16 +1,11 @@
-"""Interface to read starTables from CSV
-
-This is a thin wrapper around parse_blocks(). The only thing it does is present the contents of
-a CSV file or stream as a Iterable of cell rows, where each row is a sequence of values.
-
-"""
+"""Interface to read/write StarTable data from/to CSV"""
 import os
 from contextlib import nullcontext
 from os import PathLike
 
 from typing import TextIO, Union, Callable, Iterable
 
-import pdtable  # Required to read dynamically set pdtable.CSV_SEP
+import pdtable  # Required to read dynamically-set pdtable.CSV_SEP
 from ._represent import _represent_row_elements
 from .. import BlockType, Table, TableBundle
 from ..store import BlockGenerator
@@ -47,6 +42,9 @@ def read_csv(
     enough to recognize block type and name to pass to 'filter', thus avoiding the much more
     expensive task of parsing the entire block, e.g. the values in all columns and rows of a large
     table.
+
+    This is a thin wrapper around parse_blocks(). The only thing it does is present the contents of
+    a CSV file or stream as a Iterable of cell rows, where each row is a sequence of values.
 
     Args:
         source:
