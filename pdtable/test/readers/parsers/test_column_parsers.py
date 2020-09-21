@@ -6,8 +6,15 @@ import pytest
 from numpy.testing import assert_array_equal
 from pytest import raises
 
-from pdtable.readers.parsers.columns import normalize_if_str, is_missing_data_marker, _parse_onoff_column, \
-    _parse_float_column, _parse_datetime_column, _parse_text_column, parse_column
+from pdtable.io.parsers.columns import (
+    normalize_if_str,
+    is_missing_data_marker,
+    _parse_onoff_column,
+    _parse_float_column,
+    _parse_datetime_column,
+    _parse_text_column,
+    parse_column,
+)
 
 
 def test_normalize_if_str():
@@ -38,7 +45,7 @@ def test__parse_text_column():
     max_str_length = max(len(s) for s in strings)
     col = _parse_text_column(strings)
     assert_array_equal(col, np.array(["foo", "bart", ""]))
-    assert col.dtype == np.dtype(f'<U{max_str_length}')  # that's how numpy does dtype for strings
+    assert col.dtype == np.dtype(f"<U{max_str_length}")  # that's how numpy does dtype for strings
 
 
 def test__parse_onoff_column():
@@ -77,11 +84,26 @@ def test__parse_datetime_column():
     assert all(v is pd.NaT for v in col)
 
 
-@pytest.mark.parametrize("unit_indicator,values,expected", [
-    ("text", ["yes", "", "no"], np.array(["yes", "", "no"])),
-    ("onoff", [0, 1, False, True, "0", "1", " 0\t", "1 \n "], np.array([False, True, False, True, False, True, False, True,])),
-    ("float", [-1, 42, "-1", "42", "-", "NaN", "nan"], np.array([-1, 42, -1, 42, np.nan, np.nan, np.nan])),
-    ("datetime", ["2020-08-11", dt.datetime(2020, 8, 11, 11, 40)], np.array([pd.to_datetime("2020-08-11"), pd.to_datetime("2020-08-11 11:40")]))
-])
+@pytest.mark.parametrize(
+    "unit_indicator,values,expected",
+    [
+        ("text", ["yes", "", "no"], np.array(["yes", "", "no"])),
+        (
+            "onoff",
+            [0, 1, False, True, "0", "1", " 0\t", "1 \n "],
+            np.array([False, True, False, True, False, True, False, True,]),
+        ),
+        (
+            "float",
+            [-1, 42, "-1", "42", "-", "NaN", "nan"],
+            np.array([-1, 42, -1, 42, np.nan, np.nan, np.nan]),
+        ),
+        (
+            "datetime",
+            ["2020-08-11", dt.datetime(2020, 8, 11, 11, 40)],
+            np.array([pd.to_datetime("2020-08-11"), pd.to_datetime("2020-08-11 11:40")]),
+        ),
+    ],
+)
 def test__parse_column(unit_indicator, values, expected):
     assert_array_equal(parse_column(unit_indicator, values), expected)

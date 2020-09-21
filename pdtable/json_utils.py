@@ -1,6 +1,6 @@
 from ._json import to_json_serializable
 from . import Table, JsonData
-from .readers.parsers.blocks import make_table
+from .io.parsers.blocks import make_table
 
 
 def json_data_to_table(table_json_data: JsonData) -> Table:

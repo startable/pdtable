@@ -2,7 +2,7 @@ import functools
 from pathlib import Path
 
 from ..ancillary_blocks import Directive
-from ..readers._csv import read_csv
+from ..io._csv import read_csv
 from ..store import BlockGenerator, BlockType
 
 

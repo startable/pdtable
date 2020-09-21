@@ -56,13 +56,23 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str, na_rep: str) -> None:
     format_strings = [f"{{:{f.specifier}}}" if f else None for f in display_formats]
 
     # Build entire string at once
-    the_whole_thing = \
-        f"**{table.name}{sep}\n" + \
-        " ".join(str(x) for x in table.metadata.destinations) + "\n" + \
-        sep.join(str(x) for x in table.column_names) + "\n" + \
-        sep.join(str(x) for x in units) + "\n" + \
-        "\n".join(sep.join(fs.format(x) if fs else str(x) for x, fs in zip(_represent_row_elements(row, units, na_rep), format_strings)) for row in table.df.itertuples(index=False, name=None)) + \
-        "\n\n"
+    the_whole_thing = (
+        f"**{table.name}{sep}\n"
+        + " ".join(str(x) for x in table.metadata.destinations)
+        + "\n"
+        + sep.join(str(x) for x in table.column_names)
+        + "\n"
+        + sep.join(str(x) for x in units)
+        + "\n"
+        + "\n".join(
+            sep.join(
+                fs.format(x) if fs else str(x)
+                for x, fs in zip(_represent_row_elements(row, units, na_rep), format_strings)
+            )
+            for row in table.df.itertuples(index=False, name=None)
+        )
+        + "\n\n"
+    )
 
     stream.write(the_whole_thing)
 
@@ -74,4 +84,3 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str, na_rep: str) -> None:
     # for row in table.df.itertuples(index=False, name=None):
     #     stream.write(sep.join(fs.format(x) if fs else str(x) for x, fs in zip(_represent_row_elements(row, units, na_rep), format_strings)) + "\n")
     # stream.write("\n")
-

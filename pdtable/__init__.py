@@ -8,10 +8,10 @@ from .proxy import Table
 from .table_metadata import TableMetadata, TableOrigin
 from .store import TableBundle, BlockType, BlockGenerator
 from .units import UnitPolicy
-from .readers.parsers.fixer import ParseFixer
-from .readers import read_csv
-from .readers import read_excel
-from .readers.parsers.blocks import JsonData
+from .io.parsers.fixer import ParseFixer
+from .io import read_csv
+from .io import read_excel
+from .io.parsers.blocks import JsonData
 from .writers import write_csv
 from .writers import write_excel
 from .utils import read_bundle_from_csv, normalized_table_generator

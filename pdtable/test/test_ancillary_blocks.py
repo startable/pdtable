@@ -4,7 +4,7 @@ from textwrap import dedent
 
 from ..ancillary_blocks import Directive, MetadataBlock
 from ..demo.directive_handlers import handle_includes
-from ..readers.parsers.blocks import parse_blocks
+from ..io.parsers.blocks import parse_blocks
 from ..store import BlockType
 
 

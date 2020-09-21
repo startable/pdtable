@@ -18,7 +18,7 @@
 #
 # The `pdtable` module allows working with StarTable tables as pandas dataframes.
 #
-# This is implemented by providing both `Table` and `PandasTable` (dataframe) interfaces to the same object. 
+# This is implemented by providing both `Table` and `PandasTable` (dataframe) interfaces to the same object.
 #
 # This notebook provides a demo of how this works, see the `pdtable` docs for a discussion of the implementation.
 #
@@ -70,16 +70,16 @@ if Path.cwd().name == "doc":
 from pdtable import pandastable, Table
 
 # %%
-t = Table(name='mytable')
+t = Table(name="mytable")
 
 # Add columns explicitly...
-t.add_column('a', range(5), 'km')
+t.add_column("a", range(5), "km")
 
 # ...or via item access
-t['b'] = ['the foo']*5
+t["b"] = ["the foo"] * 5
 
 # Modify column metadata through column proxy objets:
-t['a'].unit = 'm'
+t["a"].unit = "m"
 
 # Table renders as annotated dataframe
 t
@@ -89,7 +89,7 @@ t.column_names
 
 # %%
 # Each column has associated metadata object that can be manipulated:
-t['b']
+t["b"]
 
 # %%
 t.units
@@ -99,7 +99,7 @@ t.metadata
 
 # %%
 # Creating table from pandas dataframe:
-t2 = Table(pd.DataFrame({'c': [1,2,3], 'd': [4,5,6]}), name='table2', units=['m', 'kg'])
+t2 = Table(pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=["m", "kg"])
 t2
 
 # %% [markdown]
@@ -107,7 +107,7 @@ t2
 #
 # Both the table contents and metadata displayed and manipulated throught the `Table`-class is stored as a `PandasTable` object, which is a normal pandas dataframe with two modifications:
 #
-# * It has a `_table_data` field registered as a metadata field, so that pandas will include it in copy operations, etc. 
+# * It has a `_table_data` field registered as a metadata field, so that pandas will include it in copy operations, etc.
 # * It will preserve column and table metadata for some pandas operations, and fall back to returning a normal dataframe if this is not possible/implemented.
 #
 
@@ -120,9 +120,8 @@ Table(df)
 # %%
 # Interacting with table metadata form  without the Table proxy is slightly verbose
 df2 = pandastable.make_pdtable(
-    pd.DataFrame({'c': [1,2,3], 'd': [4,5,6]}), 
-    name='table2', 
-    units=['m', 'kg'])
+    pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=["m", "kg"]
+)
 
 # %%
 # Example: combining columns from multiple tables
@@ -138,10 +137,9 @@ Table(df_combinded)
 
 # %%
 df_renamed = df.copy()
-df_renamed.columns = ['a_new', 'b_new']
-print(f'Metadata columns before update triggered by access:\n{df_renamed._table_data.columns}\n')
+df_renamed.columns = ["a_new", "b_new"]
+print(f"Metadata columns before update triggered by access:\n{df_renamed._table_data.columns}\n")
 print(Table(df_renamed))
-print(f'Metadata columns after update:\n{df_renamed._table_data.columns}\n')
+print(f"Metadata columns after update:\n{df_renamed._table_data.columns}\n")
 
 # %%
-
