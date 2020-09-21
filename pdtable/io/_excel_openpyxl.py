@@ -10,7 +10,7 @@ except ImportError:
 
 
 from pdtable import Table
-from pdtable.writers._represent import _represent_row_elements
+from pdtable.io._represent import _represent_row_elements
 
 
 def write_excel_openpyxl(na_rep, out, tables):
