@@ -10,7 +10,18 @@ from pdtable.table_metadata import TableOriginCSV
 # Typing alias:
 # JSON-like data structure of nested "objects" (dict), "arrays" (list), and JSON-native values
 JsonData = Union[Dict[str, "JsonData"], List["JsonData"], str, float, int, bool, None]
-
+# Typing alias: Same as JsonData, extended with a few non-JSON-native but readily JSONable types
+JsonDataPrecursor = Union[
+    Dict[str, "JsonDataPrecursor"],
+    List["JsonDataPrecursor"],
+    np.ndarray,
+    str,
+    float,
+    int,
+    bool,
+    None,
+    datetime.datetime,
+]
 
 _json_encodable_value_maps = {
     dict: lambda obj: {kk: to_json_serializable(obj[kk]) for kk in obj.keys()},
@@ -23,8 +34,17 @@ _json_encodable_value_maps = {
 }
 
 
-def to_json_serializable(obj) -> JsonData:
+def to_json_serializable(obj: JsonDataPrecursor) -> JsonData:
     """Converts object to a JSON-serializable data structure.
+
+    Converts an object to a JSON-serializable hierarchical data structure of
+    nested dicts ("objects"), lists ("arrays"), and values directly mappable to JSON-native types
+    {float, int, str, bool} as well as None ("null").
+
+    The types mentioned above are left as is.
+    Also, additional element types are supported, mapping as follows:
+    - numpy array -> list
+    - values of type {datetime, table origin} -> string representation thereof
     """
     object_type = type(obj)
     if object_type in _json_encodable_value_maps:

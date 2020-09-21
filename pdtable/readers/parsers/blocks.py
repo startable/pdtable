@@ -24,17 +24,15 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
-import datetime
 import sys
-from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union, Dict
+from typing import Sequence, Optional, Tuple, Any, Iterable, List
 
 import pandas as pd
-import numpy as np
 
 from .fixer import ParseFixer
 from .columns import parse_column
 from ... import pandastable
-from ..._json import to_json_serializable, JsonData
+from ..._json import to_json_serializable, JsonData, JsonDataPrecursor
 from ...ancillary_blocks import MetadataBlock, Directive
 from pdtable import Table
 from pdtable import BlockType, BlockGenerator
@@ -42,18 +40,6 @@ from ...table_metadata import TableOriginCSV, TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
-# Typing alias: Same as JsonData, extended with a few non-JSON-native but readily JSONable types
-JsonDataPrecursor = Union[
-    Dict[str, "JsonDataPrecursor"],
-    List["JsonDataPrecursor"],
-    np.ndarray,
-    str,
-    float,
-    int,
-    bool,
-    None,
-    datetime.datetime,
-]
 
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None, **_) -> MetadataBlock:

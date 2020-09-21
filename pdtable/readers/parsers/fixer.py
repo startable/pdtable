@@ -116,6 +116,8 @@ class ParseFixer:
 
             Supported vtypes in { "onoff", "datetime", "-", "float" }
         """
+        # TODO value can be something else than a string if it comes from e.g. Excel/openpyxl
+        # TODO should not try to fix things that are illegal by design e.g. illegal empty cells
         defaults = {"onoff": False, "datetime": pd.NaT, "float": np.NaN, "-": np.NaN}
         if self.verbose:
             print(f'ParseFixer: illegal {vtype} value "{value}" in table {self.table_name}')
