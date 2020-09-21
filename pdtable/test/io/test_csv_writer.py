@@ -5,7 +5,7 @@ import pandas as pd
 
 import pdtable
 from pdtable import Table
-from pdtable.io._csv import write_csv, _table_to_csv
+from pdtable.io.csv import write_csv, _table_to_csv
 from pdtable.table_metadata import ColumnFormat
 
 
