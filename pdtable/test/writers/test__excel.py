@@ -9,8 +9,9 @@ except ImportError:
     # openpyxl < 2.6
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 
-from pdtable import Table, write_excel
-from pdtable.writers._excel_openpyxl import _append_table_to_openpyxl_worksheet
+from pdtable import Table
+from pdtable.io._excel import write_excel
+from pdtable.io._excel_openpyxl import _append_table_to_openpyxl_worksheet
 
 
 def test__append_table_to_openpyxl_worksheet():

@@ -9,13 +9,13 @@ be extended to support others.
 openpyxl (and eventually other engines) are not required at install time;
 only when read_excel() is called for the first time.
 """
-
+import os
 from os import PathLike
-from typing import Union, Callable
+from typing import Union, Callable, Iterable
 
 from .parsers.blocks import parse_blocks
 from .parsers.fixer import ParseFixer
-from .. import BlockType
+from .. import BlockType, Table, TableBundle
 from ..store import BlockGenerator
 
 
@@ -58,3 +58,35 @@ def read_excel(
             "Tried using: 'openpyxl'.\n"
             "Please install openpyxl for Excel I/O support."
         ) from err
+
+
+def write_excel(
+    tables: Union[Table, Iterable[Table], TableBundle],
+    out: Union[str, os.PathLike],
+    na_rep: str = "-",
+):
+    """Writes one or more tables to an Excel workbook.
+
+    Writes table blocks to an Excel workbook file.
+    Values are formatted to comply with the StarTable standard where necessary and possible.
+
+    Args:
+        tables:
+            Table(s) to write. Can be a single Table or an iterable of Tables.
+        out:
+            File path to which to write.
+        na_rep:
+            Optional; String representation of missing values (NaN, None, NaT). If overriding the default '-', it is recommended to use another value compliant with the StarTable standard.
+    """
+    try:
+        import openpyxl
+        from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
+
+    except ImportError as err:
+        raise ImportError(
+            "Unable to find a usable spreadsheet engine. "
+            "Tried using: 'openpyxl'.\n"
+            "Please install openpyxl for Excel I/O support."
+        ) from err
+
+    write_excel_func(na_rep, out, tables)
