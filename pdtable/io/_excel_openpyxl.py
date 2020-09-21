@@ -16,6 +16,7 @@ from pdtable.io._represent import _represent_row_elements
 
 
 def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
+    """Reads from an Excel workbook, yielding one row of cells at a time."""
     import openpyxl
 
     wb = openpyxl.load_workbook(path)
@@ -23,7 +24,8 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         yield from ws.iter_rows(values_only=True)
 
 
-def write_excel_openpyxl(na_rep, out, tables):
+def write_excel_openpyxl(tables, path, na_rep):
+    """Writes tables to an Excel workbook at the specified path."""
     if isinstance(tables, Table):
         # For convenience, pack single table in an iterable
         tables = [tables]
@@ -31,7 +33,7 @@ def write_excel_openpyxl(na_rep, out, tables):
     ws = wb.active
     for t in tables:
         _append_table_to_openpyxl_worksheet(t, ws, na_rep)
-    wb.save(out)
+    wb.save(path)
 
 
 def _append_table_to_openpyxl_worksheet(

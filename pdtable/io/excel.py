@@ -58,7 +58,7 @@ def read_excel(
 
 def write_excel(
     tables: Union[Table, Iterable[Table], TableBundle],
-    out: Union[str, os.PathLike],
+    path: Union[str, os.PathLike],
     na_rep: str = "-",
 ):
     """Writes one or more tables to an Excel workbook.
@@ -72,7 +72,7 @@ def write_excel(
     Args:
         tables:
             Table(s) to write. Can be a single Table or an iterable of Tables.
-        out:
+        path:
             File path to which to write.
         na_rep:
             Optional; String representation of missing values (NaN, None, NaT). If overriding the default '-', it is recommended to use another value compliant with the StarTable standard.
@@ -88,4 +88,4 @@ def write_excel(
             "Please install openpyxl for Excel I/O support."
         ) from err
 
-    write_excel_func(na_rep, out, tables)
+    write_excel_func(tables, path, na_rep)
