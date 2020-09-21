@@ -13,4 +13,3 @@ from .io import read_csv, write_csv
 from .io import read_excel, write_excel
 from .io.parsers.blocks import JsonData
 from .utils import read_bundle_from_csv, normalized_table_generator
-from .json_utils import json_data_to_table, table_to_json_data

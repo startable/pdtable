@@ -6,7 +6,7 @@ from pdtable import ParseFixer, BlockType
 from pdtable import read_csv
 from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
-from pdtable import table_to_json_data
+from pdtable.io import table_to_json_data
 
 
 def input_dir() -> Path:

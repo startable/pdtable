@@ -32,7 +32,7 @@ import pandas as pd
 from .fixer import ParseFixer
 from .columns import parse_column
 from ... import pandastable
-from ..._json import to_json_serializable, JsonData, JsonDataPrecursor
+from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
 from ...ancillary_blocks import MetadataBlock, Directive
 from pdtable import Table
 from pdtable import BlockType, BlockGenerator
