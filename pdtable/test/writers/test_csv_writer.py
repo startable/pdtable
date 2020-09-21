@@ -4,8 +4,8 @@ from textwrap import dedent
 import pandas as pd
 
 import pdtable
-from pdtable import write_csv, Table
-from pdtable.writers._csv import _table_to_csv
+from pdtable import Table
+from pdtable.io._csv import write_csv, _table_to_csv
 from pdtable.table_metadata import ColumnFormat
 
 
