@@ -44,11 +44,7 @@ def read_excel(
 
     try:
         import openpyxl
-
-        wb = openpyxl.load_workbook(path)
-        for ws in wb.worksheets:
-            cell_rows = ws.iter_rows(values_only=True)
-            yield from parse_blocks(cell_rows, **kwargs)
+        from ._excel_openpyxl import read_cell_rows_openpyxl as read_cell_rows
 
     except ImportError as err:
         raise ImportError(
@@ -56,6 +52,8 @@ def read_excel(
             "Tried using: 'openpyxl'.\n"
             "Please install openpyxl for Excel I/O support."
         ) from err
+
+    yield from parse_blocks(read_cell_rows(path), **kwargs)
 
 
 def write_excel(

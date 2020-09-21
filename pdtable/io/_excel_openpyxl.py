@@ -1,4 +1,6 @@
 """Machinery to write Tables to an Excel workbook using openpyxl as engine."""
+from typing import Union, Iterable, Sequence, Any
+from os import PathLike
 
 import openpyxl
 
@@ -11,6 +13,14 @@ except ImportError:
 
 from pdtable import Table
 from pdtable.io._represent import _represent_row_elements
+
+
+def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
+    import openpyxl
+
+    wb = openpyxl.load_workbook(path)
+    for ws in wb.worksheets:
+        yield from ws.iter_rows(values_only=True)
 
 
 def write_excel_openpyxl(na_rep, out, tables):
