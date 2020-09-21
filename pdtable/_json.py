@@ -8,7 +8,7 @@ import numpy as np
 from pdtable.table_metadata import TableOriginCSV
 
 # Typing alias:
-# JSON-like data structure of nested "objects" (dict), "arrays" (list), and JSON-native values
+# JSON-like data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values
 JsonData = Union[Dict[str, "JsonData"], List["JsonData"], str, float, int, bool, None]
 # Typing alias: Same as JsonData, extended with a few non-JSON-native but readily JSONable types
 JsonDataPrecursor = Union[
@@ -21,6 +21,7 @@ JsonDataPrecursor = Union[
     bool,
     None,
     datetime.datetime,
+    TableOriginCSV,
 ]
 
 _json_encodable_value_maps = {
