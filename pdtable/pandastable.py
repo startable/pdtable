@@ -161,8 +161,6 @@ class PandasTable(pd.DataFrame):
         Alternatively, we could return a raw frame object on some operations
         """
 
-        data = _combine_tables(self, other, method, **kwargs)
-        object.__setattr__(self, _TABLE_DATA_FIELD_NAME, data)
         try:
             data = _combine_tables(self, other, method, **kwargs)
             object.__setattr__(self, _TABLE_DATA_FIELD_NAME, data)
