@@ -1,4 +1,4 @@
-@startuml io
+@startuml io_detailed
 
 title = pdtable.io detailed API
 

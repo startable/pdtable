@@ -222,42 +222,43 @@ for bt, b in block_list:
 # %%
 t = block_list[3][1]
 print(t)
-assert t.name == 'places'
+assert t.name == "places"
 
 # %% [markdown]
 # We can pick the tables (and leave out blocks of other types) like this:
 
 # %%
 from pdtable import BlockType
+
 tables = [b for bt, b in block_list if bt == BlockType.TABLE]
 assert len(tables) == 2
 
 # %% [markdown]
 # ### Writing
-# Use the aptly named `write_csv()` and `write_excel()`. Note that `write_csv()` can write to files as well as to text streams. 
+# Use the aptly named `write_csv()` and `write_excel()`. Note that `write_csv()` can write to files as well as to text streams.
 #
-# Let's write the tables we have to a text stream. 
+# Let's write the tables we have to a text stream.
 
 # %%
 from pdtable import write_csv
 
 with StringIO() as s:
     write_csv(tables, s)
-    
+
     print(s.getvalue())
 
 
 # %% [markdown]
 # ### JSON support
-# StarTable data can be converted to and from a `JsonData` i.e. a JSON-ready data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values. This `JsonData` can then be serialized and deserialized directly using the standard library's `json.dump()` and `json.load()`. 
+# StarTable data can be converted to and from a `JsonData` i.e. a JSON-ready data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values. This `JsonData` can then be serialized and deserialized directly using the standard library's `json.dump()` and `json.load()`.
 #
-# A `JsonData` representation is currently only defined for table blocks. 
+# A `JsonData` representation is currently only defined for table blocks.
 #
-# Let's re-read the CSV stream we created earlier, but with tables as JSON data. 
+# Let's re-read the CSV stream we created earlier, but with tables as JSON data.
 
 # %%
 csv_data.seek(0)
-block_gen = read_csv(csv_data, to='jsondata')
+block_gen = read_csv(csv_data, to="jsondata")
 json_ready_tables = [b for bt, b in block_gen if bt == BlockType.TABLE]
 
 json_ready_tables[0]
@@ -267,14 +268,16 @@ json_ready_tables[0]
 
 # %%
 import json
+
 table_json = json.dumps(json_ready_tables[0])
 print(table_json)
 
 # %% [markdown]
-# There are also utilities to convert back and forth between `JsonData` and `Table`. 
+# There are also utilities to convert back and forth between `JsonData` and `Table`.
 
 # %%
 from pdtable.io import json_data_to_table, table_to_json_data
+
 t = json_data_to_table(json_ready_tables[0])
 t  # It's now a Table
 
