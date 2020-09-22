@@ -1,4 +1,4 @@
-"""Machinery to write Tables to an Excel workbook using openpyxl as engine."""
+"""Machinery to read/write Tables in an Excel workbook using openpyxl as engine."""
 from typing import Union, Iterable, Sequence, Any
 from os import PathLike
 

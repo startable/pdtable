@@ -56,6 +56,7 @@ def to_json_serializable(obj: JsonDataPrecursor) -> JsonData:
     if isinstance(obj, np.ndarray):
         if f"{obj.dtype}" == "float64":
             return [val if (not np.isnan(val)) else None for val in obj.tolist()]
+            # TODO  Will fail if obj.ndim > 1. Should recurse here as well.
         else:
             return [to_json_serializable(val) for val in obj.tolist()]
 
