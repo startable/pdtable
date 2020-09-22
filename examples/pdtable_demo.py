@@ -284,7 +284,7 @@ with StringIO() as s:
 
 # %% [markdown]
 # ### JSON support
-# StarTable data can be converted to and from a `JsonData` i.e. a JSON-ready data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values. This `JsonData` can then be serialized and deserialized directly using the standard library's `json.dump()` and `json.load()`. 
+# StarTable data can be converted to and from a `JsonData` object i.e. a JSON-ready data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values. This `JsonData` can then be serialized and deserialized directly using the standard library's `json.dump()` and `json.load()`. 
 #
 # A `JsonData` representation is currently only defined for table blocks. 
 #
@@ -292,7 +292,12 @@ with StringIO() as s:
 #
 # ![pdtable.io API](..\docs\diagrams\img\io_detailed\io_detailed.svg)
 #
-# Let's re-read the CSV stream we created earlier, but with tables as JSON data. 
+# In addition, two successive intermediate data structures are visible in this diagram: 
+#
+# - "Raw cell grid" is simply a sequence of sequence of values (usually a list of lists or list of tuples) interpreted as rows of cells, with cell contents as read in their raw form from CSV or Excel. 
+# - `JsonDataPrecursor` is essentially the same thing as `JsonData`, with the exception that it may contain values that are not directly consumable by `json.dump()`. These values must be converted further if the aim is a `JsonData`; for example Numpy arrays to lists, `datetime.datetime` to a string representation thereof, etc. 
+#
+# Let's re-read the CSV stream we created earlier, but specifying the argument `to='jsondata'` such that tables should be parsed to JSON data. 
 
 # %%
 csv_data.seek(0)
