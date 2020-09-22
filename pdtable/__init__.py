@@ -7,7 +7,7 @@ CSV_SEP = ";"  # User can overwrite this default
 from .proxy import Table
 from .table_metadata import TableMetadata, TableOrigin
 from .store import TableBundle, BlockType, BlockGenerator
-from .units import UnitPolicy
+from .units import UnitPolicy, normalize_table_in_place
 from .readers.parsers.fixer import ParseFixer
 from .readers import read_csv
 from .readers import read_excel
