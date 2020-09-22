@@ -68,22 +68,17 @@ class myUnitPolicy(UnitPolicy):
         return value, unit
 
 def test_UnitPolicy():
-    lines = (
-        dedent(
-            r"""
-    **input_files_derived;
-    all;
-    file_bytes;file_date;has_table;length;flt
-    -;text;onoff;mm;m;
-    15373;a;0;1;22.4;
-    15326;b;1;2;21.7;
-    """
-        )
-        .strip()
-        .split("\n")
-    )
-    t = make_table(lines, ";")
-
+    # fmt off
+    cells = [
+    ["**input_files_derived"],
+    ["all"],
+    ["file_bytes","file_date","has_table","length","flt"],
+    ["-","text","onoff","mm","m"],
+    [15373,"a",0,1,22.4],
+    [15326,"b",1,2,21.7]
+    ]
+    # fmt on
+    t = make_table(cells)
     normalize_table_in_place(myUnitPolicy(), t)
 
     assert t["length"].values[0] == 1e-3
@@ -91,21 +86,18 @@ def test_UnitPolicy():
     assert t["flt"].values[0] == 2240.0
     assert t["flt"].unit == "cm"
 
-    lines = (
-        dedent(
-            r"""
-    **input_2;
-    all;
-    file_bytes;file_date;has_table;length;
-    -;text;onoff;mm;
-    15373;a;0;1;
-    15326;b;1;2;
-    """
-        )
-        .strip()
-        .split("\n")
-    )
-    t_ident = make_table(lines, ";")
+    # fmt off
+    cells2 = [
+    ["**input_2"],
+    ["all"],
+    ["file_bytes","file_date","has_table","length"],
+    ["-","text","onoff","mm"],
+    [15373,"a",0,1],
+    [15326,"b",1,2]
+    ]
+    # fmt on
+
+    t_ident = make_table(cells2)
     normalize_table_in_place(myUnitPolicy(), t_ident)
 
     assert t_ident["length"].values[0] == 1
