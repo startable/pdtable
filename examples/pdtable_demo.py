@@ -282,6 +282,6 @@ t  # It's now a Table
 table_to_json_data(t)  # Now it's back to JsonData
 
 # %% [markdown]
-# ![Image of Yaktocat](..\doc\diagrams\img\io\io.svg)
+# ![Diagram of pdtable.io highlights](..\doc\diagrams\img\io\io.svg)
 
 # %%
