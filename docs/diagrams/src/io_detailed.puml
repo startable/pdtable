@@ -11,14 +11,14 @@ left to right direction
 rectangle files as "File / stream" #WhiteSmoke {
     file csv as "<b>StarTable CSV"
     file xl as "<b>StarTable\n<b>Excel workbook\n(file only)"
-    file json as "JSON"
+    file json as "JSON" #LightSkyBlue
 }
 
 rectangle memory as "Memory" #WhiteSmoke {
     file table as "==Table"
     file cellgrid as "Raw cell grid" #LightGray
     file prejson as "JsonDataPrecursor" #LightGray
-    file jsondata as "JsonData"
+    file jsondata as "JsonData" #LightSkyBlue
 }
 
 csv --> cellgrid : <b>read_csv()
