@@ -1,6 +1,6 @@
 @startuml io
 
-title = pdtable.io API highlights
+title = pdtable.io detailed API
 
 skinparam {
     ArrowFontName Consolas
