@@ -1,6 +1,6 @@
 import pandas as pd
 
-from pdtable.writers._csv import _represent_row_elements
+from pdtable.io._represent import _represent_row_elements
 
 
 def test__represent_row_elements():
