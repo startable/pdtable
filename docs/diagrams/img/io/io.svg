@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="405px" preserveAspectRatio="none" style="width:772px;height:405px;" version="1.1" viewBox="0 0 772 405" width="772px" zoomAndPan="magnify"><defs><filter height="300%" id="f1qgsiozhxs4k7" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="22" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="315" x="219.5" y="20.4209">pdtable.io API highlights</text><!--MD5=[22e39c158ccd515e083392dc1f6fdf64]
+cluster files--><rect fill="#F5F5F5" filter="url(#f1qgsiozhxs4k7)" height="263" style="stroke: #000000; stroke-width: 1.5;" width="176" x="7" y="125.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="101" x="44.5" y="140.6045">File / stream</text><!--MD5=[917295465906c8c8764f8324f07e5158]
+cluster memory--><rect fill="#F5F5F5" filter="url(#f1qgsiozhxs4k7)" height="246" style="stroke: #000000; stroke-width: 1.5;" width="447" x="308" y="32.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="64" x="499.5" y="47.6045">Memory</text><!--MD5=[5b5b6116e9ca12b5be308e1a61d0aa39]
+entity csv--><polygon fill="#FEFECE" filter="url(#f1qgsiozhxs4k7)" points="27,231.6094,27,267.9063,163,267.9063,163,241.6094,153,231.6094,27,231.6094" style="stroke: #000000; stroke-width: 1.5;"/><path d="M153,231.6094 L153,241.6094 L163,241.6094 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="116" x="37" y="254.6045">StarTable CSV</text><!--MD5=[298ce850d60ec30fd6b0e133b061c1ae]
+entity xl--><polygon fill="#FEFECE" filter="url(#f1qgsiozhxs4k7)" points="23,303.1094,23,372,167,372,167,313.1094,157,303.1094,23,303.1094" style="stroke: #000000; stroke-width: 1.5;"/><path d="M157,303.1094 L157,313.1094 L167,313.1094 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="80" x="33" y="326.1045">StarTable</text><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="124" x="33" y="342.4014">Excel workbook</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="67" x="33" y="358.6982">(file only)</text><!--MD5=[a264f174970795e6f8e9a8e3ba271873]
+entity json--><polygon fill="#FEFECE" filter="url(#f1qgsiozhxs4k7)" points="68,160.6094,68,196.9063,122,196.9063,122,170.6094,112,160.6094,68,160.6094" style="stroke: #000000; stroke-width: 1.5;"/><path d="M112,160.6094 L112,170.6094 L122,170.6094 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="34" x="78" y="183.6045">JSON</text><!--MD5=[1a9b3ce6b05045b91178d8f4231a8390]
+entity table--><polygon fill="#FEFECE" filter="url(#f1qgsiozhxs4k7)" points="668,195.1094,668,233.7344,739,233.7344,739,205.1094,729,195.1094,668,195.1094" style="stroke: #000000; stroke-width: 1.5;"/><path d="M729,195.1094 L729,205.1094 L739,205.1094 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="51" x="678" y="219.9609">Table</text><!--MD5=[4107631b491df1f70f3f8aeab85f2740]
+entity cellgrid--><polygon fill="#D3D3D3" filter="url(#f1qgsiozhxs4k7)" points="344.5,226.6094,344.5,262.9063,454.5,262.9063,454.5,236.6094,444.5,226.6094,344.5,226.6094" style="stroke: #000000; stroke-width: 1.5;"/><path d="M444.5,226.6094 L444.5,236.6094 L454.5,236.6094 " fill="#D3D3D3" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="90" x="354.5" y="249.6045">Raw cell grid</text><!--MD5=[6c3557938019204f1182634bc11542ef]
+entity prejson--><polygon fill="#D3D3D3" filter="url(#f1qgsiozhxs4k7)" points="324,155.6094,324,191.9063,475,191.9063,475,165.6094,465,155.6094,324,155.6094" style="stroke: #000000; stroke-width: 1.5;"/><path d="M465,155.6094 L465,165.6094 L475,165.6094 " fill="#D3D3D3" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="131" x="334" y="178.6045">JsonDataPrecursor</text><!--MD5=[b49d864005a1157e1396d4f698e10165]
+entity jsondata--><polygon fill="#FEFECE" filter="url(#f1qgsiozhxs4k7)" points="358,67.6094,358,103.9063,441,103.9063,441,77.6094,431,67.6094,358,67.6094" style="stroke: #000000; stroke-width: 1.5;"/><path d="M431,67.6094 L431,77.6094 L441,77.6094 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="63" x="368" y="90.6045">JsonData</text><!--MD5=[b57c0f5767252dff7513054053a011f3]
+link csv to cellgrid--><path d="M163.135,248.4994 C215.807,247.6294 288.434,246.4284 339.029,245.5924 " fill="none" id="csv-to-cellgrid" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="344.163,245.5074,335.098,241.657,339.1637,245.5902,335.2305,249.6559,344.163,245.5074" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="77" x="207" y="241.6763">read_csv()</text><!--MD5=[8228438bf6bb005dbc1c209cb5bdff22]
+link xl to cellgrid--><path d="M167.305,315.6875 C219.656,299.5934 289.937,277.9854 339.22,262.8344 " fill="none" id="xl-to-cellgrid" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="344.221,261.2964,334.443,260.1167,339.4416,262.7652,336.7932,267.7638,344.221,261.2964" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="91" x="200" y="275.6763">read_excel()</text><!--MD5=[d61c8d2e006a7aa4291e29b1b39244a6]
+link cellgrid to prejson--><path d="M399.5,226.5824 C399.5,216.7144 399.5,206.8464 399.5,196.9794 " fill="none" id="cellgrid-to-prejson" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="399.5,191.8184,395.5,200.8184,399.5,196.8184,403.5,200.8184,399.5,191.8184" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[e5a017365d85b99ce786af6de1a1cb35]
+link prejson to jsondata--><path d="M399.5,155.3754 C399.5,141.9244 399.5,123.5134 399.5,108.9814 " fill="none" id="prejson-to-jsondata" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="399.5,103.8194,395.5,112.8194,399.5,108.8194,403.5,112.8194,399.5,103.8194" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="84" x="346" y="134.1763">to='jsondata'</text><!--MD5=[21f12cb4842df8cbeefcc472bcdcda8b]
+link prejson to table--><path d="M433.76,191.6404 C453.769,201.4494 480.109,212.5824 505,217.6094 C558.723,228.4584 622.345,224.5914 662.566,220.1554 " fill="none" id="prejson-to-table" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="667.839,219.5554,658.4451,216.5965,662.8709,220.1196,659.3479,224.5454,667.839,219.5554" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="93" x="525" y="198.6763">to='pdtable'</text><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="67" x="538" y="213.8091">(default)</text><!--MD5=[035f32cc742aedf2712596423c1a3091]
+link json to jsondata--><path d="M122.197,183.7974 C162.908,190.2864 241.882,196.3934 292,158.6094 C299.645,152.8464 293.624,145.7504 300,138.6094 C314.307,122.5844 334.643,110.5124 353.125,101.9694 " fill="none" id="json-to-jsondata" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="357.779,99.8724,347.9303,99.9232,353.2205,101.9266,351.2171,107.2168,357.779,99.8724" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="67" x="212" y="154.6763">json.load()</text><!--MD5=[eb9a35422a0fa1c6ca54b2eae31825d3]
+link jsondata to json--><path d="M357.953,94.6214 C317.34,104.0114 253.246,119.8184 199,137.6094 C174.45,145.6604 147.326,156.5414 127.077,165.0714 " fill="none" id="jsondata-to-json" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="122.344,167.0744,132.1913,167.2478,126.9481,165.1245,129.0715,159.8812,122.344,167.0744" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="77" x="207" y="107.6763">json.dump()</text><!--MD5=[6e6fcfa5164d9ee8fbf189fefcda845d]
+link jsondata to table--><path d="M441.149,83.1924 C491.226,82.1434 577.128,86.7954 638,124.6094 C663.049,140.1694 681.237,169.3974 691.794,190.3254 " fill="none" id="jsondata-to-table" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="694.057,194.9224,693.6676,185.0812,691.8473,190.4372,686.4913,188.6168,694.057,194.9224" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="131" x="506" y="82.6763">json_data_to_table()</text><!--MD5=[6d84aa5d49e4a43d68abad380b8b1b3c]
+reverse link jsondata to table--><path d="M429.276,106.6514 C449.559,120.6074 477.844,138.3574 505,149.6094 C561.167,172.8824 580.983,160.5044 638,181.6094 C648.027,185.3204 658.506,190.2054 668.032,195.0754 " fill="none" id="jsondata-backto-table" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="425.072,103.7354,430.1871,112.1518,429.1803,106.5852,434.7469,105.5784,425.072,103.7354" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="131" x="506" y="145.6763">table_to_json_data()</text><!--MD5=[fccc26aab589bfd617f4f5ae984dc9f1]
+reverse link csv to table--><path d="M158.616,269.0374 C233.996,289.7784 364.278,317.1763 475,297.6094 C546.004,285.0614 623.974,252.0754 667.711,231.6674 " fill="none" id="csv-backto-table" style="stroke: #808080; stroke-width: 1.0;"/><polygon fill="#808080" points="153.731,267.6814,161.3315,273.9449,158.5485,269.02,163.4734,266.237,153.731,267.6814" style="stroke: #808080; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="83" x="358" y="293.6763">write_csv()</text><!--MD5=[681920674bb6720d4c7d5ac8628e7c40]
+reverse link xl to table--><path d="M172.382,352.7265 C283.706,370.4779 493.027,387.2911 638,298.6094 C663.252,283.1624 682.253,253.9204 692.878,234.3454 " fill="none" id="xl-backto-table" style="stroke: #808080; stroke-width: 1.0;"/><polygon fill="#808080" points="167.155,351.8809,175.4006,357.2669,172.0908,352.6794,176.6783,349.3696,167.155,351.8809" style="stroke: #808080; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="97" x="351" y="352.6763">write_excel()</text><!--MD5=[7a107ee071c6c0420a254a8255af2aa4]
+@startuml
+title = pdtable.io API highlights
+
+skinparam {
+    ArrowFontName Consolas
+}
+
+left to right direction
+
+rectangle files as "File / stream" #WhiteSmoke {
+    file csv as "<b>StarTable CSV"
+    file xl as "<b>StarTable\n<b>Excel workbook\n(file only)"
+    file json as "JSON"
+}
+
+rectangle memory as "Memory" #WhiteSmoke {
+    file table as "==Table"
+    file cellgrid as "Raw cell grid" #LightGray
+    file prejson as "JsonDataPrecursor" #LightGray
+    file jsondata as "JsonData"
+}
+
+csv - -> cellgrid : <b>read_csv()
+xl - -> cellgrid : <b>read_excel()
+
+cellgrid -> prejson
+prejson -> jsondata : to='jsondata'
+prejson - -> table : <b>to='pdtable'\n<b>(default)
+
+json ..> jsondata : json.load()
+jsondata ..> json : json.dump()
+
+jsondata - -> table : json_data_to_table()
+jsondata <- - table : table_to_json_data()
+
+csv <- - table #Gray : <b>write_csv()
+xl <- - table #Gray : <b>write_excel()
+@enduml
+
+PlantUML version 1.2020.18beta4(Unknown compile time)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
