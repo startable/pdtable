@@ -148,11 +148,24 @@ Table(df_combinded)
 # One example of this is column names:
 
 # %%
-df_renamed = df.copy()
-df_renamed.columns = ["a_new", "b_new"]
-print(f"Metadata columns before update triggered by access:\n{df_renamed._table_data.columns}\n")
-print(Table(df_renamed))
-print(f"Metadata columns after update:\n{df_renamed._table_data.columns}\n")
+# Make a table and get its backing df
+tab = Table(
+    pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}), name="foo", units=["m", "kg"]
+)
+df = tab.df
+# Edit df column names
+df.columns = ["a_new", "b_new"]
+
+# This edit doesn't propagate to the hidden metadata!
+col_names_before_access = list(df._table_data.columns.keys())
+print(f"Metadata columns before update triggered by access:\n{col_names_before_access}\n")
+assert col_names_before_access == ["a", "b"]  # Still the old column names
+
+# ... until the facade is built and the metadata is accessed. 
+_ = str(Table(df))  # access it 
+col_names_after_access = list(df._table_data.columns.keys())
+print(f"Metadata columns after update:\n{col_names_after_access}\n")
+assert col_names_after_access == ["a_new", "b_new"]  # Now they've updated
 
 # %% [markdown]
 # ## I/O
