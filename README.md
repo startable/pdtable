@@ -9,3 +9,5 @@ The metadata can be accessed via a `Table` facade that can be initialized (and d
     my_table = Table(my_pdtable)
     my_table['my_column'].unit = 'km'
 ```
+
+For a full demo, see the [pdtable_demo notebook](examples/pdtable_demo.ipynb) or, if you don't have Jupyter handy, the notebook's [paired script](examples/pdtable_demo.py).
