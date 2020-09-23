@@ -1,10 +1,11 @@
-# TODO Get rid of this "utils" module; find a better home for its constituents, or delete them.
+# TODO Get rid of this "utils" module; find a better home for its constituents.
+# TODO These functions seem out of sync with the rest of the pdtable.io API. Needs revisiting.
 from os import PathLike
 from typing import Optional, Any, Tuple, Iterable
 
-from . import units, Table
 from pdtable import TableBundle, BlockType
 from pdtable import read_csv
+from . import units
 
 
 def normalized_table_generator(unit_policy, ts: Iterable[Tuple[BlockType, Optional[Any]]]):
@@ -18,7 +19,6 @@ def read_bundle_from_csv(
     input_path: PathLike, sep: Optional[str] = ";", unit_policy: Optional[units.UnitPolicy] = None
 ) -> TableBundle:
     """Read single csv-file to TableBundle"""
-    # TODO this function is not used anywhere. Not clear what its purpose is.
     inputs = read_csv(input_path, sep)
     if unit_policy is not None:
         inputs = normalized_table_generator(unit_policy, inputs)
