@@ -361,6 +361,7 @@ table_to_json_data(t)  # Now it's back to JsonData
 # and look like this:
 
 # %%
+import functools
 from pdtable import BlockGenerator
 
 def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> BlockGenerator:
