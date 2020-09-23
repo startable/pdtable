@@ -1,13 +1,26 @@
-# pdtable: StarTables as Pandas dataframes
+# pdtable
 
 ![run-tests](https://github.com/startable/pdtable/workflows/run-tests/badge.svg)
 
-PandasTable (`pdtable`) store startable objects as Pandas dataframes with hidden metadata.
-The metadata can be accessed via a `Table` facade that can be initialized (and dropped) at any point.
+The `pdtable` Python package offers interfaces to read, write, and manipulate StarTable data. 
 
-```
-    my_table = Table(my_pdtable)
-    my_table['my_column'].unit = 'km'
-```
+For a full demo, see the [pdtable_demo notebook](examples/pdtable_demo.ipynb) or, if you don't have a Jupyter viewer handy, the notebook's [paired script](examples/pdtable_demo.py).
 
-For a full demo, see the [pdtable_demo notebook](examples/pdtable_demo.ipynb) or, if you don't have Jupyter handy, the notebook's [paired script](examples/pdtable_demo.py).
+## Data and metadata: storage and access
+
+Table blocks are stored as `PandasTable` objects, which inherit from `pandas.DataFrame` but include additional, hidden metadata. This hidden metadata contains all the information from Table blocks that does not fit in a classic Pandas dataframe object: table destinations, column units, table origin, etc. 
+
+Data in `PandasTable` objects can be accessed and manipulated using the Pandas API as it the object were a vanilla Pandas dataframe, with all the convenience that this entails. 
+
+The StarTable-specific metadata hidden in a `PandasTable`'s metadata *can* in principle be accessed directly; however a much more ergonomic interface is offered via a `Table` facade object, which is a thin wrapper around `PandasTable`.  `Table` also supports some limited data manipulation, though with the advantage of more easily supporting StarTable-specific metadata; for example, easily specifying column units when adding new columns. 
+
+## I/O
+
+Readers and writers are available for CSV files, CSV text streams, and Excel workbooks. Parsing is efficient and, by default, lenient, though this is readily customized. 
+
+Reading can also be filtered early, such that only certain block types or tables with certain names get fully parsed. This can reduce reading time substantially when reading e.g. only a few tables from an otherwise large file or stream.
+
+Directive blocks are parsed by the readers, and presented to the client code for application-specific interpretation. 
+
+Import from and export to JSON is also supported. 
+
