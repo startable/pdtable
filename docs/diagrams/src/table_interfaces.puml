@@ -1,7 +1,7 @@
 @startuml table_interfaces
 
 skinparam {
-    ArrowFontName Consolas
+    ArrowFontName Consolas 
     FileFontName Consolas
 }
 
@@ -15,7 +15,7 @@ rectangle use_cases as "=Intended use cases" #LightGray {
     }
     rectangle generalist as "Generalist" #WhiteSmoke {
         usecase data as "Data interaction\nvia Pandas API"
-        usecase io_stripped as "I/O stripped of\nStarTable-specific metadata"
+        usecase io_stripped as "I/O stripped of\nStarTable-specific metadata" 
     }
 }
 
