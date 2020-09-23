@@ -55,16 +55,16 @@ class myUnitPolicy(UnitPolicy):
         """ Here any unit converter can be integrated, pint, Unum &c.
             This converter demonstrates the use of TableName and TableColumn
         """
-        if self.TableName != "input_files_derived":
+        if self.table_name != "input_files_derived":
             return value, unit
 
-        if self.TableColumn == "length":
+        if self.column_name == "length":
             if unit == "mm":
                 return value * 1e-3, "m"
-        elif self.TableColumn == "flt":
+        elif self.column_name == "flt":
             if unit == "m":
                 return value * 100, "cm"
-        print(f"{self.TableColumn} {value} {unit}")
+        print(f"{self.column_name} {value} {unit}")
         return value, unit
 
 def test_UnitPolicy():

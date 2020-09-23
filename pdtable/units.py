@@ -12,28 +12,28 @@ class UnitPolicy(ABC):
         pass
 
     @property
-    def TableColumn(self):
-        return self._table_column
+    def column_name(self):
+        return self._column_name
 
-    @TableColumn.setter
-    def TableColumn(self,value):
-        self._table_column = value
+    @column_name.setter
+    def column_name(self, value):
+        self._column_name = value
 
     @property
-    def TableName(self):
+    def table_name(self):
         return self._table_name
 
-    @TableName.setter
-    def TableName(self,value):
+    @table_name.setter
+    def table_name(self, value):
         self._table_name = value
 
 
 def normalize_table_in_place(unit_policy: UnitPolicy, table: TableType):
     """Apply unit policy, modifying table in-place"""
-    unit_policy.TableName = table.name
+    unit_policy.table_name = table.name
     for column in table.column_proxies:
         unit = column.unit
-        unit_policy.TableColumn = column.name
+        unit_policy.column_name = column.name
         new_values, new_unit = unit_policy.convert_value_to_base(column.values, unit)
         if not unit == new_unit:
             column.values = new_values
