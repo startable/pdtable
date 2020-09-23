@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from ... import Table
-from ...readers import read_excel
+from ...io import read_excel
 from ...store import BlockType
 
 

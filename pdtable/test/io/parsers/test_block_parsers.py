@@ -5,7 +5,7 @@ from textwrap import dedent
 
 from ....proxy import Table
 from ....store import TableBundle, BlockType
-from ....readers.parsers.blocks import (
+from ....io.parsers.blocks import (
     make_metadata_block,
     make_directive,
     make_table,

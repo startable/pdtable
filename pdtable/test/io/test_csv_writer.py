@@ -4,8 +4,8 @@ from textwrap import dedent
 import pandas as pd
 
 import pdtable
-from pdtable import write_csv, Table
-from pdtable.writers._csv import _table_to_csv
+from pdtable import Table
+from pdtable.io.csv import write_csv, _table_to_csv
 from pdtable.table_metadata import ColumnFormat
 
 
@@ -85,8 +85,11 @@ def test_write_csv__writes_two_tables():
 
 def test_write_csv__leaves_stream_open_if_caller_passes_stream():
     # Make a table
-    t2 = Table(pd.DataFrame({"number": [1, 6, 42], "spelling": ["one", "six", "forty-two"]}),
-               name="bar", units=["-", "text"])
+    t2 = Table(
+        pd.DataFrame({"number": [1, 6, 42], "spelling": ["one", "six", "forty-two"]}),
+        name="bar",
+        units=["-", "text"],
+    )
 
     # Check write_csv single table and leave stream open for business
     with io.StringIO() as out:
@@ -109,8 +112,11 @@ def test_write_csv__leaves_stream_open_if_caller_passes_stream():
 
 def test_write_csv__writes_to_file(tmp_path):
     # Make a table
-    t2 = Table(pd.DataFrame({"number": [1, 6, 42], "spelling": ["one", "six", "forty-two"]}),
-               name="bar", units=["-", "text"])
+    t2 = Table(
+        pd.DataFrame({"number": [1, 6, 42], "spelling": ["one", "six", "forty-two"]}),
+        name="bar",
+        units=["-", "text"],
+    )
 
     # Write to file
     out_path = tmp_path / "write_csv_to_file.csv"
@@ -141,13 +147,20 @@ def test__write_csv__uses_altered_default_csv_separator(monkeypatch):
     monkeypatch.setattr(pdtable, "CSV_SEP", ",")
 
     # Make a table with content of various units
-    t = Table(pd.DataFrame({"place": ["home", "work", "beach", "wonderland"],
-                            "distance": list(range(3)) + [float("nan")],
-                            "ETA": pd.to_datetime(
-                                ["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00",
-                                 pd.NaT]),
-                            "is_hot": [True, False, True, False]}),
-              name="foo", units=["text", "km", "datetime", "onoff"])
+    t = Table(
+        pd.DataFrame(
+            {
+                "place": ["home", "work", "beach", "wonderland"],
+                "distance": list(range(3)) + [float("nan")],
+                "ETA": pd.to_datetime(
+                    ["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]
+                ),
+                "is_hot": [True, False, True, False],
+            }
+        ),
+        name="foo",
+        units=["text", "km", "datetime", "onoff"],
+    )
 
     # Write table to stream
     with io.StringIO() as out:
@@ -170,9 +183,13 @@ def test__write_csv__uses_altered_default_csv_separator(monkeypatch):
 
 def test_write_csv__with_format_specs():
     # Make a table
-    t2 = Table(pd.DataFrame({"numbers": [1, 6, 42],
-                             "same_numbers": [1, 6, 42], "others": [1, 123.456, 42]}),
-               name="bar", units=["-", "-", "-"])
+    t2 = Table(
+        pd.DataFrame(
+            {"numbers": [1, 6, 42], "same_numbers": [1, 6, 42], "others": [1, 123.456, 42]}
+        ),
+        name="bar",
+        units=["-", "-", "-"],
+    )
 
     # Give formats to some columns, leave some without formats
     t2.column_metadata["same_numbers"].display_format = ColumnFormat(2)
@@ -192,5 +209,3 @@ def test_write_csv__with_format_specs():
             
             """
         )
-
-

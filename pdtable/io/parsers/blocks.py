@@ -32,7 +32,7 @@ import pandas as pd
 from .fixer import ParseFixer
 from .columns import parse_column
 from ... import pandastable
-from ..._json import to_json_serializable, JsonData, JsonDataPrecursor
+from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
 from ...ancillary_blocks import MetadataBlock, Directive
 from pdtable import Table
 from pdtable import BlockType, BlockGenerator
@@ -109,6 +109,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
                 f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
             ) from e
 
+    # TODO fixer should be responsible for reporting and raising errors. Parser shouldn't have to query fixer.
     if fixer.fixes > 0 and fixer.stop_on_errors:
         txt = f"Error(s): stop after {fixer.fixes} errors in input table '{fixer.table_name}'"
         raise ValueError(txt)
