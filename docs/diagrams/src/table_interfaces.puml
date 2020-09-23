@@ -1,0 +1,29 @@
+@startuml table_interfaces
+
+left to right direction
+
+rectangle data_structures as "Data structures" {
+    file table as "Table"
+    file df as "PandasTable"
+}
+
+table --> df : Table.df
+df --> table : Table(df)
+
+rectangle use_cases as "Use cases" {
+
+    rectangle startable_specific as "StarTable specific" {
+    usecase metadata as "StarTable metadata"
+    usecase io as "I/O"
+    }
+    rectangle generalist as "Generalist" {
+    usecase data as "Data manipulation"
+    }
+}
+
+table - startable_specific
+df - generalist
+startable_specific -[hidden]- generalist
+
+
+@enduml
