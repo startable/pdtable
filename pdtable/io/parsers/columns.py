@@ -120,6 +120,7 @@ def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
             continue
 
         # It's something else than a datetime. Presumably a string.
+        # TODO Fails when val is None. There is ambiguity about this None: if it came from a JsonData, it could be a legal NaT, but from Excel it could be an illegal empty cell!
         val = val.strip()
         if len(val) > 0 and (val[0].isdigit() or val in ["-", "nan"]):
             try:

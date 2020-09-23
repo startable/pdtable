@@ -199,6 +199,7 @@ class Table:
 
     def __repr__(self):
         m = self.metadata
+        # TODO __repr__ shouldn't display the dataframe's index. Could also display units on their own line.
         return f'**{m.name}\n{", ".join(s for s in m.destinations)}\n{self.as_dataframe_with_annotated_column_names()}'
 
     def __str__(self):

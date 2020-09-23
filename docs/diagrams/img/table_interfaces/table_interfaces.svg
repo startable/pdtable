@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="525px" preserveAspectRatio="none" style="width:777px;height:525px;" version="1.1" viewBox="0 0 777 525" width="777px" zoomAndPan="magnify"><defs><filter height="300%" id="f1quo1bu69morj" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><!--MD5=[07ef9424536f13107ccaabb0622252fc]
+cluster use_cases--><rect fill="#D3D3D3" filter="url(#f1quo1bu69morj)" height="313" style="stroke: #000000; stroke-width: 1.5;" width="753" x="7" y="7"/><text fill="#000000" font-family="sans-serif" font-size="18" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="198" x="284.5" y="25.708">Intended use cases</text><!--MD5=[87fd641d1f01a8568ea3b1bc01f4e082]
+cluster startable_specific--><rect fill="#F5F5F5" filter="url(#f1quo1bu69morj)" height="223" style="stroke: #000000; stroke-width: 1.5;" width="279" x="39" y="65"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="149" x="104" y="79.9951">StarTable-specific</text><!--MD5=[7a219f532eabe79ed8f627770ae2581a]
+cluster generalist--><rect fill="#F5F5F5" filter="url(#f1quo1bu69morj)" height="226" style="stroke: #000000; stroke-width: 1.5;" width="290" x="438" y="62"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="84" x="541" y="76.9951">Generalist</text><!--MD5=[e25d2abf3c472b89b03b52c7e4262e29]
+cluster interfaces--><rect fill="#D3D3D3" filter="url(#f1quo1bu69morj)" height="164" style="stroke: #000000; stroke-width: 1.5;" width="552" x="123.5" y="344"/><text fill="#000000" font-family="sans-serif" font-size="18" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="106" x="346.5" y="362.708">Interfaces</text><ellipse cx="178.2878" cy="132.7664" fill="#FEFECE" filter="url(#f1quo1bu69morj)" rx="73.7878" ry="24.7664" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="78" x="139.2878" y="127.3983">Read/write</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="106" x="125.2878" y="143.6952">StarTable data</text><ellipse cx="178.713" cy="219.0426" fill="#FEFECE" filter="url(#f1quo1bu69morj)" rx="115.713" ry="25.5426" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="123" x="117.213" y="212.9482">Access metadata</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="179" x="89.213" y="229.2451">(units, destinations, etc.)</text><ellipse cx="583.1981" cy="130.7903" fill="#FEFECE" filter="url(#f1quo1bu69morj)" rx="83.6981" ry="25.2903" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="118" x="524.1981" y="128.3796">Data interaction</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="101" x="532.6981" y="144.6765">via Pandas API</text><ellipse cx="582.9101" cy="218.082" fill="#FEFECE" filter="url(#f1quo1bu69morj)" rx="120.9101" ry="26.582" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="105" x="530.4101" y="209.7635">I/O stripped of</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="206" x="479.9101" y="226.0603">StarTable-specific metadata</text><!--MD5=[1a9b3ce6b05045b91178d8f4231a8390]
+entity table--><polygon fill="#FEFECE" filter="url(#f1quo1bu69morj)" points="139.5,383.5,139.5,424.4531,217.5,424.4531,217.5,393.5,207.5,383.5,139.5,383.5" style="stroke: #000000; stroke-width: 1.5;"/><path d="M207.5,383.5 L207.5,393.5 L217.5,393.5 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="Consolas" font-size="18" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="58" x="149.5" y="410.208">Table</text><!--MD5=[3c475d84a833d2530f061502a45c1beb]
+entity df--><polygon fill="#FEFECE" filter="url(#f1quo1bu69morj)" points="506.5,383.5,506.5,424.4531,659.5,424.4531,659.5,393.5,649.5,383.5,506.5,383.5" style="stroke: #000000; stroke-width: 1.5;"/><path d="M649.5,383.5 L649.5,393.5 L659.5,393.5 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="Consolas" font-size="18" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="133" x="516.5" y="410.208">PandasTable</text><!--MD5=[488466c7cdc895908da97898d31e11bc]
+link table to df--><path d="M217.627,421.186 C249.974,434.771 298.002,452.6314 342,460 C409.315,471.2736 485.928,446.753 534.113,426.6697 " fill="none" id="table-to-df" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="538.976,424.6178,529.1289,424.4323,534.3695,426.5621,532.2397,431.8027,538.976,424.6178" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="63" x="346.5" y="456.0669">Table.df</text><!--MD5=[edcc81b920d633f24b8401ca4ccaa4f6]
+link df to table--><path d="M506.218,404 C422.523,404 290.664,404 222.893,404 " fill="none" id="df-to-table" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="217.729,404,226.729,408,222.729,404,226.729,400,217.729,404" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="70" x="343" y="400.0669">Table(df)</text><!--MD5=[ae0fa2a24cc22fa34c3db85d07285d0f]
+link table to startable_specific--><path d="M178.5,383.172 C178.5,366.044 178.5,348.9158 178.5,331.7875 C178.5,323.2234 178.5,314.6593 178.5,306.0952 C178.5,301.8131 178.5,297.5311 178.5,293.249 C178.5,292.1785 178.5,291.108 178.5,290.0375 C178.5,289.5023 178.5,288.967 178.5,288.4318 C178.5,288.298 178.5,288.1641 178.5,288.0303 " fill="none" id="table-startable_specific" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[77480eb4aa5c87b92d98f069acf54807]
+link df to generalist--><path d="M583,383.172 C583,366.044 583,348.9158 583,331.7875 C583,323.2234 583,314.6593 583,306.0952 C583,301.8131 583,297.5311 583,293.249 C583,292.1785 583,291.108 583,290.0375 C583,289.5023 583,288.967 583,288.4318 C583,288.298 583,288.1641 583,288.0303 " fill="none" id="df-generalist" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[c17ad3517c45bf2368ec3462cd70b640]
+link startable_specific to generalist--><!--MD5=[5200a2e5724b74741c548e78747d557b]
+@startuml
+skinparam {
+    ArrowFontName Consolas 
+    FileFontName Consolas
+}
+
+left to right direction
+
+rectangle use_cases as "=Intended use cases" #LightGray {
+
+    rectangle startable_specific as "StarTable-specific" #WhiteSmoke {
+        usecase io as "Read/write\nStarTable data"
+        usecase metadata as "Access metadata\n(units, destinations, etc.)"
+    }
+    rectangle generalist as "Generalist" #WhiteSmoke {
+        usecase data as "Data interaction\nvia Pandas API"
+        usecase io_stripped as "I/O stripped of\nStarTable-specific metadata" 
+    }
+}
+
+rectangle interfaces as "=Interfaces" #LightGray {
+    file table as "=Table"
+    file df as "=PandasTable"
+}
+
+table - -> df : <b>Table.df
+df - -> table : <b>Table(df)
+
+table - startable_specific 
+df - generalist
+startable_specific -[hidden]- generalist
+@enduml
+
+PlantUML version 1.2020.17(Sat Sep 19 12:30:11 UTC 2020)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
