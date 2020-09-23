@@ -1,0 +1,35 @@
+@startuml table_interfaces
+
+skinparam {
+    ArrowFontName Consolas
+    FileFontName Consolas
+}
+
+left to right direction
+
+rectangle use_cases as "=Intended use cases" #LightGray {
+
+    rectangle startable_specific as "StarTable-specific" #WhiteSmoke {
+        usecase io as "Read/write\nStarTable data"
+        usecase metadata as "Access metadata\n(units, destinations, etc.)"
+    }
+    rectangle generalist as "Generalist" #WhiteSmoke {
+        usecase data as "Data interaction\nvia Pandas API"
+        usecase io_stripped as "I/O stripped of\nStarTable-specific metadata"
+    }
+}
+
+rectangle interfaces as "=Interfaces" #LightGray {
+    file table as "=Table"
+    file df as "=PandasTable"
+}
+
+table --> df : <b>Table.df
+df --> table : <b>Table(df)
+
+table - startable_specific 
+df - generalist
+startable_specific -[hidden]- generalist
+
+
+@enduml

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="522px" preserveAspectRatio="none" style="width:721px;height:522px;" version="1.1" viewBox="0 0 721 522" width="721px" zoomAndPan="magnify"><defs><filter height="300%" id="ff4mkdngnj4is" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><!--MD5=[07ef9424536f13107ccaabb0622252fc]
+cluster use_cases--><rect fill="#D3D3D3" filter="url(#ff4mkdngnj4is)" height="310" style="stroke: #000000; stroke-width: 1.5;" width="697" x="7" y="7"/><text fill="#000000" font-family="sans-serif" font-size="18" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="101" x="305" y="25.708">Use cases</text><!--MD5=[87fd641d1f01a8568ea3b1bc01f4e082]
+cluster startable_specific--><rect fill="#F5F5F5" filter="url(#ff4mkdngnj4is)" height="223" style="stroke: #000000; stroke-width: 1.5;" width="279" x="39" y="62"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="149" x="104" y="76.9951">StarTable-specific</text><!--MD5=[7a219f532eabe79ed8f627770ae2581a]
+cluster generalist--><rect fill="#F5F5F5" filter="url(#ff4mkdngnj4is)" height="138" style="stroke: #000000; stroke-width: 1.5;" width="234" x="438" y="147"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="84" x="513" y="161.9951">Generalist</text><!--MD5=[e25d2abf3c472b89b03b52c7e4262e29]
+cluster interfaces--><rect fill="#D3D3D3" filter="url(#ff4mkdngnj4is)" height="164" style="stroke: #000000; stroke-width: 1.5;" width="524" x="123.5" y="341"/><text fill="#000000" font-family="sans-serif" font-size="18" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="106" x="332.5" y="359.708">Interfaces</text><ellipse cx="178.2878" cy="129.7664" fill="#FEFECE" filter="url(#ff4mkdngnj4is)" rx="73.7878" ry="24.7664" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="78" x="139.2878" y="124.3983">Read/write</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="106" x="125.2878" y="140.6952">StarTable data</text><ellipse cx="178.713" cy="216.0426" fill="#FEFECE" filter="url(#ff4mkdngnj4is)" rx="115.713" ry="25.5426" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="123" x="117.213" y="209.9482">Access metadata</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="179" x="89.213" y="226.2451">(units, destinations, etc.)</text><ellipse cx="555.1297" cy="215.755" fill="#FEFECE" filter="url(#ff4mkdngnj4is)" rx="93.1297" ry="25.255" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="132" x="489.1297" y="213.3961">Data manipulation</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="112" x="499.1297" y="229.693">with Pandas API</text><!--MD5=[1a9b3ce6b05045b91178d8f4231a8390]
+entity table--><polygon fill="#FEFECE" filter="url(#ff4mkdngnj4is)" points="139.5,380.5,139.5,421.4531,217.5,421.4531,217.5,390.5,207.5,380.5,139.5,380.5" style="stroke: #000000; stroke-width: 1.5;"/><path d="M207.5,380.5 L207.5,390.5 L217.5,390.5 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="Consolas" font-size="18" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="58" x="149.5" y="407.208">Table</text><!--MD5=[3c475d84a833d2530f061502a45c1beb]
+entity df--><polygon fill="#FEFECE" filter="url(#ff4mkdngnj4is)" points="478.5,380.5,478.5,421.4531,631.5,421.4531,631.5,390.5,621.5,380.5,478.5,380.5" style="stroke: #000000; stroke-width: 1.5;"/><path d="M621.5,380.5 L621.5,390.5 L631.5,390.5 " fill="#FEFECE" style="stroke: #000000; stroke-width: 1.5;"/><text fill="#000000" font-family="Consolas" font-size="18" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="133" x="488.5" y="407.208">PandasTable</text><!--MD5=[488466c7cdc895908da97898d31e11bc]
+link table to df--><path d="M217.864,420.455 C264.118,441.5169 344.333,470.4166 414,457 C447.412,450.5654 482.987,436.2284 509.914,423.6724 " fill="none" id="table-to-df" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="514.499,421.5131,504.6525,421.7284,509.9754,423.6432,508.0606,428.9661,514.499,421.5131" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="63" x="346.5" y="453.0669">Table.df</text><!--MD5=[edcc81b920d633f24b8401ca4ccaa4f6]
+link df to table--><path d="M478.283,401 C401.526,401 285.43,401 222.958,401 " fill="none" id="df-to-table" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="217.818,401,226.818,405,222.818,401,226.818,397,217.818,401" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="Consolas" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="70" x="343" y="397.0669">Table(df)</text><!--MD5=[ae0fa2a24cc22fa34c3db85d07285d0f]
+link table to startable_specific--><path d="M178.5,380.172 C178.5,363.044 178.5,345.9158 178.5,328.7875 C178.5,320.2234 178.5,311.6593 178.5,303.0952 C178.5,298.8131 178.5,294.5311 178.5,290.249 C178.5,289.1785 178.5,288.108 178.5,287.0375 C178.5,286.5023 178.5,285.967 178.5,285.4318 C178.5,285.298 178.5,285.1641 178.5,285.0303 " fill="none" id="table-startable_specific" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[77480eb4aa5c87b92d98f069acf54807]
+link df to generalist--><path d="M555,380.172 C555,363.044 555,345.9158 555,328.7875 C555,320.2234 555,311.6593 555,303.0952 C555,298.8131 555,294.5311 555,290.249 C555,289.1785 555,288.108 555,287.0375 C555,286.5023 555,285.967 555,285.4318 C555,285.298 555,285.1641 555,285.0303 " fill="none" id="df-generalist" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[c17ad3517c45bf2368ec3462cd70b640]
+link startable_specific to generalist--><!--MD5=[7d0c41c1650467e4c7690975b445a0fc]
+@startuml
+skinparam {
+    ArrowFontName Consolas
+    FileFontName Consolas
+}
+
+left to right direction
+
+rectangle use_cases as "=Use cases" #LightGray {
+
+    rectangle startable_specific as "StarTable-specific" #WhiteSmoke {
+    usecase io as "Read/write\nStarTable data"
+    usecase metadata as "Access metadata\n(units, destinations, etc.)"
+    }
+    rectangle generalist as "Generalist" #WhiteSmoke {
+    usecase data as "Data manipulation\nwith Pandas API"
+    }
+}
+
+rectangle interfaces as "=Interfaces" #LightGray {
+    file table as "=Table"
+    file df as "=PandasTable"
+}
+
+table - -> df : <b>Table.df
+df - -> table : <b>Table(df)
+
+table - startable_specific
+df - generalist
+startable_specific -[hidden]- generalist
+@enduml
+
+PlantUML version 1.2020.17(Sat Sep 19 12:30:11 UTC 2020)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
