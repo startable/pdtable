@@ -1,12 +1,12 @@
 from typing import Tuple, Any
 
 import pytest
-from ..units import UnitPolicy, normalize_table_in_place
+from ..units import UnitPolicy
 from ..readers.parsers.blocks import make_table
 from textwrap import dedent
 
 
-class MinimalExampleUnitPolicy(UnitPolicy):
+class SuperSimpleUnitPolicy(UnitPolicy):
     def convert_value_to_base(self, value, unit: str) -> Tuple[Any, str]:
         if unit == "mm":
             return value * 1e-3, "m"
@@ -16,7 +16,7 @@ class MinimalExampleUnitPolicy(UnitPolicy):
 
 @pytest.fixture
 def unit_policy() -> UnitPolicy:
-    return MinimalExampleUnitPolicy()
+    return SuperSimpleUnitPolicy()
 
 
 def test_unit_policy__converts_values(unit_policy):
@@ -24,7 +24,7 @@ def test_unit_policy__converts_values(unit_policy):
     assert unit_policy.convert_value_to_base("test", "text") == ("test", "text")
 
 
-def test_normalize_table_in_place(unit_policy):
+def test_convert_units(unit_policy):
 
     cells = [
         [cell.strip() for cell in line.split(";")]
@@ -43,7 +43,8 @@ def test_normalize_table_in_place(unit_policy):
     ]
     t = make_table(cells)
 
-    normalize_table_in_place(unit_policy, t)
+
+    t.convert_units(unit_policy)
 
     assert t["length"].values[0] == 1e-3
     assert t["length"].unit == "m"
@@ -70,7 +71,7 @@ class MoreComplexUnitPolicy(UnitPolicy):
         return value, unit
 
 
-def test_normalize_table_in_place__with_more_complex_unit_policy():
+def test_convert_units__with_more_complex_unit_policy():
     # fmt off
     cells = [
         ["**input_files_derived"],
@@ -82,7 +83,7 @@ def test_normalize_table_in_place__with_more_complex_unit_policy():
     ]
     # fmt on
     t = make_table(cells)
-    normalize_table_in_place(MoreComplexUnitPolicy(), t)
+    t.convert_units(MoreComplexUnitPolicy())
 
     assert t["length"].values[0] == 1e-3
     assert t["length"].unit == "m"
@@ -101,7 +102,7 @@ def test_normalize_table_in_place__with_more_complex_unit_policy():
     # fmt on
 
     t_ident = make_table(cells2)
-    normalize_table_in_place(MoreComplexUnitPolicy(), t_ident)
+    t_ident.convert_units(MoreComplexUnitPolicy())
 
     assert t_ident["length"].values[0] == 1
     assert t_ident["length"].unit == "mm"

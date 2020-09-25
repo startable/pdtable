@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, Any
-from . import Table as TableType
 
 
 class UnitPolicy(ABC):
@@ -27,14 +26,3 @@ class UnitPolicy(ABC):
     def table_name(self, value):
         self._table_name = value
 
-
-def normalize_table_in_place(unit_policy: UnitPolicy, table: TableType):
-    """Apply unit policy, modifying table in-place"""
-    unit_policy.table_name = table.name
-    for column in table.column_proxies:
-        unit = column.unit
-        unit_policy.column_name = column.name
-        new_values, new_unit = unit_policy.convert_value_to_base(column.values, unit)
-        if not unit == new_unit:
-            column.values = new_values
-            column.unit = new_unit

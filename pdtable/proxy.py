@@ -2,6 +2,7 @@ from typing import Union, Dict, List, Optional, Set
 
 import pandas as pd
 
+from .units import UnitPolicy
 from .pandastable import (
     PandasTable,
     get_table_data,
@@ -157,6 +158,7 @@ class Table:
         set_units(self._df, unit_values)
 
     def get_row(self, index: int) -> List:
+        # TODO call it 'row', and make it indexable, like iloc is?
         return self._df.iloc[index, :].values.tolist()
 
     def add_column(self, name: str, values, unit: Optional[str] = None, **kwargs):
@@ -233,6 +235,17 @@ class Table:
             # different dtypes e.g. 10 and 10.0 are considered 'not equal'. In StarTable, a number
             # is just a number, and no such distinction should be made between data types.
         return False
+
+    def convert_units(self, unit_policy: UnitPolicy):
+        """Apply unit policy, modifying table in-place"""
+        unit_policy.table_name = self.name
+        for column in self.column_proxies:
+            unit = column.unit
+            unit_policy.column_name = column.name
+            new_values, new_unit = unit_policy.convert_value_to_base(column.values, unit)
+            if not unit == new_unit:
+                column.values = new_values
+                column.unit = new_unit
 
 
 def _equal_or_same(a, b):
