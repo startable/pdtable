@@ -238,6 +238,7 @@ class Table:
 
     def convert_units(self, unit_policy: UnitPolicy):
         """Apply unit policy, modifying table in-place"""
+        # TODO a convenient way to specify "pls convert back to display_units"
         unit_policy.table_name = self.name
         for column in self.column_proxies:
             unit = column.unit
