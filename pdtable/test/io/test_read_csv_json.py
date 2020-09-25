@@ -61,20 +61,12 @@ def test_json_pdtable():
                   "values": [ True, False, True, False, True, False ] }
       },
       "destinations": { "your_farm": None, "my_farm": None,
-                        "farms_galore": None },
-      "origin": '"types1.csv" row 1'
+                        "farms_galore": None }
     }
     # fmt: on
 
     json_pdtab = json_data_to_table(table_json_data)
-
-    print(f"pandas_pdtab: {json_pdtab.metadata.origin}, {json_pdtab.destinations}")
-    print(pandas_pdtab)
-    print(f"json_pdtab: {json_pdtab.metadata.origin}, {json_pdtab.destinations}")
-    print(json_pdtab)
-
     assert pandas_pdtab.equals(json_pdtab)
-
 
 def test_json_data_to_pdtable():
     """ ensure dict-obj to pdtable conversion
@@ -112,13 +104,11 @@ def test_json_data_to_pdtable():
                   "values": [ True, False, True, False, True, False ] }
       },
       "destinations": { "your_farm": None, "my_farm": None,
-                        "farms_galore": None },
-      "origin": '"types1.csv" row 1'
+                        "farms_galore": None }
     }
     # fmt: on
 
     table_from_json = json_data_to_table(table_json_data)
-
     assert table_from_cell_grid.equals(table_from_json)
 
     # Round trip

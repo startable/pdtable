@@ -15,7 +15,7 @@ def json_data_to_table(table_json_data: JsonData) -> Table:
     json_rows = list(map(list, zip(*data)))  # transposed columns
     lines_json.extend(json_rows)
     # note: this allows us to use ParseFixer !
-    return make_table(lines_json, origin=table_json_data["origin"])
+    return make_table(lines_json, origin="JsonData")
 
 
 def table_to_json_data(table: Table) -> JsonData:
@@ -24,7 +24,6 @@ def table_to_json_data(table: Table) -> JsonData:
 
     table_data = {
         "name": table.name,
-        "origin": table.metadata.origin,
         "destinations": {dst: None for dst in table.metadata.destinations},
     }
     table_data["columns"] = {}

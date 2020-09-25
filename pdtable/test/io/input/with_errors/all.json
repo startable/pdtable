@@ -79,8 +79,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"cols1.csv\""
+      }
    },
    "cols2.csv": {
       "name": "farm_cols2",
@@ -150,8 +149,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"cols2.csv\""
+      }
    },
    "ex0.csv": {
       "name": "farm_animals0",
@@ -194,8 +192,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"ex0.csv\""
+      }
    },
    "ex1.csv": {
       "name": "farm_animals1",
@@ -238,8 +235,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"ex1.csv\""
+      }
    },
    "ex2.csv": {
       "name": "farm_animals2",
@@ -282,8 +278,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"ex2.csv\""
+      }
    },
    "ex3.csv": {
       "name": "farm_animals3",
@@ -326,8 +321,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"ex3.csv\""
+      }
    },
    "json1.csv": {
       "name": "farm_json1",
@@ -403,8 +397,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"json1.csv\""
+      }
    },
    "row1.csv": {
       "name": "farm_row1",
@@ -447,8 +440,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"row1.csv\""
+      }
    },
    "row2.csv": {
       "name": "farm_row2",
@@ -491,8 +483,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"row2.csv\""
+      }
    },
    "types1.csv": {
       "name": "farm_types1",
@@ -546,8 +537,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"types1.csv\""
+      }
    },
    "types2.csv": {
       "name": "farm_types2",
@@ -601,8 +591,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"types2.csv\""
+      }
    },
    "types3.csv": {
       "name": "farm_types3",
@@ -700,8 +689,7 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"types3.csv\""
+      }
    },
    "units1.csv": {
       "name": "farm_units1",
@@ -747,7 +735,6 @@
          "your_farm": null,
          "my_farm": null,
          "farms_galore": null
-      },
-      "origin": "\"units1.csv\""
+      }
    }
 }
