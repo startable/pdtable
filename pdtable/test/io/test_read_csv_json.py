@@ -60,6 +60,24 @@ def test_json_pdtable():
         "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None},
         "origin": '"types1.csv" row 1',
     }
+
+# TBC !?
+#   table_data = {
+#      "name": "farm_types1",
+#      "columns": {
+#         "species": { "unit": "text",
+#            "data": [ "chicken", "pig", "goat", "zybra", "cow", "goose" ] },
+#         "num": { "unit": "-",
+#                  "data": [ 2.0, 4.0, 4.0, 4.0, null, 2.0 ] },
+#         "flt": { "unit": "kg",
+#                  "data": [ 3.0, 39.0, null, null, 200.0, 9.0 ] },
+#         "log": { "unit": "onoff",
+#                  "data": [ true, false, true, false, true, false ] }
+#      },
+#      "destinations": { "your_farm": null },
+#      "origin": "\"types1.csv\""
+#    },
+
     json_pdtab = Table(
         make_pdtable(
             pd.DataFrame(table_data["columns"]),

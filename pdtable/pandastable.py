@@ -80,6 +80,8 @@ def _combine_tables(obj: 'PandasTable', other, method, **kwargs) -> TableData:
         src = [other.left, other.right]
     elif method == 'concat':
         src = other.objs
+    elif method == 'copy':
+        src = [other]
     else:
         raise UnknownOperationError(f'Unknown method while combining metadata: {method}. Keyword args: {kwargs}')
 
@@ -193,7 +195,7 @@ def make_pdtable(
 
     Either units (list of units for all columns) or unit_map can be provided. Otherwise default units are assigned.
 
-    Example: 
+    Example:
     dft = make_pdtable(df, name='MyTable')
     """
 
@@ -220,7 +222,7 @@ def make_pdtable(
 def get_table_data(df: PandasTable, fail_if_missing=True, check_dataframe=True) -> Optional[
     TableData]:
     """
-    Get TableData from existing PandasTable object. 
+    Get TableData from existing PandasTable object.
 
     When called with default options, get_table_data will either raise an exception
     or return a TableData object with a valid ColumnMetadata defined for each column.

@@ -25,6 +25,7 @@ For each of these:
 
 """
 import sys
+import io
 from typing import Sequence, Optional, Tuple, Any, Iterable, List
 
 import pandas as pd
@@ -146,12 +147,17 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwarg
         )
     )
 
-
 def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     """Parses cell grid into a JSON-ready data structure."""
     impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
+    # attach unit directly to individual column
+    units = impure_json["units"]
+    del impure_json["units"]
+    columns = {}
+    for cname,unit in zip(impure_json["columns"].keys(),units):
+        columns[cname] = {"unit": unit, "data": impure_json["columns"][cname]}
+    impure_json["columns"] = columns
     return to_json_serializable(impure_json)
-
 
 def make_block(
     block_type: BlockType, cells: CellGrid, origin, **kwargs

@@ -71,10 +71,10 @@ def test_custom_fixer():
         g = read_csv(fh, to="jsondata", fixer=fix_pi)
         for tp, tt in g:
             if tp == BlockType.TABLE:
-                assert tt["columns"]["num"][2] == 22.0 / 7.0
-                assert tt["columns"]["flt"][0] == 22.0 / 7.0
-                assert tt["columns"]["flt"][0] == 22.0 / 7.0
-                assert tt["columns"]["flt2"][2] == 22.0 / 7.0
+                assert tt["columns"]["num"]["data"][2] == 22.0 / 7.0
+                assert tt["columns"]["flt"]["data"][0] == 22.0 / 7.0
+                assert tt["columns"]["flt"]["data"][0] == 22.0 / 7.0
+                assert tt["columns"]["flt2"]["data"][2] == 22.0 / 7.0
 
 
 def test_FAT():
@@ -118,7 +118,6 @@ def test_FAT():
             else:
                 assert count == 1
 
-
 import pytest
 
 
@@ -156,7 +155,7 @@ def test_stop_on_errors():
         for typ, tab in parse_blocks(table_lines, fixer=fix, to="jsondata"):
             if typ != BlockType.TABLE:
                 continue
-            assert tab["columns"]["a4"][0] == 3.14
+            assert tab["columns"]["a4"]["data"][0] == 3.14
             pi += 1
 
     # cellgrid does not parse values, i.e. no ValueError

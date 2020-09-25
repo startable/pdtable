@@ -10,8 +10,9 @@ def json_data_to_table(table_json_data: JsonData) -> Table:
     lines_json.append([f'**{table_json_data["name"]}'])
     lines_json.append([" ".join(table_json_data["destinations"])])
     lines_json.append([f"{cname}" for cname in table_json_data["columns"].keys()])
-    lines_json.append([f"{unit}" for unit in table_json_data["units"]])
-    json_rows = list(map(list, zip(*table_json_data["columns"].values())))  # transposed columns
+    lines_json.append([f"{col['unit']}" for col in table_json_data["columns"].values()])
+    data = [col["data"] for col in table_json_data["columns"].values()]
+    json_rows = list(map(list, zip(*data)))  # transposed columns
     lines_json.extend(json_rows)
     # note: this allows us to use ParseFixer !
     return make_table(lines_json, origin=table_json_data["origin"])
