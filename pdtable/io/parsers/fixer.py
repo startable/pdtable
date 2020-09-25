@@ -1,8 +1,7 @@
+import sys
 from typing import List, Any
-
 import numpy as np
 import pandas as pd
-
 
 class ParseFixer:
     """ base class for auto-correcting errors and irregularities when parsing StarTable data
@@ -127,3 +126,19 @@ class ParseFixer:
             return default_val
         else:
             return defaults["-"]
+
+    def report(self):
+        """ Inform user on stdout, stderr of any warnings / errors
+        """
+        if self.fixes > 0 and self.stop_on_errors:
+            txt = f"Error(s): stop after {self.fixes} errors in input table '{self.table_name}'"
+            raise ValueError(txt)
+
+        if(hasattr(ParseFixer,'_called_from_test')):
+            return
+
+        if self._warnings > 0:
+            print(f"\nWarning: {self._warnings} data errors fixed while parsing table '{self.table_name}'\n")
+
+        if self._errors > 0:
+            sys.stderr.write(f"\nError: {self._errors} column errors fixed while parsing table '{self.table_name}'\n")

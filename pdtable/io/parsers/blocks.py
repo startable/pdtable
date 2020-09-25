@@ -110,16 +110,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
                 f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
             ) from e
 
-    # TODO fixer should be responsible for reporting and raising errors. Parser shouldn't have to query fixer.
-    if fixer.fixes > 0 and fixer.stop_on_errors:
-        txt = f"Error(s): stop after {fixer.fixes} errors in input table '{fixer.table_name}'"
-        raise ValueError(txt)
-
-    if fixer._warnings > 0:
-        print(f"\nWarning: {fixer._warnings} data errors fixed while parsing\n")
-
-    if fixer._errors > 0:
-        sys.stderr.write(f"\nError: {fixer._errors} column errors fixed while parsing\n")
+    fixer.report()
 
     return {
         "name": table_name,
@@ -152,7 +143,8 @@ def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
     # attach unit directly to individual column
     units = impure_json["units"]
-    del impure_json["units"]
+    del impure_json["units"]  #  replaced by "unit" field in columns
+    del impure_json["origin"] #  not relevant for json_data
     columns = {}
     for cname,unit in zip(impure_json["columns"].keys(),units):
         columns[cname] = {"unit": unit, "values": impure_json["columns"][cname]}
