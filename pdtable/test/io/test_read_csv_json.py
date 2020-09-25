@@ -47,7 +47,7 @@ def test_json_pdtable():
     g = parse_blocks(cell_rows, **{"origin": '"types1.csv" row 1'})
     for tp, tab in g:
         pandas_pdtab = tab
-
+    # fmt: off
     table_json_data = {
       "name": "farm_types1",
       "columns": {
@@ -64,6 +64,7 @@ def test_json_pdtable():
                         "farms_galore": None },
       "origin": '"types1.csv" row 1'
     }
+    # fmt: on
 
     json_pdtab = json_data_to_table(table_json_data)
 
@@ -97,6 +98,7 @@ def test_json_data_to_pdtable():
 
     # Make an identical table, but starting from JSON
 
+    # fmt: off
     table_json_data = {
       "name": "farm_types1",
       "columns": {
@@ -113,6 +115,7 @@ def test_json_data_to_pdtable():
                         "farms_galore": None },
       "origin": '"types1.csv" row 1'
     }
+    # fmt: on
 
     table_from_json = json_data_to_table(table_json_data)
 
