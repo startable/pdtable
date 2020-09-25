@@ -1,0 +1,26 @@
+@startuml io_simple
+
+title = pdtable.io simplified API
+
+skinparam {
+    ArrowFontName Consolas
+}
+
+left to right direction
+
+rectangle files as "File / stream" #WhiteSmoke {
+    file csv as "<b>StarTable CSV"
+    file xl as "<b>StarTable\n<b>Excel workbook\n(file only)"
+}
+
+rectangle memory as "Memory" #WhiteSmoke {
+    file table as "==Table"
+}
+
+csv --> table : <b>read_csv()
+xl --> table : <b>read_excel()
+
+csv <-- table #Gray : <b>write_csv()
+xl <-- table #Gray : <b>write_excel()
+
+@enduml
