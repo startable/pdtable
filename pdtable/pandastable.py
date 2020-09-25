@@ -41,9 +41,9 @@ https://github.com/pandas-dev/pandas/issues/6923#issuecomment-41043225.
 
 ## Alternative approaches
 
-It should be possible to maintain coloun metadata together with the column data through the use of
-`ExtensionArray`. This option was discarded early due to performance concerns, but might be viable and
-would the be preferable to the chosen approach.
+It should be possible to maintain column metadata together with the column data through the use of
+`ExtensionArray`. This option was discarded early due to performance concerns, but might be viable
+and would the be preferable to the chosen approach.
 """
 
 import pandas as pd
@@ -65,8 +65,7 @@ class InvalidTableCombineError(Exception):
 
 def _combine_tables(obj: 'PandasTable', other, method, **kwargs) -> TableData:
     """
-    Called from dataframe.__finalize__ when dataframe operations have been performed
-    on the dataframe backing a table.
+    Called from __finalize__ when operations have been performed via the pandas.DataFrame API.
 
     Implementation policy is that this will fail except for situations where
     the metadata combination is safe.
@@ -74,12 +73,14 @@ def _combine_tables(obj: 'PandasTable', other, method, **kwargs) -> TableData:
     """
 
     if method is None:
-        # copy, slicing
+        # slicing
         src = [other]
     elif method == 'merge':
         src = [other.left, other.right]
     elif method == 'concat':
         src = other.objs
+    elif method == 'copy':
+        src = [other]
     else:
         raise UnknownOperationError(f'Unknown method while combining metadata: {method}. Keyword args: {kwargs}')
 
@@ -117,17 +118,16 @@ def _combine_tables(obj: 'PandasTable', other, method, **kwargs) -> TableData:
 
 class PandasTable(pd.DataFrame):
     """
-    A pandas dataframe subclass with associated table metadata.
+    A pandas.DataFrame subclass with associated table metadata.
 
-    Behaves exactly as a dataframe with and will try to retain metadata
+    Behaves exactly as a pandas.DataFrame, and will try to retain metadata
     through pandas operations. If this is not possible, the manipulations
-    will return a normal dataframe.
+    will return a plain pandas.DataFrame.
 
-    No table-specific methods are available directly on this class, and PandasTable
+    No StarTable-specific methods are available directly on this class, and PandasTable
     objects should not be created directly.
-    Instead, use either the methods in the pdtable module, or the table proxy
-    object which may be constructed for a PandasTable object via
-    Table(dft).
+    Instead, use either the methods in the this module, or the Table proxy
+    object, which can be constructed for a PandasTable object 'tdf' via Table(tdf).
     """
     _metadata = [_TABLE_DATA_FIELD_NAME]  # Register metadata fieldnames here
 
@@ -151,8 +151,10 @@ class PandasTable(pd.DataFrame):
 
     def __finalize__(self, other, method=None, **kwargs):
         """
-        This method is responsible for populating metadata
-        when creating new Table-object.
+        Overrides pandas.core.generic.NDFrame.__finalize__()
+
+        This method is responsible for populating PandasTable metadata
+        when creating a new Table object.
 
         If left out, no metadata would be retained across table
         operations. This might be a viable solution?
@@ -186,15 +188,16 @@ def make_pdtable(
         metadata: Optional[TableMetadata] = None,
         **kwargs) -> PandasTable:
     """
-    Create PandasTable object from dataframe and table metadata
+    Create PandasTable object from a pandas.DataFream and table metadata elements.
 
-    Unknown keyword arguments (e.g. `name = ...`) are used to create `TableMetadata` object.
+    Unknown keyword arguments (e.g. `name = ...`) are used to create a `TableMetadata` object.
     Alternatively, a `TableMetadata` object can be provided directly.
 
-    Either units (list of units for all columns) or unit_map can be provided. Otherwise default units are assigned.
+    Either a list of units for all columns, or a unit_map can be provided. Otherwise, default units
+    are assigned.
 
-    Example: 
-    dft = make_pdtable(df, name='MyTable')
+    Example:
+    tdf = make_pdtable(df, name='MyTable')
     """
 
     # build metadata
@@ -220,13 +223,13 @@ def make_pdtable(
 def get_table_data(df: PandasTable, fail_if_missing=True, check_dataframe=True) -> Optional[
     TableData]:
     """
-    Get TableData from existing PandasTable object. 
+    Get TableData from existing PandasTable object.
 
     When called with default options, get_table_data will either raise an exception
     or return a TableData object with a valid ColumnMetadata defined for each column.
 
-    check: Check that the table data is valid with respect to dataframe.
-           If the dataframe has been manipulated directly, table will be updated to match.
+    check_dataframe: Check that the table data is valid with respect to dataframe.
+                     If the dataframe has been manipulated directly, table will be updated to match.
     fail_if_missing: Whether to raise an exception if TableData object is missing
     """
     name: str = _TABLE_DATA_FIELD_NAME
@@ -238,7 +241,7 @@ def get_table_data(df: PandasTable, fail_if_missing=True, check_dataframe=True) 
         if fail_if_missing:
             raise Exception(
                 'Missing TableData object on PandasTable.'
-                'PandasTable objects should be created via make_pdtable or an intermediate Table object')
+                'PandasTable objects should be created via make_pdtable or a Table proxy.')
     elif check_dataframe:
         table_data._check_dataframe(df)
     return table_data
@@ -247,14 +250,14 @@ def get_table_data(df: PandasTable, fail_if_missing=True, check_dataframe=True) 
 # example of manipulator function that directly manipulates PandasTable objects without constructing Table facade
 def add_column(df: PandasTable, name: str, values, unit: Optional[str] = None, **kwargs):
     """
-    Add or update column in table. If omitted, unit will be computed from value dtype
+    Add or update column in table. If omitted, unit will be partially inferred from value dtype.
 
     keyword arguments will be forwarded to ColumnMetadata constructor together with unit
     """
     df[name] = values
     columns = get_table_data(df, check_dataframe=False).columns
 
-    new_col =  ColumnMetadata.from_dtype(df[name].dtype, **kwargs) if unit is None \
+    new_col = ColumnMetadata.from_dtype(df[name].dtype, **kwargs) if unit is None \
         else ColumnMetadata(unit=unit, **kwargs)
 
     col = columns.get(name, None)
