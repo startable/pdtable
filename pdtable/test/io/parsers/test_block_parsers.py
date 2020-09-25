@@ -311,7 +311,7 @@ def test_parse_blocks__filters_correctly_for_different_output_types():
 
     assert len(json_data) == 1
     assert isinstance(json_data[0], dict)
-    assert json_data[0]["columns"]["a1"]["data"][0] == 3.14
+    assert json_data[0]["columns"]["a1"]["values"][0] == 3.14
 
     assert len(tables) == 1
     assert isinstance(tables[0], Table)

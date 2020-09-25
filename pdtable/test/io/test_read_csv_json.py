@@ -48,47 +48,30 @@ def test_json_pdtable():
     for tp, tab in g:
         pandas_pdtab = tab
 
-    table_data = {
-        "name": "farm_types1",
-        "columns": {
-            "species": ["chicken", "pig", "goat", "zybra", "cow", "goose"],
-            "num": [2.0, 4.0, 4.0, 4.0, None, 2.0],
-            "flt": [3.0, 39.0, None, None, 200.0, 9.0],
-            "log": [True, False, True, False, True, False],
-        },
-        "units": ["text", "-", "kg", "onoff"],
-        "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None},
-        "origin": '"types1.csv" row 1',
+    table_json_data = {
+      "name": "farm_types1",
+      "columns": {
+         "species": { "unit": "text",
+         "values": [ "chicken", "pig", "goat", "zybra", "cow", "goose" ] },
+         "num": { "unit": "-",
+                  "values": [ 2.0, 4.0, 4.0, 4.0, None, 2.0 ] },
+         "flt": { "unit": "kg",
+                  "values": [ 3.0, 39.0, None, None, 200.0, 9.0 ] },
+         "log": { "unit": "onoff",
+                  "values": [ True, False, True, False, True, False ] }
+      },
+      "destinations": { "your_farm": None, "my_farm": None,
+                        "farms_galore": None },
+      "origin": '"types1.csv" row 1'
     }
 
-# TBC !?
-#   table_data = {
-#      "name": "farm_types1",
-#      "columns": {
-#         "species": { "unit": "text",
-#            "data": [ "chicken", "pig", "goat", "zybra", "cow", "goose" ] },
-#         "num": { "unit": "-",
-#                  "data": [ 2.0, 4.0, 4.0, 4.0, null, 2.0 ] },
-#         "flt": { "unit": "kg",
-#                  "data": [ 3.0, 39.0, null, null, 200.0, 9.0 ] },
-#         "log": { "unit": "onoff",
-#                  "data": [ true, false, true, false, true, false ] }
-#      },
-#      "destinations": { "your_farm": null },
-#      "origin": "\"types1.csv\""
-#    },
+    json_pdtab = json_data_to_table(table_json_data)
 
-    json_pdtab = Table(
-        make_pdtable(
-            pd.DataFrame(table_data["columns"]),
-            units=table_data["units"],
-            metadata=TableMetadata(
-                name=table_data["name"],
-                destinations=set(table_data["destinations"]),
-                origin=table_data["origin"],
-            ),
-        )
-    )
+    print(f"pandas_pdtab: {json_pdtab.metadata.origin}, {json_pdtab.destinations}")
+    print(pandas_pdtab)
+    print(f"json_pdtab: {json_pdtab.metadata.origin}, {json_pdtab.destinations}")
+    print(json_pdtab)
+
     assert pandas_pdtab.equals(json_pdtab)
 
 
@@ -113,17 +96,22 @@ def test_json_data_to_pdtable():
     table_from_cell_grid = make_table(lines_target)
 
     # Make an identical table, but starting from JSON
+
     table_json_data = {
-        "name": "farm_types1",
-        "columns": {
-            "species": ["chicken", "pig", "goat", "zybra", "cow", "goose"],
-            "num": [2.0, 4.0, 4.0, 4.0, None, 2.0],
-            "flt": [3.0, 39.0, None, None, 200.0, 9.0],
-            "log": [True, False, True, False, True, False],
-        },
-        "units": ["text", "-", "kg", "onoff"],
-        "destinations": ["your_farm my_farm farms_galore"],
-        "origin": '"types1.csv" row 1',
+      "name": "farm_types1",
+      "columns": {
+         "species": { "unit": "text",
+         "values": [ "chicken", "pig", "goat", "zybra", "cow", "goose" ] },
+         "num": { "unit": "-",
+                  "values": [ 2.0, 4.0, 4.0, 4.0, None, 2.0 ] },
+         "flt": { "unit": "kg",
+                  "values": [ 3.0, 39.0, None, None, 200.0, 9.0 ] },
+         "log": { "unit": "onoff",
+                  "values": [ True, False, True, False, True, False ] }
+      },
+      "destinations": { "your_farm": None, "my_farm": None,
+                        "farms_galore": None },
+      "origin": '"types1.csv" row 1'
     }
 
     table_from_json = json_data_to_table(table_json_data)

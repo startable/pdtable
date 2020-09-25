@@ -4,7 +4,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -16,7 +16,7 @@
          },
          "num": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -28,7 +28,7 @@
          },
          "flt": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                39.0,
                null,
@@ -40,7 +40,7 @@
          },
          "dt": {
             "unit": "datetime",
-            "data": [
+            "values": [
                "2020-07-01 00:00:00",
                "2020-07-02 00:00:00",
                null,
@@ -52,7 +52,7 @@
          },
          "flt_fixed_000": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.21,
                39.1,
                1.1,
@@ -64,7 +64,7 @@
          },
          "flt_fixed_001": {
             "unit": "kg",
-            "data": [
+            "values": [
                1.0,
                2.1,
                3.2,
@@ -87,7 +87,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -99,7 +99,7 @@
          },
          "num": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -111,7 +111,7 @@
          },
          "missing_fixed_000": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                39.0,
                null,
@@ -123,7 +123,7 @@
          },
          "dt": {
             "unit": "datetime",
-            "data": [
+            "values": [
                "2020-07-01 00:00:00",
                "2020-07-02 00:00:00",
                null,
@@ -135,7 +135,7 @@
          },
          "flt": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.21,
                39.1,
                1.1,
@@ -158,7 +158,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -169,7 +169,7 @@
          },
          "n_legs": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -180,7 +180,7 @@
          },
          "avg_weight": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                30.0,
                null,
@@ -202,7 +202,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -213,7 +213,7 @@
          },
          "n_legs": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -224,7 +224,7 @@
          },
          "avg_weight": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                39.0,
                null,
@@ -246,7 +246,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -257,7 +257,7 @@
          },
          "n_legs": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -268,7 +268,7 @@
          },
          "avg_weight": {
             "unit": "kg",
-            "data": [
+            "values": [
                null,
                39.0,
                null,
@@ -290,7 +290,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -301,7 +301,7 @@
          },
          "n_legs": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -312,7 +312,7 @@
          },
          "avg_weight": {
             "unit": "kg",
-            "data": [
+            "values": [
                null,
                39.0,
                null,
@@ -334,7 +334,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "\"chicken\"",
                "pig",
                "goat",
@@ -345,7 +345,7 @@
          },
          "dt": {
             "unit": "datetime",
-            "data": [
+            "values": [
                null,
                "2020-07-02 00:00:00",
                null,
@@ -356,7 +356,7 @@
          },
          "num": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                null,
@@ -367,7 +367,7 @@
          },
          "flt": {
             "unit": "kg",
-            "data": [
+            "values": [
                null,
                39.0,
                null,
@@ -378,7 +378,7 @@
          },
          "dt2": {
             "unit": "datetime",
-            "data": [
+            "values": [
                "2020-07-01 00:00:00",
                "2020-07-02 00:00:00",
                null,
@@ -389,7 +389,7 @@
          },
          "encode": {
             "unit": "onoff",
-            "data": [
+            "values": [
                true,
                false,
                false,
@@ -411,7 +411,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -422,7 +422,7 @@
          },
          "n_legs": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -433,7 +433,7 @@
          },
          "avg_weight": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                39.0,
                null,
@@ -455,7 +455,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -466,7 +466,7 @@
          },
          "n_legs": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -477,7 +477,7 @@
          },
          "avg_weight": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                39.0,
                null,
@@ -499,7 +499,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -510,7 +510,7 @@
          },
          "num": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -521,7 +521,7 @@
          },
          "flt": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                39.0,
                null,
@@ -532,7 +532,7 @@
          },
          "log": {
             "unit": "onoff",
-            "data": [
+            "values": [
                true,
                false,
                true,
@@ -554,7 +554,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -565,7 +565,7 @@
          },
          "num": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -576,7 +576,7 @@
          },
          "flt": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                39.0,
                null,
@@ -587,7 +587,7 @@
          },
          "dt": {
             "unit": "datetime",
-            "data": [
+            "values": [
                "2020-07-01 00:00:00",
                "2020-07-02 00:00:00",
                null,
@@ -609,7 +609,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -620,7 +620,7 @@
          },
          "dt": {
             "unit": "datetime",
-            "data": [
+            "values": [
                null,
                "2020-07-02 00:00:00",
                null,
@@ -631,7 +631,7 @@
          },
          "num": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                null,
@@ -642,7 +642,7 @@
          },
          "flt": {
             "unit": "kg",
-            "data": [
+            "values": [
                null,
                39.0,
                null,
@@ -653,7 +653,7 @@
          },
          "log": {
             "unit": "onoff",
-            "data": [
+            "values": [
                false,
                false,
                true,
@@ -664,7 +664,7 @@
          },
          "dt2": {
             "unit": "datetime",
-            "data": [
+            "values": [
                "2020-07-01 00:00:00",
                "2020-07-02 00:00:00",
                null,
@@ -675,7 +675,7 @@
          },
          "flt2": {
             "unit": "kg",
-            "data": [
+            "values": [
                null,
                39.0,
                null,
@@ -686,7 +686,7 @@
          },
          "log2": {
             "unit": "onoff",
-            "data": [
+            "values": [
                false,
                false,
                true,
@@ -708,7 +708,7 @@
       "columns": {
          "species": {
             "unit": "text",
-            "data": [
+            "values": [
                "chicken",
                "pig",
                "goat",
@@ -720,7 +720,7 @@
          },
          "num": {
             "unit": "-",
-            "data": [
+            "values": [
                2.0,
                4.0,
                4.0,
@@ -732,7 +732,7 @@
          },
          "flt": {
             "unit": "kg",
-            "data": [
+            "values": [
                3.0,
                39.0,
                null,

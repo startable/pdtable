@@ -155,7 +155,7 @@ def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     del impure_json["units"]
     columns = {}
     for cname,unit in zip(impure_json["columns"].keys(),units):
-        columns[cname] = {"unit": unit, "data": impure_json["columns"][cname]}
+        columns[cname] = {"unit": unit, "values": impure_json["columns"][cname]}
     impure_json["columns"] = columns
     return to_json_serializable(impure_json)
 
