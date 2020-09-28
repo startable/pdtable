@@ -35,8 +35,8 @@
 # have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded afterwards:
 #
 # ```
-# dft = make_table_dataframe(...)
-# unit_height = Table(dft).height.unit
+# tdf = make_table_dataframe(...)
+# unit_height = Table(tdf).height.unit
 # ```
 #
 # Advantages of this approach are that:
@@ -115,18 +115,19 @@ t2 = Table(pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=
 t2
 
 # %% [markdown]
-# ## The `TableDataFrame` / `pd.DataFrame` aspect
+# ## The `TableDataFrame` aspect
 #
 # Both the table contents and metadata displayed and manipulated throught the `Table`-class is stored as a `TableDataFrame` object, which is a normal pandas dataframe with two modifications:
 #
 # * It has a `_table_data` field registered as a metadata field, so that pandas will include it in copy operations, etc.
-# * It will preserve column and table metadata for some pandas operations, and fall back to returning a normal dataframe if this is not possible/implemented.
+# * It will preserve column and table metadata for some pandas operations, and fall back to returning a vanilla `pandas.DataFrame` if this is not possible/implemented.
 #
 
 # %%
-# After getting a reference to the dataframe backing t, it is safe to delete t:
+# After getting a reference to the TableDataFrame backing Table t, it is safe to delete t:
 df = t.df
 del t
+# Just construct a new Table facade, and everything is back in place.
 Table(df)
 
 # %%
