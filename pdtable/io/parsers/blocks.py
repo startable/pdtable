@@ -82,7 +82,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     # handle multiple columns w. same name
     col_names_raw = cells[2]
     column_names = preprocess_column_names(col_names_raw, fixer)
-    fixer.TableColumNames = column_names
+    fixer.TableColumNames = column_names  # TODO typo... no effect... intended behaviour?
 
     n_col = len(column_names)
     units = cells[3][:n_col]
@@ -269,7 +269,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
             yield block_type, block
 
 
-def preprocess_column_names(col_names_raw: List[str], fixer: ParseFixer):
+def preprocess_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
     """
        handle known issues in column_names
     """

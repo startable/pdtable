@@ -3,16 +3,14 @@ import os
 from pathlib import Path
 from textwrap import dedent
 
+import numpy as np
 import pandas as pd
 
 from pdtable import BlockType
-from pdtable import Table, TableMetadata
 from pdtable.io import json_data_to_table, table_to_json_data
-from pdtable.pandastable import make_pdtable
+from pdtable.io._json import to_json_serializable
 from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
-from pdtable.io._json import to_json_serializable
-import numpy as np
 
 
 def input_dir() -> Path:
@@ -51,22 +49,22 @@ def test_json_pdtable():
     table_json_data = {
       "name": "farm_types1",
       "columns": {
-         "species": { "unit": "text",
-         "values": [ "chicken", "pig", "goat", "zybra", "cow", "goose" ] },
-         "num": { "unit": "-",
-                  "values": [ 2.0, 4.0, 4.0, 4.0, None, 2.0 ] },
-         "flt": { "unit": "kg",
-                  "values": [ 3.0, 39.0, None, None, 200.0, 9.0 ] },
-         "log": { "unit": "onoff",
-                  "values": [ True, False, True, False, True, False ] }
+         "species": {"unit": "text",
+                     "values": ["chicken", "pig", "goat", "zybra", "cow", "goose"]},
+         "num": {"unit": "-",
+                 "values": [2.0, 4.0, 4.0, 4.0, None, 2.0]},
+         "flt": {"unit": "kg",
+                 "values": [3.0, 39.0, None, None, 200.0, 9.0]},
+         "log": {"unit": "onoff",
+                 "values": [True, False, True, False, True, False]}
       },
-      "destinations": { "your_farm": None, "my_farm": None,
-                        "farms_galore": None }
+      "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None}
     }
     # fmt: on
 
     json_pdtab = json_data_to_table(table_json_data)
     assert pandas_pdtab.equals(json_pdtab)
+
 
 def test_json_data_to_pdtable():
     """ ensure dict-obj to pdtable conversion
@@ -94,17 +92,17 @@ def test_json_data_to_pdtable():
     table_json_data = {
       "name": "farm_types1",
       "columns": {
-         "species": { "unit": "text",
-         "values": [ "chicken", "pig", "goat", "zybra", "cow", "goose" ] },
-         "num": { "unit": "-",
-                  "values": [ 2.0, 4.0, 4.0, 4.0, None, 2.0 ] },
-         "flt": { "unit": "kg",
-                  "values": [ 3.0, 39.0, None, None, 200.0, 9.0 ] },
-         "log": { "unit": "onoff",
-                  "values": [ True, False, True, False, True, False ] }
+         "species": {"unit": "text",
+                     "values": ["chicken", "pig", "goat", "zybra", "cow", "goose"]},
+         "num": {"unit": "-",
+                 "values": [2.0, 4.0, 4.0, 4.0, None, 2.0]},
+         "flt": {"unit": "kg",
+                 "values": [3.0, 39.0, None, None, 200.0, 9.0]},
+         "log": {"unit": "onoff",
+                 "values": [True, False, True, False, True, False]}
       },
-      "destinations": { "your_farm": None, "my_farm": None,
-                        "farms_galore": None }
+      "destinations": {"your_farm": None, "my_farm": None,
+                        "farms_galore": None}
     }
     # fmt: on
 
@@ -117,7 +115,7 @@ def test_json_data_to_pdtable():
     assert table_from_cell_grid.equals(table_from_json_round_trip)
 
 
-def test_FAT():
+def test_fat():
     """ Factory Acceptance Test
 
         Read input files as dictionary objects.
@@ -158,7 +156,7 @@ def test_FAT():
     assert count == all_files
 
 
-def test_pure_json_obj():
+def test_to_json_serializable():
     """ Unit test pure_json_obj / json_esc
     """
     obj = {

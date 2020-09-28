@@ -2,14 +2,16 @@ from .. import Table
 from ._json import to_json_serializable, JsonData
 from .parsers.blocks import make_table
 
+
 def json_data_to_table(table_json_data: JsonData) -> Table:
     """  translate table-dictionary (JSON-like) to Table
     """
-    lines_json = []
-    lines_json.append([f'**{table_json_data["name"]}'])
-    lines_json.append([" ".join(table_json_data["destinations"])])
-    lines_json.append([f"{cname}" for cname in table_json_data["columns"].keys()])
-    lines_json.append([f"{col['unit']}" for col in table_json_data["columns"].values()])
+    lines_json = [
+        [f'**{table_json_data["name"]}'],
+        [" ".join(table_json_data["destinations"])],
+        [f"{cname}" for cname in table_json_data["columns"].keys()],
+        [f"{col['unit']}" for col in table_json_data["columns"].values()],
+    ]
     data = [col["values"] for col in table_json_data["columns"].values()]
 
     json_rows = list(map(list, zip(*data)))  # transposed columns
@@ -25,11 +27,11 @@ def table_to_json_data(table: Table) -> JsonData:
     table_data = {
         "name": table.name,
         "destinations": {dst: None for dst in table.metadata.destinations},
+        "columns": {},
     }
-    table_data["columns"] = {}
-    for idx,cname in enumerate(table.column_names):
+    for idx, cname in enumerate(table.column_names):
         table_data["columns"][cname] = {
             "unit": table.units[idx],
-            "values": [vv for vv in table.df[cname]]
+            "values": [vv for vv in table.df[cname]],
         }
     return to_json_serializable(table_data)
