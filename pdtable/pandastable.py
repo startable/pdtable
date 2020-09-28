@@ -1,7 +1,7 @@
 """
 The `pdtable` module allows working with StarTable tables as pandas dataframes.
 
-This is implemented by providing both `Table` and `PandasTable` (dataframe) interfaces to the same object.
+This is implemented by providing both `Table` and `TableDataFrame` (dataframe) interfaces to the same object.
 
 ## Idea
 
@@ -25,13 +25,13 @@ Advantages of this approach are that:
 
 ## Implementation details
 
-The decorated dataframe objects are represented by the `PandasTable` class.
+The decorated dataframe objects are represented by the `TableDataFrame` class.
 
 ### Dataframe operations
 
 Pandas allows us to hook into operations on dataframes via the `__finalize__` method.
 This makes it possible to propagate table metadata over select dataframe operations.
-See `PandasTable` documentation for details.
+See `TableDataFrame` documentation for details.
 
 ### Column metadata
 
@@ -63,7 +63,7 @@ class InvalidTableCombineError(Exception):
     pass
 
 
-def _combine_tables(obj: "PandasTable", other, method, **kwargs) -> TableData:
+def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> TableData:
     """
     Called from __finalize__ when operations have been performed via the pandas.DataFrame API.
 
@@ -118,7 +118,7 @@ def _combine_tables(obj: "PandasTable", other, method, **kwargs) -> TableData:
     return TableData(metadata=meta, columns=columns)
 
 
-class PandasTable(pd.DataFrame):
+class TableDataFrame(pd.DataFrame):
     """
     A pandas.DataFrame subclass with associated table metadata.
 
@@ -126,10 +126,10 @@ class PandasTable(pd.DataFrame):
     through pandas operations. If this is not possible, the manipulations
     will return a plain pandas.DataFrame.
 
-    No StarTable-specific methods are available directly on this class, and PandasTable
+    No StarTable-specific methods are available directly on this class, and TableDataFrame
     objects should not be created directly.
     Instead, use either the methods in the this module, or the Table proxy
-    object, which can be constructed for a PandasTable object 'tdf' via Table(tdf).
+    object, which can be constructed for a TableDataFrame object 'tdf' via Table(tdf).
     """
 
     _metadata = [_TABLE_DATA_FIELD_NAME]  # Register metadata fieldnames here
@@ -150,13 +150,13 @@ class PandasTable(pd.DataFrame):
 
     @property
     def _constructor(self):
-        return PandasTable
+        return TableDataFrame
 
     def __finalize__(self, other, method=None, **kwargs):
         """
         Overrides pandas.core.generic.NDFrame.__finalize__()
 
-        This method is responsible for populating PandasTable metadata
+        This method is responsible for populating TableDataFrame metadata
         when creating a new Table object.
 
         If left out, no metadata would be retained across table
@@ -173,8 +173,8 @@ class PandasTable(pd.DataFrame):
         return self
 
     @staticmethod
-    def from_table_data(df: pd.DataFrame, data: TableData) -> "PandasTable":
-        df = PandasTable(df)
+    def from_table_data(df: pd.DataFrame, data: TableData) -> "TableDataFrame":
+        df = TableDataFrame(df)
         object.__setattr__(df, _TABLE_DATA_FIELD_NAME, data)
         data._check_dataframe(df)
         return df
@@ -190,9 +190,9 @@ def make_pdtable(
     unit_map: Optional[Dict[str, str]] = None,
     metadata: Optional[TableMetadata] = None,
     **kwargs,
-) -> PandasTable:
+) -> TableDataFrame:
     """
-    Create PandasTable object from a pandas.DataFream and table metadata elements.
+    Create TableDataFrame object from a pandas.DataFream and table metadata elements.
 
     Unknown keyword arguments (e.g. `name = ...`) are used to create a `TableMetadata` object.
     Alternatively, a `TableMetadata` object can be provided directly.
@@ -211,7 +211,7 @@ def make_pdtable(
         # This is intended to fail if args are insufficient
         metadata = TableMetadata(**kwargs)
 
-    df = PandasTable.from_table_data(df, data=TableData(metadata=metadata))
+    df = TableDataFrame.from_table_data(df, data=TableData(metadata=metadata))
 
     # set units
     if units and unit_map:
@@ -225,10 +225,10 @@ def make_pdtable(
 
 
 def get_table_data(
-    df: PandasTable, fail_if_missing=True, check_dataframe=True
+    df: TableDataFrame, fail_if_missing=True, check_dataframe=True
 ) -> Optional[TableData]:
     """
-    Get TableData from existing PandasTable object.
+    Get TableData from existing TableDataFrame object.
 
     When called with default options, get_table_data will either raise an exception
     or return a TableData object with a valid ColumnMetadata defined for each column.
@@ -241,22 +241,22 @@ def get_table_data(
     if name not in df._metadata:
         raise Exception(
             "Attempt to extract table data from normal pd.DataFrame object."
-            "TableData can only be associated with PandasTable objects"
+            "TableData can only be associated with TableDataFrame objects"
         )
     table_data = getattr(df, _TABLE_DATA_FIELD_NAME, None)
     if not table_data:
         if fail_if_missing:
             raise Exception(
-                "Missing TableData object on PandasTable."
-                "PandasTable objects should be created via make_pdtable or a Table proxy."
+                "Missing TableData object on TableDataFrame."
+                "TableDataFrame objects should be created via make_pdtable or a Table proxy."
             )
     elif check_dataframe:
         table_data._check_dataframe(df)
     return table_data
 
 
-# example of manipulator function that directly manipulates PandasTable objects without constructing Table facade
-def add_column(df: PandasTable, name: str, values, unit: Optional[str] = None, **kwargs):
+# example of manipulator function that directly manipulates TableDataFrame objects without constructing Table facade
+def add_column(df: TableDataFrame, name: str, values, unit: Optional[str] = None, **kwargs):
     """
     Add or update column in table. If omitted, unit will be partially inferred from value dtype.
 
@@ -279,13 +279,13 @@ def add_column(df: PandasTable, name: str, values, unit: Optional[str] = None, *
         col.update_from(new_col)
 
 
-def set_units(df: PandasTable, unit_map: Dict[str, str]):
+def set_units(df: TableDataFrame, unit_map: Dict[str, str]):
     columns = get_table_data(df).columns
     for col, unit in unit_map.items():
         columns[col] = unit
 
 
-def set_all_units(df: PandasTable, units: Iterable[Optional[str]]):
+def set_all_units(df: TableDataFrame, units: Iterable[Optional[str]]):
     """
     Set units for all columns in table.
     """

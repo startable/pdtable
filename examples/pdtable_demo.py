@@ -20,8 +20,8 @@
 # The `pdtable` package allows working with StarTable tables as pandas dataframes while consistently keeping track of StarTable-specific metadata such as table destinations and column units.
 #
 # This is implemented by providing two interfaces to the same backing object:
-# - `PandasTable` is derived from `pandas.DataFrame`. It carries the data and is the interface of choice for interacting with the data using the pandas API, with all the convenience that this entails.  It also carries StarTable metadata, but in a less accessible way.
-# - `Table` is a stateless façade for a backing `PandasTable` object. `Table` is the interface of choice for convenient access to StarTable-specific metadata such as column units, and table destinations and origin. Some data manipulation is also possible in the `Table` interface, though this functionality is limited.
+# - `TableDataFrame` is derived from `pandas.DataFrame`. It carries the data and is the interface of choice for interacting with the data using the pandas API, with all the convenience that this entails.  It also carries StarTable metadata, but in a less accessible way.
+# - `Table` is a stateless façade for a backing `TableDataFrame` object. `Table` is the interface of choice for convenient access to StarTable-specific metadata such as column units, and table destinations and origin. Some data manipulation is also possible in the `Table` interface, though this functionality is limited.
 #
 # ![Table interfaces](../docs/diagrams/img/table_interfaces/table_interfaces.svg)
 #
@@ -41,10 +41,10 @@
 #
 # Advantages of this approach are that:
 #
-# 1. Code can be written for (and tested with) pandas dataframes and still operate on `PandasTable` objects.
+# 1. Code can be written for (and tested with) pandas dataframes and still operate on `TableDataFrame` objects.
 #    This frees client code from necessarily being coupled to the startable project.
-#    A first layer of client code can read and manipulate StarTable data, and then pass it on as a (`PandasTable`-flavoured) `pandas.DataFrame` to a further layer having no knowledge of `pdtable`.
-# 2. The access methods of pandas `DataFrames`, `Series`, etc. are available for use by consumer code via the `PandasTable` interface. This both saves the work
+#    A first layer of client code can read and manipulate StarTable data, and then pass it on as a (`TableDataFrame`-flavoured) `pandas.DataFrame` to a further layer having no knowledge of `pdtable`.
+# 2. The access methods of pandas `DataFrames`, `Series`, etc. are available for use by consumer code via the `TableDataFrame` interface. This both saves the work
 #    of re-implementing similar access methods on a StarTable-specific object, and likely allows better performance and documentation.
 
 # %%
@@ -115,9 +115,9 @@ t2 = Table(pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=
 t2
 
 # %% [markdown]
-# ## The `PandasTable` / `pd.DataFrame` aspect
+# ## The `TableDataFrame` / `pd.DataFrame` aspect
 #
-# Both the table contents and metadata displayed and manipulated throught the `Table`-class is stored as a `PandasTable` object, which is a normal pandas dataframe with two modifications:
+# Both the table contents and metadata displayed and manipulated throught the `Table`-class is stored as a `TableDataFrame` object, which is a normal pandas dataframe with two modifications:
 #
 # * It has a `_table_data` field registered as a metadata field, so that pandas will include it in copy operations, etc.
 # * It will preserve column and table metadata for some pandas operations, and fall back to returning a normal dataframe if this is not possible/implemented.

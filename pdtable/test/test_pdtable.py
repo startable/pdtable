@@ -45,7 +45,7 @@ def test_is_pdtable(dft, data_ab):
 def test_get_table_data(dft):
     assert pandastable.get_table_data(dft).metadata.name == "foo"
 
-    bad_table = pandastable.PandasTable()
+    bad_table = pandastable.TableDataFrame()
     with pytest.raises(Exception):
         pandastable.get_table_data(bad_table)
     assert pandastable.get_table_data(bad_table, fail_if_missing=False) is None

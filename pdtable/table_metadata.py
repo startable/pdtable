@@ -153,7 +153,7 @@ class ColumnMetadata:
 class TableData:
     """A TableData object is responsible for storing any table information not stored by native dataframe
 
-    A PandasTable object is a dataframe with such a TableData object attached as metadata.
+    A TableDataFrame object is a dataframe with such a TableData object attached as metadata.
     """
 
     def __init__(self, metadata, columns: Optional[Dict[str, ColumnMetadata]] = None):
