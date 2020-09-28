@@ -82,13 +82,13 @@ from pdtable.proxy import Table
 t = Table(name="mytable")
 
 # Add columns explicitly...
-t.add_column("a", range(5), "km")
+t.add_column("places", ["home", "work", "beach", "unicornland"], "text")
 
 # ...or via item access
-t["b"] = ["the foo"] * 5
+t["distance"] = [0, 1, 2, 42]
 
 # Modify column metadata through column proxy objets:
-t["a"].unit = "m"
+t["distance"].unit = "km"  # (oops I had forgotten to set distance unit!)
 
 # Table renders as annotated dataframe
 t
@@ -98,7 +98,7 @@ t.column_names
 
 # %%
 # Each column has associated metadata object that can be manipulated:
-t["b"]
+t["places"]
 
 # %%
 t.units
