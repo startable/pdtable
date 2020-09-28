@@ -11,7 +11,7 @@ from .frame import (
     set_units,
     add_column,
 )
-from .table_metadata import TableMetadata, ColumnMetadata, TableData
+from .table_metadata import TableMetadata, ColumnMetadata, EmbeddedTableInfo
 
 
 class Column:
@@ -23,7 +23,7 @@ class Column:
           via proxy interface. Alternative is to use "add_column()"
     """
 
-    def __init__(self, df: TableDataFrame, name: str, table_data: TableData = None):
+    def __init__(self, df: TableDataFrame, name: str, table_data: EmbeddedTableInfo = None):
         self._name = name
         self._values = df[name]
         if not table_data:
@@ -74,7 +74,7 @@ class Table:
        table = Table(tdf)
     2) From normal dataframe by including minimum metadata:
        table = Table(df, name='Foo')
-       table = Table(df, TableData(name='Foo'))
+       table = Table(df, EmbeddedTableInfo(name='Foo'))
 
     The .df property will return a dataframe subclass that retains all table information.
     To obtain a bare DataFrame object, use `pd.DataFrame(t.df)
@@ -110,7 +110,7 @@ class Table:
         return self._df
 
     @property
-    def table_data(self) -> TableData:
+    def table_data(self) -> EmbeddedTableInfo:
         return get_table_data(self._df)
 
     @property
