@@ -211,8 +211,9 @@ def make_table_dataframe(
         # This is intended to fail if args are insufficient
         table_metadata = TableMetadata(**kwargs)
 
-    df = TableDataFrame.from_table_info(df, table_info=EmbeddableTableInfo(
-        table_metadata=table_metadata))
+    df = TableDataFrame.from_table_info(
+        df, table_info=EmbeddableTableInfo(table_metadata=table_metadata)
+    )
 
     # set units
     if units and unit_map:
