@@ -3,7 +3,7 @@ import numpy as np
 
 import pytest
 
-from .. import Table, pandastable
+from .. import Table, dataframe
 from ..proxy import Column
 from ..table_metadata import ColumnFormat
 
@@ -20,16 +20,16 @@ def data_cd():
 
 @pytest.fixture
 def dft(data_ab):
-    return pandastable.make_pdtable(data_ab, name="foo", destinations={"bar", "baz"})
+    return dataframe.make_pdtable(data_ab, name="foo", destinations={"bar", "baz"})
 
 
 def test_make_pdtable(data_ab):
-    df = pandastable.make_pdtable(data_ab, name="foo")
+    df = dataframe.make_pdtable(data_ab, name="foo")
 
     assert "cola" in df.columns
     assert df.cola[2] == 2
 
-    data = pandastable.get_table_data(df)
+    data = dataframe.get_table_data(df)
 
     assert data.metadata.name == "foo"
     assert data.columns["cola"].unit == "-"
@@ -38,25 +38,25 @@ def test_make_pdtable(data_ab):
 
 def test_is_pdtable(dft, data_ab):
     df = pd.DataFrame(data_ab)
-    assert not pandastable.is_pdtable(df)
-    assert pandastable.is_pdtable(dft)
+    assert not dataframe.is_pdtable(df)
+    assert dataframe.is_pdtable(dft)
 
 
 def test_get_table_data(dft):
-    assert pandastable.get_table_data(dft).metadata.name == "foo"
+    assert dataframe.get_table_data(dft).metadata.name == "foo"
 
-    bad_table = pandastable.TableDataFrame()
+    bad_table = dataframe.TableDataFrame()
     with pytest.raises(Exception):
-        pandastable.get_table_data(bad_table)
-    assert pandastable.get_table_data(bad_table, fail_if_missing=False) is None
+        dataframe.get_table_data(bad_table)
+    assert dataframe.get_table_data(bad_table, fail_if_missing=False) is None
 
 
 def test_column(dft):
     c = Column(dft, "cola")
-    assert c.unit == pandastable.get_table_data(dft).columns["cola"].unit
+    assert c.unit == dataframe.get_table_data(dft).columns["cola"].unit
     c.unit = "m"
     assert c.unit == "m"
-    assert c.unit == pandastable.get_table_data(dft).columns["cola"].unit
+    assert c.unit == dataframe.get_table_data(dft).columns["cola"].unit
 
     # pandas docs say that indirect assignment is flaky
     # c.values[2] = 7
@@ -64,9 +64,9 @@ def test_column(dft):
 
 
 def test_add_column(dft):
-    pandastable.add_column(dft, "colc", [f"c{v}" for v in range(20, 24)], "text")
+    dataframe.add_column(dft, "colc", [f"c{v}" for v in range(20, 24)], "text")
     assert dft.colc[0] == "c20"
-    assert pandastable.get_table_data(dft).columns["colc"].unit == "text"
+    assert dataframe.get_table_data(dft).columns["colc"].unit == "text"
 
 
 def test_table_init():
@@ -78,11 +78,11 @@ def test_table(dft):
 
     assert t.name == "foo"
     assert t.destinations == {"baz", "bar"}
-    assert pandastable.is_pdtable(t.df)
+    assert dataframe.is_pdtable(t.df)
 
     assert t["cola"].unit == "-"
     t["cola"].unit = "km"
-    assert pandastable.get_table_data(t.df).columns["cola"].unit == "km"
+    assert dataframe.get_table_data(t.df).columns["cola"].unit == "km"
 
     t["colc"] = range(20, 24)
     assert "colc" in t.column_names
@@ -90,17 +90,17 @@ def test_table(dft):
 
 
 def test_df_operations(data_ab, data_cd):
-    t_ab = pandastable.make_pdtable(pd.DataFrame(data_ab), name="ab")
-    t_cd = pandastable.make_pdtable(pd.DataFrame(data_cd), name="cd")
+    t_ab = dataframe.make_pdtable(pd.DataFrame(data_ab), name="ab")
+    t_cd = dataframe.make_pdtable(pd.DataFrame(data_cd), name="cd")
 
     _ = pd.concat([t_ab, t_cd], axis=0, sort=False)  # vertical concat
     r = pd.concat([t_ab, t_ab], axis=0, sort=False, ignore_index=True)  # vertical concat
     assert r.shape == (8, 2)
 
-    t_ab2 = pandastable.make_pdtable(pd.DataFrame(data_ab), name="ab")
+    t_ab2 = dataframe.make_pdtable(pd.DataFrame(data_ab), name="ab")
     Table(t_ab2)["cola"].unit = "m"
 
-    with pytest.raises(pandastable.InvalidTableCombineError):
+    with pytest.raises(dataframe.InvalidTableCombineError):
         # Fail on units for cola
         _ = pd.concat([t_ab, t_ab2])
 

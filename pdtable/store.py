@@ -13,7 +13,7 @@ Examples include:
 
 from enum import Enum, auto
 from typing import Iterable, Tuple, Any, Iterator, Optional
-from .pandastable import TableDataFrame
+from .dataframe import TableDataFrame
 
 
 class BlockType(Enum):
