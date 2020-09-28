@@ -1,5 +1,5 @@
 """
-The `dataframe` module allows working with StarTable tables as pandas dataframes.
+The `frame` module allows working with StarTable tables as pandas dataframes.
 
 This is implemented by providing both `Table` and `TableDataFrame` interfaces to the same object.
 

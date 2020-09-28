@@ -75,7 +75,7 @@ if Path.cwd().name == "examples":
 # Data manipulation functions exist, and more are easily added -- but focus is on metadata.
 
 # %%
-from pdtable import dataframe
+from pdtable import frame
 from pdtable.proxy import Table
 
 # %%
@@ -131,7 +131,7 @@ Table(df)
 
 # %%
 # Interacting with table metadata form  without the Table proxy is slightly verbose
-df2 = dataframe.make_pdtable(
+df2 = frame.make_pdtable(
     pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=["m", "kg"]
 )
 

@@ -3,7 +3,7 @@ from typing import Union, Dict, List, Optional, Set
 import pandas as pd
 
 from .units import UnitPolicy
-from .dataframe import (
+from .frame import (
     TableDataFrame,
     get_table_data,
     is_pdtable,
