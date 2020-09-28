@@ -25,6 +25,7 @@ For each of these:
 
 """
 import sys
+import io
 from typing import Sequence, Optional, Tuple, Any, Iterable, List
 
 import pandas as pd
@@ -81,7 +82,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     # handle multiple columns w. same name
     col_names_raw = cells[2]
     column_names = preprocess_column_names(col_names_raw, fixer)
-    fixer.TableColumNames = column_names
+    fixer.TableColumNames = column_names  # TODO typo... no effect... intended behaviour?
 
     n_col = len(column_names)
     units = cells[3][:n_col]
@@ -109,16 +110,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
                 f"Unable to parse value in column '{name}' of table '{table_name}' as '{unit}'"
             ) from e
 
-    # TODO fixer should be responsible for reporting and raising errors. Parser shouldn't have to query fixer.
-    if fixer.fixes > 0 and fixer.stop_on_errors:
-        txt = f"Error(s): stop after {fixer.fixes} errors in input table '{fixer.table_name}'"
-        raise ValueError(txt)
-
-    if fixer._warnings > 0:
-        print(f"\nWarning: {fixer._warnings} data errors fixed while parsing\n")
-
-    if fixer._errors > 0:
-        sys.stderr.write(f"\nError: {fixer._errors} column errors fixed while parsing\n")
+    fixer.report()
 
     return {
         "name": table_name,
@@ -146,12 +138,18 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwarg
         )
     )
 
-
 def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     """Parses cell grid into a JSON-ready data structure."""
     impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
+    # attach unit directly to individual column
+    units = impure_json["units"]
+    del impure_json["units"]  #  replaced by "unit" field in columns
+    del impure_json["origin"] #  not relevant for json_data
+    columns = {}
+    for cname,unit in zip(impure_json["columns"].keys(),units):
+        columns[cname] = {"unit": unit, "values": impure_json["columns"][cname]}
+    impure_json["columns"] = columns
     return to_json_serializable(impure_json)
-
 
 def make_block(
     block_type: BlockType, cells: CellGrid, origin, **kwargs
@@ -271,7 +269,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
             yield block_type, block
 
 
-def preprocess_column_names(col_names_raw: List[str], fixer: ParseFixer):
+def preprocess_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
     """
        handle known issues in column_names
     """

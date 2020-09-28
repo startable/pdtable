@@ -1,5 +1,7 @@
-import json
+import sys
 import os
+import json
+import pytest
 from pathlib import Path
 
 from pdtable import ParseFixer, BlockType
@@ -8,6 +10,7 @@ from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
 from pdtable.io import table_to_json_data
 
+ParseFixer._called_from_test = True
 
 def input_dir() -> Path:
     return Path(__file__).parent / "input/with_errors"
@@ -71,10 +74,10 @@ def test_custom_fixer():
         g = read_csv(fh, to="jsondata", fixer=fix_pi)
         for tp, tt in g:
             if tp == BlockType.TABLE:
-                assert tt["columns"]["num"][2] == 22.0 / 7.0
-                assert tt["columns"]["flt"][0] == 22.0 / 7.0
-                assert tt["columns"]["flt"][0] == 22.0 / 7.0
-                assert tt["columns"]["flt2"][2] == 22.0 / 7.0
+                assert tt["columns"]["num"]["values"][2] == 22.0 / 7.0
+                assert tt["columns"]["flt"]["values"][0] == 22.0 / 7.0
+                assert tt["columns"]["flt"]["values"][0] == 22.0 / 7.0
+                assert tt["columns"]["flt2"]["values"][2] == 22.0 / 7.0
 
 
 def test_FAT():
@@ -118,10 +121,6 @@ def test_FAT():
             else:
                 assert count == 1
 
-
-import pytest
-
-
 def test_stop_on_errors():
     """ Unit test ParseFixer.stop_on_errors
     """
@@ -144,6 +143,7 @@ def test_stop_on_errors():
 
     fix = ParseFixer()
     fix.stop_on_errors = True
+    fix._dbg = False #  ignore during test
     pi = 0
     with pytest.raises(ValueError):
         for typ, tab in parse_blocks(table_lines, fixer=fix, to="pdtable"):
@@ -156,7 +156,7 @@ def test_stop_on_errors():
         for typ, tab in parse_blocks(table_lines, fixer=fix, to="jsondata"):
             if typ != BlockType.TABLE:
                 continue
-            assert tab["columns"]["a4"][0] == 3.14
+            assert tab["columns"]["a4"]["values"][0] == 3.14
             pi += 1
 
     # cellgrid does not parse values, i.e. no ValueError
@@ -189,7 +189,7 @@ def test_converter():
     fix = ParseFixer()
     pandas_pdtab = make_table(table_lines, fixer=fix)
     js_obj = table_to_json_data(pandas_pdtab)
-    assert js_obj["columns"]["a3"][0] is None
-    assert js_obj["columns"]["a4"][1] == 3.14
+    assert js_obj["columns"]["a3"]["values"][0] is None
+    assert js_obj["columns"]["a4"]["values"][1] == 3.14
 
     assert fix.fixes == 2  # Nine and Ten

@@ -3,16 +3,14 @@ import os
 from pathlib import Path
 from textwrap import dedent
 
+import numpy as np
 import pandas as pd
 
 from pdtable import BlockType
-from pdtable import Table, TableMetadata
 from pdtable.io import json_data_to_table, table_to_json_data
-from pdtable.pandastable import make_pdtable
+from pdtable.io._json import to_json_serializable
 from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
-from pdtable.io._json import to_json_serializable
-import numpy as np
 
 
 def input_dir() -> Path:
@@ -47,30 +45,24 @@ def test_json_pdtable():
     g = parse_blocks(cell_rows, **{"origin": '"types1.csv" row 1'})
     for tp, tab in g:
         pandas_pdtab = tab
-
-    table_data = {
-        "name": "farm_types1",
-        "columns": {
-            "species": ["chicken", "pig", "goat", "zybra", "cow", "goose"],
-            "num": [2.0, 4.0, 4.0, 4.0, None, 2.0],
-            "flt": [3.0, 39.0, None, None, 200.0, 9.0],
-            "log": [True, False, True, False, True, False],
-        },
-        "units": ["text", "-", "kg", "onoff"],
-        "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None},
-        "origin": '"types1.csv" row 1',
+    # fmt: off
+    table_json_data = {
+      "name": "farm_types1",
+      "columns": {
+         "species": {"unit": "text",
+                     "values": ["chicken", "pig", "goat", "zybra", "cow", "goose"]},
+         "num": {"unit": "-",
+                 "values": [2.0, 4.0, 4.0, 4.0, None, 2.0]},
+         "flt": {"unit": "kg",
+                 "values": [3.0, 39.0, None, None, 200.0, 9.0]},
+         "log": {"unit": "onoff",
+                 "values": [True, False, True, False, True, False]}
+      },
+      "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None}
     }
-    json_pdtab = Table(
-        make_pdtable(
-            pd.DataFrame(table_data["columns"]),
-            units=table_data["units"],
-            metadata=TableMetadata(
-                name=table_data["name"],
-                destinations=set(table_data["destinations"]),
-                origin=table_data["origin"],
-            ),
-        )
-    )
+    # fmt: on
+
+    json_pdtab = json_data_to_table(table_json_data)
     assert pandas_pdtab.equals(json_pdtab)
 
 
@@ -95,21 +87,26 @@ def test_json_data_to_pdtable():
     table_from_cell_grid = make_table(lines_target)
 
     # Make an identical table, but starting from JSON
+
+    # fmt: off
     table_json_data = {
-        "name": "farm_types1",
-        "columns": {
-            "species": ["chicken", "pig", "goat", "zybra", "cow", "goose"],
-            "num": [2.0, 4.0, 4.0, 4.0, None, 2.0],
-            "flt": [3.0, 39.0, None, None, 200.0, 9.0],
-            "log": [True, False, True, False, True, False],
-        },
-        "units": ["text", "-", "kg", "onoff"],
-        "destinations": ["your_farm my_farm farms_galore"],
-        "origin": '"types1.csv" row 1',
+      "name": "farm_types1",
+      "columns": {
+         "species": {"unit": "text",
+                     "values": ["chicken", "pig", "goat", "zybra", "cow", "goose"]},
+         "num": {"unit": "-",
+                 "values": [2.0, 4.0, 4.0, 4.0, None, 2.0]},
+         "flt": {"unit": "kg",
+                 "values": [3.0, 39.0, None, None, 200.0, 9.0]},
+         "log": {"unit": "onoff",
+                 "values": [True, False, True, False, True, False]}
+      },
+      "destinations": {"your_farm": None, "my_farm": None,
+                        "farms_galore": None}
     }
+    # fmt: on
 
     table_from_json = json_data_to_table(table_json_data)
-
     assert table_from_cell_grid.equals(table_from_json)
 
     # Round trip
@@ -118,7 +115,7 @@ def test_json_data_to_pdtable():
     assert table_from_cell_grid.equals(table_from_json_round_trip)
 
 
-def test_FAT():
+def test_fat():
     """ Factory Acceptance Test
 
         Read input files as dictionary objects.
@@ -159,7 +156,7 @@ def test_FAT():
     assert count == all_files
 
 
-def test_pure_json_obj():
+def test_to_json_serializable():
     """ Unit test pure_json_obj / json_esc
     """
     obj = {
