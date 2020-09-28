@@ -1,13 +1,13 @@
 """
-The `pdtable` module allows working with StarTable tables as pandas dataframes.
+The `dataframe` module allows working with StarTable tables as pandas dataframes.
 
-This is implemented by providing both `Table` and `TableDataFrame` (dataframe) interfaces to the same object.
+This is implemented by providing both `Table` and `TableDataFrame` interfaces to the same object.
 
 ## Idea
 
 The central idea is that as much as possible of the table information is stored as a pandas dataframe,
 and that the remaining information is stored as a `TableData` object attached to the dataframe as registered metadata.
-Further, access to the full table datastructure is provided through a facade object (of class `Table`). `Table` objects
+Further, access to the full table data structure is provided through a facade object (of class `Table`). `Table` objects
 have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded
 afterwards:
 
@@ -18,8 +18,8 @@ unit_height = Table(dft).height.unit
 
 Advantages of this approach are that:
 
-1. Code can be written for (and tested with) pandas dataframes and still operate on `pdtable` objects.
-   This avoids unnecessary coupling to the startable project.
+1. Code can be written for (and tested with) pandas dataframes and still operate on `TableDataFrame`
+   objects. This avoids unnecessary coupling to the StarTable project.
 2. The table access methods of pandas are available for use by consumer code. This both saves the work
    of making startable-specific access methods, and likely allows better performance and documentation.
 
@@ -35,8 +35,8 @@ See `TableDataFrame` documentation for details.
 
 ### Column metadata
 
-Propagating metadata would be greatly simplified if column-specific metadata was stored with the column.
-However, metadata attached to `Series` object  is not retained within the dataframe, see
+Propagating metadata would be greatly simplified if column-specific metadata was stored with the
+column. However, metadata attached to `Series` object is not retained within the dataframe, see
 https://github.com/pandas-dev/pandas/issues/6923#issuecomment-41043225.
 
 ## Alternative approaches
