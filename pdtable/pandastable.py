@@ -52,7 +52,7 @@ from typing import Set, Dict, Optional, Iterable
 
 from .table_metadata import TableMetadata, ColumnMetadata, TableData
 
-_TABLE_DATA_FIELD_NAME = '_table_data'
+_TABLE_DATA_FIELD_NAME = "_table_data"
 
 
 class UnknownOperationError(Exception):
@@ -63,7 +63,7 @@ class InvalidTableCombineError(Exception):
     pass
 
 
-def _combine_tables(obj: 'PandasTable', other, method, **kwargs) -> TableData:
+def _combine_tables(obj: "PandasTable", other, method, **kwargs) -> TableData:
     """
     Called from __finalize__ when operations have been performed via the pandas.DataFrame API.
 
@@ -75,25 +75,26 @@ def _combine_tables(obj: 'PandasTable', other, method, **kwargs) -> TableData:
     if method is None:
         # slicing
         src = [other]
-    elif method == 'merge':
+    elif method == "merge":
         src = [other.left, other.right]
-    elif method == 'concat':
+    elif method == "concat":
         src = other.objs
-    elif method == 'copy':
+    elif method == "copy":
         src = [other]
     else:
-        raise UnknownOperationError(f'Unknown method while combining metadata: {method}. Keyword args: {kwargs}')
+        raise UnknownOperationError(
+            f"Unknown method while combining metadata: {method}. Keyword args: {kwargs}"
+        )
 
     if len(src) == 0:
-        raise UnknownOperationError(f'No operands for operation {method}')
+        raise UnknownOperationError(f"No operands for operation {method}")
 
     data = [get_table_data(s) for s in src if is_pdtable(s)]
 
     # 1: Create table metadata as combination of all
     meta = TableMetadata(
-        name=data[0].metadata.name,
-        operation=f'Pandas {method}',
-        parents=[d.metadata for d in data])
+        name=data[0].metadata.name, operation=f"Pandas {method}", parents=[d.metadata for d in data]
+    )
 
     # 2: Check that units match for columns that appear in more than one table
     out_cols: Set[str] = set(obj.columns)
@@ -110,7 +111,8 @@ def _combine_tables(obj: 'PandasTable', other, method, **kwargs) -> TableData:
             else:
                 if not col.unit == c.unit:
                     raise InvalidTableCombineError(
-                        f'Column {name} appears with incompatible units "{col.unit}" and "{c.unit}".')
+                        f'Column {name} appears with incompatible units "{col.unit}" and "{c.unit}".'
+                    )
                 col.update_from(c)
 
     return TableData(metadata=meta, columns=columns)
@@ -129,6 +131,7 @@ class PandasTable(pd.DataFrame):
     Instead, use either the methods in the this module, or the Table proxy
     object, which can be constructed for a PandasTable object 'tdf' via Table(tdf).
     """
+
     _metadata = [_TABLE_DATA_FIELD_NAME]  # Register metadata fieldnames here
 
     # If implemented, must handle metadata copying etc
@@ -165,12 +168,12 @@ class PandasTable(pd.DataFrame):
             data = _combine_tables(self, other, method, **kwargs)
             object.__setattr__(self, _TABLE_DATA_FIELD_NAME, data)
         except UnknownOperationError as e:
-            warnings.warn(f'Falling back to dataframe: {e}')
+            warnings.warn(f"Falling back to dataframe: {e}")
             return pd.DataFrame(self)
         return self
 
     @staticmethod
-    def from_table_data(df: pd.DataFrame, data: TableData) -> 'PandasTable':
+    def from_table_data(df: pd.DataFrame, data: TableData) -> "PandasTable":
         df = PandasTable(df)
         object.__setattr__(df, _TABLE_DATA_FIELD_NAME, data)
         data._check_dataframe(df)
@@ -182,11 +185,12 @@ def is_pdtable(df: pd.DataFrame) -> bool:
 
 
 def make_pdtable(
-        df: pd.DataFrame,
-        units: Optional[Iterable[str]] = None,
-        unit_map: Optional[Dict[str, str]] = None,
-        metadata: Optional[TableMetadata] = None,
-        **kwargs) -> PandasTable:
+    df: pd.DataFrame,
+    units: Optional[Iterable[str]] = None,
+    unit_map: Optional[Dict[str, str]] = None,
+    metadata: Optional[TableMetadata] = None,
+    **kwargs,
+) -> PandasTable:
     """
     Create PandasTable object from a pandas.DataFream and table metadata elements.
 
@@ -202,7 +206,7 @@ def make_pdtable(
 
     # build metadata
     if (metadata is not None) == bool(kwargs):
-        raise Exception('Supply either metadata or keyword-arguments for TableMetadata constructor')
+        raise Exception("Supply either metadata or keyword-arguments for TableMetadata constructor")
     if kwargs:
         # This is intended to fail if args are insufficient
         metadata = TableMetadata(**kwargs)
@@ -211,7 +215,7 @@ def make_pdtable(
 
     # set units
     if units and unit_map:
-        raise Exception('Supply at most one of unit and unit_map')
+        raise Exception("Supply at most one of unit and unit_map")
     if units is not None:
         set_all_units(df, units)
     elif unit_map is not None:
@@ -220,8 +224,9 @@ def make_pdtable(
     return df
 
 
-def get_table_data(df: PandasTable, fail_if_missing=True, check_dataframe=True) -> Optional[
-    TableData]:
+def get_table_data(
+    df: PandasTable, fail_if_missing=True, check_dataframe=True
+) -> Optional[TableData]:
     """
     Get TableData from existing PandasTable object.
 
@@ -234,14 +239,17 @@ def get_table_data(df: PandasTable, fail_if_missing=True, check_dataframe=True) 
     """
     name: str = _TABLE_DATA_FIELD_NAME
     if name not in df._metadata:
-        raise Exception('Attempt to extract table data from normal pd.DataFrame object.'
-                        'TableData can only be associated with PandasTable objects')
+        raise Exception(
+            "Attempt to extract table data from normal pd.DataFrame object."
+            "TableData can only be associated with PandasTable objects"
+        )
     table_data = getattr(df, _TABLE_DATA_FIELD_NAME, None)
     if not table_data:
         if fail_if_missing:
             raise Exception(
-                'Missing TableData object on PandasTable.'
-                'PandasTable objects should be created via make_pdtable or a Table proxy.')
+                "Missing TableData object on PandasTable."
+                "PandasTable objects should be created via make_pdtable or a Table proxy."
+            )
     elif check_dataframe:
         table_data._check_dataframe(df)
     return table_data
@@ -257,8 +265,11 @@ def add_column(df: PandasTable, name: str, values, unit: Optional[str] = None, *
     df[name] = values
     columns = get_table_data(df, check_dataframe=False).columns
 
-    new_col = ColumnMetadata.from_dtype(df[name].dtype, **kwargs) if unit is None \
+    new_col = (
+        ColumnMetadata.from_dtype(df[name].dtype, **kwargs)
+        if unit is None
         else ColumnMetadata(unit=unit, **kwargs)
+    )
 
     col = columns.get(name, None)
     if col is None:
@@ -281,5 +292,3 @@ def set_all_units(df: PandasTable, units: Iterable[Optional[str]]):
     columns = get_table_data(df).columns
     for col, unit in zip(df.columns, units):
         columns[col].unit = unit
-
-

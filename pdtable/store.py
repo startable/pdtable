@@ -25,8 +25,9 @@ class BlockType(Enum):
     To aid reusable generation of metadata, it could be relevant to include
     synthetic block types FILE_BEGIN/END, SHEET_BEGIN/END.
     """
+
     DIRECTIVE = auto()
-    TABLE = auto()          # Interface: TableType
+    TABLE = auto()  # Interface: TableType
     TEMPLATE_ROW = auto()
     METADATA = auto()
     BLANK = auto()
@@ -50,8 +51,11 @@ class TableBundle:
     """
 
     def __init__(self, ts: BlockGenerator):
-        self._tables = {token.name: token.df for token_type, token in ts
-                        if token is not None and token_type == BlockType.TABLE}
+        self._tables = {
+            token.name: token.df
+            for token_type, token in ts
+            if token is not None and token_type == BlockType.TABLE
+        }
 
     def __getattr__(self, name: str) -> TableType:
         return self._tables[name]
@@ -65,5 +69,3 @@ class TableBundle:
 
     def __len__(self):
         return self._tables.__len__()
-
-

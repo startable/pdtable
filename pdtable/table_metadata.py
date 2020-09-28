@@ -22,7 +22,7 @@ class TableOrigin:
 
 
 class TableOriginCSV(TableOrigin):
-    def __init__(self, file_name: str = '', row: int = 0):
+    def __init__(self, file_name: str = "", row: int = 0):
         self._file_name = file_name
         self._row = row
 
@@ -30,7 +30,7 @@ class TableOriginCSV(TableOrigin):
         return f'"{self._file_name}" row {self._row}'
 
     def __repr__(self) -> str:
-        return f'TableOriginCSV({self})'
+        return f"TableOriginCSV({self})"
 
 
 @dataclass
@@ -42,26 +42,28 @@ class TableMetadata:
 
     Only parents or origin should be defined. Neither needs to be.
     """
+
     name: str
-    destinations: Set[str] = field(default_factory=lambda: {'all'})
-    operation: str = 'Created'
-    parents: List['TableMetadata'] = field(default_factory=list)
+    destinations: Set[str] = field(default_factory=lambda: {"all"})
+    operation: str = "Created"
+    parents: List["TableMetadata"] = field(default_factory=list)
     origin: Optional[
-        str] = ''  # Should be replaced with a TableOrigin object to allow file-edit access
+        str
+    ] = ""  # Should be replaced with a TableOrigin object to allow file-edit access
 
     def __str__(self):
-        dst = ' for {{}}'.format(
-            ', '.join(d for d in self.destinations)) if self.destinations else ''
-        src = ''
+        dst = (
+            " for {{}}".format(", ".join(d for d in self.destinations)) if self.destinations else ""
+        )
+        src = ""
         if self.origin:
-            src = f' from {self.origin}'
+            src = f" from {self.origin}"
         if self.parents:
-            src = ' from {{}}'.format(','.join(f'\n{c}' for c in self.parents))
+            src = " from {{}}".format(",".join(f"\n{c}" for c in self.parents))
         return f'Table "{self.name}" {dst}. {self.operation}{src}'
 
 
 class ColumnFormat:
-
     def __init__(self, specifier: Union[str, int]):
         """Specifies how to format the values in this column as strings.
         Args:
@@ -84,16 +86,16 @@ class ColumnFormat:
 
 # See https://docs.scipy.org/doc/numpy/reference/generated/numpy.dtype.html
 _unit_from_dtype_kind = {
-    'b': 'onoff',
-    'i': '-',
-    'u': '-',
-    'f': '-',
-    'M': '-',
-    'O': 'text',
-    'S': 'text',
-    'U': 'text'
+    "b": "onoff",
+    "i": "-",
+    "u": "-",
+    "f": "-",
+    "M": "-",
+    "O": "text",
+    "S": "text",
+    "U": "text",
 }
-_units_special = {'text', 'onoff'}
+_units_special = {"text", "onoff"}
 
 
 def unit_from_dtype(dtype: numpy.dtype) -> str:
@@ -101,7 +103,8 @@ def unit_from_dtype(dtype: numpy.dtype) -> str:
         return _unit_from_dtype_kind[dtype.kind]
     except KeyError:
         raise ValueError(
-            'The numpy data type {dtype} is of kind {dtype.kind} which cannot be assigned a startable unit')
+            "The numpy data type {dtype} is of kind {dtype.kind} which cannot be assigned a startable unit"
+        )
 
 
 @dataclass
@@ -109,36 +112,39 @@ class ColumnMetadata:
     """
     Column metadata is always stored in dic with name as key
     """
+
     unit: str
     display_unit: Optional[str] = None
     display_format: Optional[ColumnFormat] = None
 
     def check_dtype(self, dtype, context: Optional[str] = None):
         base_unit = unit_from_dtype(dtype)
-        context_text = ' in ' + context if context else ''
+        context_text = " in " + context if context else ""
         if base_unit in _units_special:
             if not base_unit == self.unit:
                 raise Exception(
-                    f'Column unit {self.unit} not equal to {base_unit} expected from data type {dtype}{context_text}')
+                    f"Column unit {self.unit} not equal to {base_unit} expected from data type {dtype}{context_text}"
+                )
         elif self.unit in _units_special:
             raise Exception(
-                f'Special column unit {self.unit} not applicable for data type {dtype}{context_text}')
+                f"Special column unit {self.unit} not applicable for data type {dtype}{context_text}"
+            )
 
     @classmethod
-    def from_dtype(cls, dtype: numpy.dtype, **kwargs) -> 'ColumnMetadata':
+    def from_dtype(cls, dtype: numpy.dtype, **kwargs) -> "ColumnMetadata":
         """
         Will set column unit to '-', 'onoff', or 'text' depending on dtype
         """
         return cls(unit_from_dtype(dtype), **kwargs)
 
-    def update_from(self, b: 'ColumnMetadata'):
+    def update_from(self, b: "ColumnMetadata"):
         self.unit = b.unit
         if not self.display_unit:
             self.display_unit = b.display_unit
         if not self.display_format and b.display_format:
             self.display_format = b.display_format.copy()
 
-    def copy(self) -> 'ColumnMetadata':
+    def copy(self) -> "ColumnMetadata":
         c = ColumnMetadata(self.unit)
         c.update_from(self)
         return c
@@ -167,7 +173,7 @@ class TableData:
 
         # check for duplicate names in dataframe
         if not len(df_columns) == len(df_cname_set):
-            raise InvalidNamingError('Duplicate column names not allowed for Table')
+            raise InvalidNamingError("Duplicate column names not allowed for Table")
 
         # remove columns not in dataframe
         for name in set(columns.keys()) - df_cname_set:

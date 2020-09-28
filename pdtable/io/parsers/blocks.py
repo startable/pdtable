@@ -138,18 +138,20 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwarg
         )
     )
 
+
 def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     """Parses cell grid into a JSON-ready data structure."""
     impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
     # attach unit directly to individual column
     units = impure_json["units"]
     del impure_json["units"]  #  replaced by "unit" field in columns
-    del impure_json["origin"] #  not relevant for json_data
+    del impure_json["origin"]  #  not relevant for json_data
     columns = {}
-    for cname,unit in zip(impure_json["columns"].keys(),units):
+    for cname, unit in zip(impure_json["columns"].keys(), units):
         columns[cname] = {"unit": unit, "values": impure_json["columns"][cname]}
     impure_json["columns"] = columns
     return to_json_serializable(impure_json)
+
 
 def make_block(
     block_type: BlockType, cells: CellGrid, origin, **kwargs

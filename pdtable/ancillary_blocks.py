@@ -5,7 +5,6 @@ import pdtable
 
 
 class MetadataBlock(dict):
-
     def __init__(self, origin: Optional[str] = None):
         super().__init__()
         self.origin = origin
@@ -24,5 +23,3 @@ class Directive:
 
     def __repr__(self):
         return f"***{self.name}{pdtable.CSV_SEP}\n" + "\n".join(self.lines)
-
-

@@ -43,7 +43,6 @@ def test_convert_units(unit_policy):
     ]
     t = make_table(cells)
 
-
     t.convert_units(unit_policy)
 
     assert t["length"].values[0] == 1e-3

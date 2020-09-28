@@ -25,4 +25,3 @@ class UnitPolicy(ABC):
     @table_name.setter
     def table_name(self, value):
         self._table_name = value
-

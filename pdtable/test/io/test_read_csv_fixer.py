@@ -12,6 +12,7 @@ from pdtable.io import table_to_json_data
 
 ParseFixer._called_from_test = True
 
+
 def input_dir() -> Path:
     return Path(__file__).parent / "input/with_errors"
 
@@ -121,6 +122,7 @@ def test_FAT():
             else:
                 assert count == 1
 
+
 def test_stop_on_errors():
     """ Unit test ParseFixer.stop_on_errors
     """
@@ -143,7 +145,7 @@ def test_stop_on_errors():
 
     fix = ParseFixer()
     fix.stop_on_errors = True
-    fix._dbg = False #  ignore during test
+    fix._dbg = False  #  ignore during test
     pi = 0
     with pytest.raises(ValueError):
         for typ, tab in parse_blocks(table_lines, fixer=fix, to="pdtable"):

@@ -149,9 +149,7 @@ Table(df_combinded)
 
 # %%
 # Make a table and get its backing df
-tab = Table(
-    pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}), name="foo", units=["m", "kg"]
-)
+tab = Table(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}), name="foo", units=["m", "kg"])
 df = tab.df
 # Edit df column names
 df.columns = ["a_new", "b_new"]
@@ -161,8 +159,8 @@ col_names_before_access = list(df._table_data.columns.keys())
 print(f"Metadata columns before update triggered by access:\n{col_names_before_access}\n")
 assert col_names_before_access == ["a", "b"]  # Still the old column names
 
-# ... until the facade is built and the metadata is accessed. 
-_ = str(Table(df))  # access it 
+# ... until the facade is built and the metadata is accessed.
+_ = str(Table(df))  # access it
 col_names_after_access = list(df._table_data.columns.keys())
 print(f"Metadata columns after update:\n{col_names_after_access}\n")
 assert col_names_after_access == ["a_new", "b_new"]  # Now they've updated
@@ -171,7 +169,7 @@ assert col_names_after_access == ["a_new", "b_new"]  # Now they've updated
 # ## I/O
 # StarTable data can be read from, and written to, CSV files and Excel workbooks. In its simplest usage, the pdtable.io API can be illustrated as:
 # ![pdtable.io simplified API](..\docs\diagrams\img\io_simple\io_simple.svg)
-# We will return to a more detailed diagram also illustrating JSON support. 
+# We will return to a more detailed diagram also illustrating JSON support.
 
 
 # %% [markdown]
@@ -238,7 +236,7 @@ for bt, b in block_list:
 
 # %%
 t = block_list[3][1]
-assert t.name == 'places'
+assert t.name == "places"
 print(t)
 
 # %% [markdown]
@@ -246,6 +244,7 @@ print(t)
 
 # %%
 from pdtable import BlockType
+
 tables = [b for bt, b in block_list if bt == BlockType.TABLE]
 assert len(tables) == 2
 
@@ -254,7 +253,7 @@ assert len(tables) == 2
 # ### Filtered reading
 # Blocks can be filtered prior to parsing, by passing to a callable as `filter` argument to the reader functions. This can
 # reduce reading time substantially when reading only a few tables from an otherwise large file
-# or stream. 
+# or stream.
 #
 # The callable must accept two arguments: block type, and block name. Only those blocks for which the filter callable returns `True` are fully parsed. Other blocks
 # are parsed only superficially i.e. only the block's top-left cell, which is just
@@ -262,7 +261,7 @@ assert len(tables) == 2
 # expensive task of parsing the entire block, e.g. the values in all columns and rows of a large
 # table.
 #
-# Let's design a filter that only accepts tables whose name contains the word `'animal'`. 
+# Let's design a filter that only accepts tables whose name contains the word `'animal'`.
 
 # %%
 def is_table_about_animals(block_type: BlockType, block_name: str) -> bool:
@@ -270,7 +269,7 @@ def is_table_about_animals(block_type: BlockType, block_name: str) -> bool:
 
 
 # %% [markdown]
-# Now let's see what happens when we use this filter when re-reading the same CSV text stream as before. 
+# Now let's see what happens when we use this filter when re-reading the same CSV text stream as before.
 
 # %%
 csv_data.seek(0)
@@ -284,39 +283,39 @@ block_list[0][1]
 
 # %% [markdown]
 # ### Writing
-# Use the aptly named `write_csv()` and `write_excel()`. Note that `write_csv()` can write to files as well as to text streams. 
+# Use the aptly named `write_csv()` and `write_excel()`. Note that `write_csv()` can write to files as well as to text streams.
 #
-# Let's write the tables we read earlier to a text stream. 
+# Let's write the tables we read earlier to a text stream.
 
 # %%
 from pdtable import write_csv
 
 with StringIO() as s:
     write_csv(tables, s)
-    
+
     print(s.getvalue())
 
 
 # %% [markdown]
 # ### JSON support
-# StarTable data can be converted to and from a `JsonData` object i.e. a JSON-ready data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values. This `JsonData` can then be serialized and deserialized directly using the standard library's `json.dump()` and `json.load()`. 
+# StarTable data can be converted to and from a `JsonData` object i.e. a JSON-ready data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values. This `JsonData` can then be serialized and deserialized directly using the standard library's `json.dump()` and `json.load()`.
 #
-# A `JsonData` representation is currently only defined for table blocks. 
+# A `JsonData` representation is currently only defined for table blocks.
 #
 # The pdtable.io API including JSON support can be illustrated as a more detailed version of the diagram shown earlier:
 #
 # ![pdtable.io API](..\docs\diagrams\img\io_detailed\io_detailed.svg)
 #
-# In addition, two successive intermediate data structures are visible in this diagram: 
+# In addition, two successive intermediate data structures are visible in this diagram:
 #
-# - "Raw cell grid" is simply a sequence of sequence of values (usually a list of lists or list of tuples) interpreted as rows of cells, with cell contents as read in their raw form from CSV or Excel. 
-# - `JsonDataPrecursor` is essentially the same thing as `JsonData`, with the exception that it may contain values that are not directly consumable by `json.dump()`. These values must be converted further if the aim is a `JsonData`; for example Numpy arrays to lists, `datetime.datetime` to a string representation thereof, etc. 
+# - "Raw cell grid" is simply a sequence of sequence of values (usually a list of lists or list of tuples) interpreted as rows of cells, with cell contents as read in their raw form from CSV or Excel.
+# - `JsonDataPrecursor` is essentially the same thing as `JsonData`, with the exception that it may contain values that are not directly consumable by `json.dump()`. These values must be converted further if the aim is a `JsonData`; for example Numpy arrays to lists, `datetime.datetime` to a string representation thereof, etc.
 #
-# Let's re-read the CSV stream we created earlier, but specifying the argument `to='jsondata'` such that tables should be parsed to JSON data. 
+# Let's re-read the CSV stream we created earlier, but specifying the argument `to='jsondata'` such that tables should be parsed to JSON data.
 
 # %%
 csv_data.seek(0)
-block_gen = read_csv(csv_data, to='jsondata')
+block_gen = read_csv(csv_data, to="jsondata")
 json_ready_tables = [b for bt, b in block_gen if bt == BlockType.TABLE]
 
 json_ready_tables[0]
@@ -326,14 +325,16 @@ json_ready_tables[0]
 
 # %%
 import json
+
 table_json = json.dumps(json_ready_tables[0])
 print(table_json)
 
 # %% [markdown]
-# There are also utilities to convert back and forth between `JsonData` and `Table`. 
+# There are also utilities to convert back and forth between `JsonData` and `Table`.
 
 # %%
 from pdtable.io import json_data_to_table, table_to_json_data
+
 t = json_data_to_table(json_ready_tables[0])
 t  # It's now a Table
 
@@ -363,7 +364,7 @@ table_to_json_data(t)  # Now it's back to JsonData
 # bar.csv
 # baz.csv
 # ```
-# Note that there's nothing magical about the name "include"; it isn't StarTable syntax. This name, and how such a directive should be interpreted, is entirely defined by the application. We could just as easily imagine a `rename_tables` directive requiring certain table names to be amended upon reading. 
+# Note that there's nothing magical about the name "include"; it isn't StarTable syntax. This name, and how such a directive should be interpreted, is entirely defined by the application. We could just as easily imagine a `rename_tables` directive requiring certain table names to be amended upon reading.
 #
 # But let's stick to the "include" example for now. The application wants to interpret the `include` directive above as: read two additional files and throw all the read blocks together. Perhaps even recursively, i.e. similarly handle any `include` directives encountered in `bar.csv` and `baz.csv` and so on. A handler for this could be designed to be used as
 #
@@ -376,6 +377,7 @@ table_to_json_data(t)  # Now it's back to JsonData
 # %%
 import functools
 from pdtable import BlockGenerator, Directive
+
 
 def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> BlockGenerator:
     """Handles 'include' directives, optionally recursively.
@@ -426,6 +428,6 @@ def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> B
 
 
 # %% [markdown]
-# This is only an example implementation. You're welcome to poach it, but note that no check is done for circular references! E.g. if `bar.csv` contains an `include` directive pointing to `foo.csv` then calling `handle_includes` with `recursive=True` will result in a stack overflow. You may want to perform such a check if relevant for your application. 
+# This is only an example implementation. You're welcome to poach it, but note that no check is done for circular references! E.g. if `bar.csv` contains an `include` directive pointing to `foo.csv` then calling `handle_includes` with `recursive=True` will result in a stack overflow. You may want to perform such a check if relevant for your application.
 
 # %%
