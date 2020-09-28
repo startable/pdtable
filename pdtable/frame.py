@@ -52,7 +52,7 @@ from typing import Set, Dict, Optional, Iterable
 
 from .table_metadata import TableMetadata, ColumnMetadata, EmbeddableTableInfo
 
-_TABLE_DATA_FIELD_NAME = "_table_data"
+_TABLE_INFO_FIELD_NAME = "_table_data"
 
 
 class UnknownOperationError(Exception):
@@ -115,7 +115,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Embeddabl
                     )
                 col.update_from(c)
 
-    return EmbeddableTableInfo(metadata=meta, columns=columns)
+    return EmbeddableTableInfo(table_metadata=meta, columns=columns)
 
 
 class TableDataFrame(pd.DataFrame):
@@ -132,7 +132,7 @@ class TableDataFrame(pd.DataFrame):
     object, which can be constructed for a TableDataFrame object 'tdf' via Table(tdf).
     """
 
-    _metadata = [_TABLE_DATA_FIELD_NAME]  # Register metadata fieldnames here
+    _metadata = [_TABLE_INFO_FIELD_NAME]  # Register metadata fieldnames here
 
     # If implemented, must handle metadata copying etc
     # def __init__(self, *args, **kwargs):
@@ -166,29 +166,29 @@ class TableDataFrame(pd.DataFrame):
 
         try:
             data = _combine_tables(self, other, method, **kwargs)
-            object.__setattr__(self, _TABLE_DATA_FIELD_NAME, data)
+            object.__setattr__(self, _TABLE_INFO_FIELD_NAME, data)
         except UnknownOperationError as e:
             warnings.warn(f"Falling back to dataframe: {e}")
             return pd.DataFrame(self)
         return self
 
     @staticmethod
-    def from_table_info(df: pd.DataFrame, data: EmbeddableTableInfo) -> "TableDataFrame":
+    def from_table_info(df: pd.DataFrame, table_info: EmbeddableTableInfo) -> "TableDataFrame":
         df = TableDataFrame(df)
-        object.__setattr__(df, _TABLE_DATA_FIELD_NAME, data)
-        data._check_dataframe(df)
+        object.__setattr__(df, _TABLE_INFO_FIELD_NAME, table_info)
+        table_info._check_dataframe(df)
         return df
 
 
 def is_table_dataframe(df: pd.DataFrame) -> bool:
-    return _TABLE_DATA_FIELD_NAME in df._metadata
+    return _TABLE_INFO_FIELD_NAME in df._metadata
 
 
 def make_table_dataframe(
     df: pd.DataFrame,
     units: Optional[Iterable[str]] = None,
     unit_map: Optional[Dict[str, str]] = None,
-    metadata: Optional[TableMetadata] = None,
+    table_metadata: Optional[TableMetadata] = None,
     **kwargs,
 ) -> TableDataFrame:
     """
@@ -205,13 +205,14 @@ def make_table_dataframe(
     """
 
     # build metadata
-    if (metadata is not None) == bool(kwargs):
+    if (table_metadata is not None) == bool(kwargs):
         raise Exception("Supply either metadata or keyword-arguments for TableMetadata constructor")
     if kwargs:
         # This is intended to fail if args are insufficient
-        metadata = TableMetadata(**kwargs)
+        table_metadata = TableMetadata(**kwargs)
 
-    df = TableDataFrame.from_table_info(df, data=EmbeddableTableInfo(metadata=metadata))
+    df = TableDataFrame.from_table_info(df, table_info=EmbeddableTableInfo(
+        table_metadata=table_metadata))
 
     # set units
     if units and unit_map:
@@ -237,13 +238,13 @@ def get_table_info(
                      If the dataframe has been manipulated directly, table will be updated to match.
     fail_if_missing: Whether to raise an exception if EmbeddableTableInfo object is missing
     """
-    name: str = _TABLE_DATA_FIELD_NAME
+    name: str = _TABLE_INFO_FIELD_NAME
     if name not in df._metadata:
         raise Exception(
             "Attempt to extract table data from normal pd.DataFrame object."
             "EmbeddableTableInfo can only be associated with TableDataFrame objects"
         )
-    table_data = getattr(df, _TABLE_DATA_FIELD_NAME, None)
+    table_data = getattr(df, _TABLE_INFO_FIELD_NAME, None)
     if not table_data:
         if fail_if_missing:
             raise Exception(

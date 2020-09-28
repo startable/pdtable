@@ -130,7 +130,7 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwarg
         frame.make_table_dataframe(
             pd.DataFrame(json_precursor["columns"]),
             units=json_precursor["units"],
-            metadata=TableMetadata(
+            table_metadata=TableMetadata(
                 name=json_precursor["name"],
                 destinations=set(json_precursor["destinations"].keys()),
                 origin=json_precursor["origin"],

@@ -23,12 +23,12 @@ class Column:
           via proxy interface. Alternative is to use "add_column()"
     """
 
-    def __init__(self, df: TableDataFrame, name: str, table_data: EmbeddableTableInfo = None):
+    def __init__(self, df: TableDataFrame, name: str, table_info: EmbeddableTableInfo = None):
         self._name = name
         self._values = df[name]
-        if not table_data:
-            table_data = get_table_info(df)
-        self._meta = table_data.columns[name]
+        if not table_info:
+            table_info = get_table_info(df)
+        self._meta = table_info.columns[name]
 
     @property
     def name(self):
@@ -138,7 +138,7 @@ class Table:
     def column_proxies(self) -> List[Column]:
         df = self._df
         table_data = get_table_info(df)
-        return [Column(df, name, table_data=table_data) for name in self.column_names]
+        return [Column(df, name, table_info=table_data) for name in self.column_names]
 
     @property
     def units(self) -> List[str]:
@@ -176,7 +176,7 @@ class Table:
 
     def __iter__(self):
         table_data = self.table_data
-        return (Column(self._df, name, table_data=table_data) for name in table_data.columns.keys())
+        return (Column(self._df, name, table_info=table_data) for name in table_data.columns.keys())
 
     def __getitem__(self, name: str):
         """Get column proxy for existing column"""

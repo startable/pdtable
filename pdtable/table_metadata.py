@@ -157,9 +157,9 @@ class EmbeddableTableInfo:
     """
 
     def __init__(
-        self, metadata: TableMetadata, columns: Optional[Dict[str, ColumnMetadata]] = None
+        self, table_metadata: TableMetadata, columns: Optional[Dict[str, ColumnMetadata]] = None
     ):
-        self.metadata: TableMetadata = metadata
+        self.metadata: TableMetadata = table_metadata
         self.columns: Dict[str, ColumnMetadata] = columns if columns is not None else {}
         # self.template # TODO Table template data should/could be included here
         # self.parametrization = None: Do not include, see discussion in module docs
