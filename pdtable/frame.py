@@ -89,7 +89,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> EmbeddedT
     if len(src) == 0:
         raise UnknownOperationError(f"No operands for operation {method}")
 
-    data = [get_table_data(s) for s in src if is_table_dataframe(s)]
+    data = [get_table_info(s) for s in src if is_table_dataframe(s)]
 
     # 1: Create table metadata as combination of all
     meta = TableMetadata(
@@ -173,7 +173,7 @@ class TableDataFrame(pd.DataFrame):
         return self
 
     @staticmethod
-    def from_table_data(df: pd.DataFrame, data: EmbeddedTableInfo) -> "TableDataFrame":
+    def from_table_info(df: pd.DataFrame, data: EmbeddedTableInfo) -> "TableDataFrame":
         df = TableDataFrame(df)
         object.__setattr__(df, _TABLE_DATA_FIELD_NAME, data)
         data._check_dataframe(df)
@@ -211,7 +211,7 @@ def make_table_dataframe(
         # This is intended to fail if args are insufficient
         metadata = TableMetadata(**kwargs)
 
-    df = TableDataFrame.from_table_data(df, data=EmbeddedTableInfo(metadata=metadata))
+    df = TableDataFrame.from_table_info(df, data=EmbeddedTableInfo(metadata=metadata))
 
     # set units
     if units and unit_map:
@@ -224,13 +224,13 @@ def make_table_dataframe(
     return df
 
 
-def get_table_data(
+def get_table_info(
     df: TableDataFrame, fail_if_missing=True, check_dataframe=True
 ) -> Optional[EmbeddedTableInfo]:
     """
     Get EmbeddedTableInfo from existing TableDataFrame object.
 
-    When called with default options, get_table_data will either raise an exception
+    When called with default options, get_table_info will either raise an exception
     or return a EmbeddedTableInfo object with a valid ColumnMetadata defined for each column.
 
     check_dataframe: Check that the table data is valid with respect to dataframe.
@@ -263,7 +263,7 @@ def add_column(df: TableDataFrame, name: str, values, unit: Optional[str] = None
     keyword arguments will be forwarded to ColumnMetadata constructor together with unit
     """
     df[name] = values
-    columns = get_table_data(df, check_dataframe=False).columns
+    columns = get_table_info(df, check_dataframe=False).columns
 
     new_col = (
         ColumnMetadata.from_dtype(df[name].dtype, **kwargs)
@@ -280,7 +280,7 @@ def add_column(df: TableDataFrame, name: str, values, unit: Optional[str] = None
 
 
 def set_units(df: TableDataFrame, unit_map: Dict[str, str]):
-    columns = get_table_data(df).columns
+    columns = get_table_info(df).columns
     for col, unit in unit_map.items():
         columns[col] = unit
 
@@ -289,6 +289,6 @@ def set_all_units(df: TableDataFrame, units: Iterable[Optional[str]]):
     """
     Set units for all columns in table.
     """
-    columns = get_table_data(df).columns
+    columns = get_table_info(df).columns
     for col, unit in zip(df.columns, units):
         columns[col].unit = unit

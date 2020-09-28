@@ -29,7 +29,7 @@ def test_make_pdtable(data_ab):
     assert "cola" in df.columns
     assert df.cola[2] == 2
 
-    data = frame.get_table_data(df)
+    data = frame.get_table_info(df)
 
     assert data.metadata.name == "foo"
     assert data.columns["cola"].unit == "-"
@@ -43,20 +43,20 @@ def test_is_pdtable(dft, data_ab):
 
 
 def test_get_table_data(dft):
-    assert frame.get_table_data(dft).metadata.name == "foo"
+    assert frame.get_table_info(dft).metadata.name == "foo"
 
     bad_table = frame.TableDataFrame()
     with pytest.raises(Exception):
-        frame.get_table_data(bad_table)
-    assert frame.get_table_data(bad_table, fail_if_missing=False) is None
+        frame.get_table_info(bad_table)
+    assert frame.get_table_info(bad_table, fail_if_missing=False) is None
 
 
 def test_column(dft):
     c = Column(dft, "cola")
-    assert c.unit == frame.get_table_data(dft).columns["cola"].unit
+    assert c.unit == frame.get_table_info(dft).columns["cola"].unit
     c.unit = "m"
     assert c.unit == "m"
-    assert c.unit == frame.get_table_data(dft).columns["cola"].unit
+    assert c.unit == frame.get_table_info(dft).columns["cola"].unit
 
     # pandas docs say that indirect assignment is flaky
     # c.values[2] = 7
@@ -66,7 +66,7 @@ def test_column(dft):
 def test_add_column(dft):
     frame.add_column(dft, "colc", [f"c{v}" for v in range(20, 24)], "text")
     assert dft.colc[0] == "c20"
-    assert frame.get_table_data(dft).columns["colc"].unit == "text"
+    assert frame.get_table_info(dft).columns["colc"].unit == "text"
 
 
 def test_table_init():
@@ -82,7 +82,7 @@ def test_table(dft):
 
     assert t["cola"].unit == "-"
     t["cola"].unit = "km"
-    assert frame.get_table_data(t.df).columns["cola"].unit == "km"
+    assert frame.get_table_info(t.df).columns["cola"].unit == "km"
 
     t["colc"] = range(20, 24)
     assert "colc" in t.column_names

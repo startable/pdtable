@@ -5,7 +5,7 @@ import pandas as pd
 from .units import UnitPolicy
 from .frame import (
     TableDataFrame,
-    get_table_data,
+    get_table_info,
     is_table_dataframe,
     make_table_dataframe,
     set_units,
@@ -27,7 +27,7 @@ class Column:
         self._name = name
         self._values = df[name]
         if not table_data:
-            table_data = get_table_data(df)
+            table_data = get_table_info(df)
         self._meta = table_data.columns[name]
 
     @property
@@ -111,7 +111,7 @@ class Table:
 
     @property
     def table_data(self) -> EmbeddedTableInfo:
-        return get_table_data(self._df)
+        return get_table_info(self._df)
 
     @property
     def metadata(self) -> TableMetadata:
@@ -137,7 +137,7 @@ class Table:
     @property
     def column_proxies(self) -> List[Column]:
         df = self._df
-        table_data = get_table_data(df)
+        table_data = get_table_info(df)
         return [Column(df, name, table_data=table_data) for name in self.column_names]
 
     @property
