@@ -34,7 +34,7 @@ from .fixer import ParseFixer
 from .columns import parse_column
 from ... import frame
 from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
-from ...ancillary_blocks import MetadataBlock, Directive
+from ...auxiliary import MetadataBlock, Directive
 from pdtable import Table
 from pdtable import BlockType, BlockGenerator
 from ...table_metadata import TableOriginCSV, TableMetadata
