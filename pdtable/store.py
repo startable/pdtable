@@ -27,15 +27,13 @@ class BlockType(Enum):
     """
 
     DIRECTIVE = auto()
-    TABLE = auto()  # Interface: TableType
+    TABLE = auto()
     TEMPLATE_ROW = auto()
     METADATA = auto()
     BLANK = auto()
 
 
 BlockGenerator = Iterable[Tuple[BlockType, Optional[Any]]]
-
-TableType = TableDataFrame
 
 
 class TableBundle:
@@ -57,10 +55,10 @@ class TableBundle:
             if token is not None and token_type == BlockType.TABLE
         }
 
-    def __getattr__(self, name: str) -> TableType:
+    def __getattr__(self, name: str) -> TableDataFrame:
         return self._tables[name]
 
-    def __getitem__(self, name: str) -> TableType:
+    def __getitem__(self, name: str) -> TableDataFrame:
         return self._tables[name]
 
     def __iter__(self) -> Iterator[str]:
