@@ -12,7 +12,7 @@ have no state (except the underlying decorated dataframe) and are intended to be
 afterwards:
 
 ```
-dft = make_pdtable(...)
+dft = make_table_dataframe(...)
 unit_height = Table(dft).height.unit
 ```
 
@@ -89,7 +89,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> TableData
     if len(src) == 0:
         raise UnknownOperationError(f"No operands for operation {method}")
 
-    data = [get_table_data(s) for s in src if is_pdtable(s)]
+    data = [get_table_data(s) for s in src if is_table_dataframe(s)]
 
     # 1: Create table metadata as combination of all
     meta = TableMetadata(
@@ -180,11 +180,11 @@ class TableDataFrame(pd.DataFrame):
         return df
 
 
-def is_pdtable(df: pd.DataFrame) -> bool:
+def is_table_dataframe(df: pd.DataFrame) -> bool:
     return _TABLE_DATA_FIELD_NAME in df._metadata
 
 
-def make_pdtable(
+def make_table_dataframe(
     df: pd.DataFrame,
     units: Optional[Iterable[str]] = None,
     unit_map: Optional[Dict[str, str]] = None,
@@ -201,7 +201,7 @@ def make_pdtable(
     are assigned.
 
     Example:
-    tdf = make_pdtable(df, name='MyTable')
+    tdf = make_table_dataframe(df, name='MyTable')
     """
 
     # build metadata
@@ -248,7 +248,7 @@ def get_table_data(
         if fail_if_missing:
             raise Exception(
                 "Missing TableData object on TableDataFrame."
-                "TableDataFrame objects should be created via make_pdtable or a Table proxy."
+                "TableDataFrame objects should be created via make_table_dataframe or a Table proxy."
             )
     elif check_dataframe:
         table_data._check_dataframe(df)

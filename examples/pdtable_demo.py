@@ -35,7 +35,7 @@
 # have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded afterwards:
 #
 # ```
-# dft = make_pdtable(...)
+# dft = make_table_dataframe(...)
 # unit_height = Table(dft).height.unit
 # ```
 #
@@ -131,7 +131,7 @@ Table(df)
 
 # %%
 # Interacting with table metadata form  without the Table proxy is slightly verbose
-df2 = frame.make_pdtable(
+df2 = frame.make_table_dataframe(
     pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=["m", "kg"]
 )
 

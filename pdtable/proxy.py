@@ -6,8 +6,8 @@ from .units import UnitPolicy
 from .frame import (
     TableDataFrame,
     get_table_data,
-    is_pdtable,
-    make_pdtable,
+    is_table_dataframe,
+    make_table_dataframe,
     set_units,
     add_column,
 )
@@ -87,9 +87,9 @@ class Table:
     """
 
     def __init__(self, df: Union[None, TableDataFrame, pd.DataFrame] = None, **kwargs):
-        if not (df is not None and is_pdtable(df)):
+        if not (df is not None and is_table_dataframe(df)):
             # Creating a new table: initialize TableDataFrame
-            df = make_pdtable(df if df is not None else pd.DataFrame(), **kwargs)
+            df = make_table_dataframe(df if df is not None else pd.DataFrame(), **kwargs)
         elif kwargs:
             raise Exception(
                 f"Got unexpected keyword arguments when creating Table object from "

@@ -20,11 +20,11 @@ def data_cd():
 
 @pytest.fixture
 def dft(data_ab):
-    return frame.make_pdtable(data_ab, name="foo", destinations={"bar", "baz"})
+    return frame.make_table_dataframe(data_ab, name="foo", destinations={"bar", "baz"})
 
 
 def test_make_pdtable(data_ab):
-    df = frame.make_pdtable(data_ab, name="foo")
+    df = frame.make_table_dataframe(data_ab, name="foo")
 
     assert "cola" in df.columns
     assert df.cola[2] == 2
@@ -38,8 +38,8 @@ def test_make_pdtable(data_ab):
 
 def test_is_pdtable(dft, data_ab):
     df = pd.DataFrame(data_ab)
-    assert not frame.is_pdtable(df)
-    assert frame.is_pdtable(dft)
+    assert not frame.is_table_dataframe(df)
+    assert frame.is_table_dataframe(dft)
 
 
 def test_get_table_data(dft):
@@ -78,7 +78,7 @@ def test_table(dft):
 
     assert t.name == "foo"
     assert t.destinations == {"baz", "bar"}
-    assert frame.is_pdtable(t.df)
+    assert frame.is_table_dataframe(t.df)
 
     assert t["cola"].unit == "-"
     t["cola"].unit = "km"
@@ -90,14 +90,14 @@ def test_table(dft):
 
 
 def test_df_operations(data_ab, data_cd):
-    t_ab = frame.make_pdtable(pd.DataFrame(data_ab), name="ab")
-    t_cd = frame.make_pdtable(pd.DataFrame(data_cd), name="cd")
+    t_ab = frame.make_table_dataframe(pd.DataFrame(data_ab), name="ab")
+    t_cd = frame.make_table_dataframe(pd.DataFrame(data_cd), name="cd")
 
     _ = pd.concat([t_ab, t_cd], axis=0, sort=False)  # vertical concat
     r = pd.concat([t_ab, t_ab], axis=0, sort=False, ignore_index=True)  # vertical concat
     assert r.shape == (8, 2)
 
-    t_ab2 = frame.make_pdtable(pd.DataFrame(data_ab), name="ab")
+    t_ab2 = frame.make_table_dataframe(pd.DataFrame(data_ab), name="ab")
     Table(t_ab2)["cola"].unit = "m"
 
     with pytest.raises(frame.InvalidTableCombineError):
