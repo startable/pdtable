@@ -6,7 +6,7 @@ This is implemented by providing both `Table` and `TableDataFrame` interfaces to
 ## Idea
 
 The central idea is that as much as possible of the table information is stored as a pandas dataframe,
-and that the remaining information is stored as a `EmbeddableTableInfo` object attached to the dataframe as registered metadata.
+and that the remaining information is stored as a `ComplementaryTableInfo` object attached to the dataframe as registered metadata.
 Further, access to the full table data structure is provided through a facade object (of class `Table`). `Table` objects
 have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded
 afterwards:
@@ -50,7 +50,7 @@ import pandas as pd
 import warnings
 from typing import Set, Dict, Optional, Iterable
 
-from .table_metadata import TableMetadata, ColumnMetadata, EmbeddableTableInfo
+from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
 
 _TABLE_INFO_FIELD_NAME = "_table_data"
 
@@ -63,7 +63,7 @@ class InvalidTableCombineError(Exception):
     pass
 
 
-def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> EmbeddableTableInfo:
+def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> ComplementaryTableInfo:
     """
     Called from __finalize__ when operations have been performed via the pandas.DataFrame API.
 
@@ -115,7 +115,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Embeddabl
                     )
                 col.update_from(c)
 
-    return EmbeddableTableInfo(table_metadata=meta, columns=columns)
+    return ComplementaryTableInfo(table_metadata=meta, columns=columns)
 
 
 class TableDataFrame(pd.DataFrame):
@@ -173,7 +173,7 @@ class TableDataFrame(pd.DataFrame):
         return self
 
     @staticmethod
-    def from_table_info(df: pd.DataFrame, table_info: EmbeddableTableInfo) -> "TableDataFrame":
+    def from_table_info(df: pd.DataFrame, table_info: ComplementaryTableInfo) -> "TableDataFrame":
         df = TableDataFrame(df)
         object.__setattr__(df, _TABLE_INFO_FIELD_NAME, table_info)
         table_info._check_dataframe(df)
@@ -212,7 +212,7 @@ def make_table_dataframe(
         table_metadata = TableMetadata(**kwargs)
 
     df = TableDataFrame.from_table_info(
-        df, table_info=EmbeddableTableInfo(table_metadata=table_metadata)
+        df, table_info=ComplementaryTableInfo(table_metadata=table_metadata)
     )
 
     # set units
@@ -228,28 +228,28 @@ def make_table_dataframe(
 
 def get_table_info(
     df: TableDataFrame, fail_if_missing=True, check_dataframe=True
-) -> Optional[EmbeddableTableInfo]:
+) -> Optional[ComplementaryTableInfo]:
     """
-    Get EmbeddableTableInfo from existing TableDataFrame object.
+    Get ComplementaryTableInfo from existing TableDataFrame object.
 
     When called with default options, get_table_info will either raise an exception
-    or return a EmbeddableTableInfo object with a valid ColumnMetadata defined for each column.
+    or return a ComplementaryTableInfo object with a valid ColumnMetadata defined for each column.
 
     check_dataframe: Check that the table data is valid with respect to dataframe.
                      If the dataframe has been manipulated directly, table will be updated to match.
-    fail_if_missing: Whether to raise an exception if EmbeddableTableInfo object is missing
+    fail_if_missing: Whether to raise an exception if ComplementaryTableInfo object is missing
     """
     name: str = _TABLE_INFO_FIELD_NAME
     if name not in df._metadata:
         raise Exception(
             "Attempt to extract table data from normal pd.DataFrame object."
-            "EmbeddableTableInfo can only be associated with TableDataFrame objects"
+            "ComplementaryTableInfo can only be associated with TableDataFrame objects"
         )
     table_data = getattr(df, _TABLE_INFO_FIELD_NAME, None)
     if not table_data:
         if fail_if_missing:
             raise Exception(
-                "Missing EmbeddableTableInfo object on TableDataFrame."
+                "Missing ComplementaryTableInfo object on TableDataFrame."
                 "TableDataFrame objects should be created via make_table_dataframe or a Table proxy."
             )
     elif check_dataframe:

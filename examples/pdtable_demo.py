@@ -30,7 +30,7 @@
 # ## Idea
 #
 # The central idea is that as much as possible of the table information is stored as a pandas dataframe,
-# and that the remaining information is stored as a `EmbeddableTableInfo` object attached to the dataframe as registered metadata.
+# and that the remaining information is stored as a `ComplementaryTableInfo` object attached to the dataframe as registered metadata.
 # Further, access to the full table datastructure is provided through a facade object (of class `Table`). `Table` objects
 # have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded afterwards:
 #

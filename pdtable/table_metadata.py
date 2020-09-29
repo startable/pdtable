@@ -150,10 +150,10 @@ class ColumnMetadata:
         return c
 
 
-class EmbeddableTableInfo:
-    """A EmbeddableTableInfo object is responsible for storing any table information not stored by native dataframe
+class ComplementaryTableInfo:
+    """A ComplementaryTableInfo object is responsible for storing any table information not stored by native dataframe
 
-    A TableDataFrame object is a dataframe with such a EmbeddableTableInfo object attached as metadata.
+    A TableDataFrame object is a dataframe with such a ComplementaryTableInfo object attached as metadata.
     """
 
     def __init__(
