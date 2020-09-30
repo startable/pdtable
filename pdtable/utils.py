@@ -8,11 +8,11 @@ from pdtable import read_csv
 from . import units
 
 
-def normalized_table_generator(unit_policy, ts: Iterable[Tuple[BlockType, Optional[Any]]]):
-    for token_type, token in ts:
-        if token is not None and token_type == BlockType.TABLE:
-            token.convert_units(unit_policy)
-        yield token_type, token
+def normalized_table_generator(unit_policy, block_gen: Iterable[Tuple[BlockType, Optional[Any]]]):
+    for block_type, block in block_gen:
+        if block is not None and block_type == BlockType.TABLE:
+            block.convert_units(unit_policy)
+        yield block_type, block
 
 
 def read_bundle_from_csv(
