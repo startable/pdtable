@@ -66,7 +66,6 @@ class MoreComplexUnitPolicy(UnitPolicy):
         elif self.column_name == "flt":
             if unit == "m":
                 return value * 100, "cm"
-        print(f"{self.column_name} {value} {unit}")
         return value, unit
 
 
