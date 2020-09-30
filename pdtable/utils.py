@@ -2,7 +2,7 @@
 # TODO These functions seem out of sync with the rest of the pdtable.io API. Needs revisiting.
 from os import PathLike
 from typing import Optional, Any, Tuple, Iterable
-
+from abc import ABC
 from pdtable import TableBundle, BlockType
 from pdtable import read_csv
 from . import units
@@ -22,6 +22,8 @@ def read_bundle_from_csv(
     inputs = read_csv(input_path, sep)
 
     if unit_policy is not None:
+        if type(unit_policy) in {type, type(ABC)}:
+            unit_policy = unit_policy() #  instantiate
         inputs = normalized_table_generator(unit_policy, inputs)
 
     return TableBundle(inputs)
