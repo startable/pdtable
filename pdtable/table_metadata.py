@@ -150,16 +150,18 @@ class ColumnMetadata:
         return c
 
 
-class TableData:
-    """A TableData object is responsible for storing any table information not stored by native dataframe
+class ComplementaryTableInfo:
+    """A ComplementaryTableInfo object is responsible for storing any table information not stored by native dataframe
 
-    A PandasTable object is a dataframe with such a TableData object attached as metadata.
+    A TableDataFrame object is a dataframe with such a ComplementaryTableInfo object attached as metadata.
     """
 
-    def __init__(self, metadata, columns: Optional[Dict[str, ColumnMetadata]] = None):
-        self.metadata: TableMetadata = metadata
-        self.columns: Dict[str, ColumnMetadata] = columns if columns is not None else dict()
-        # self.template #Table template data should be included here
+    def __init__(
+        self, table_metadata: TableMetadata, columns: Optional[Dict[str, ColumnMetadata]] = None
+    ):
+        self.metadata: TableMetadata = table_metadata
+        self.columns: Dict[str, ColumnMetadata] = columns if columns is not None else {}
+        # self.template # TODO Table template data should/could be included here
         # self.parametrization = None: Do not include, see discussion in module docs
         self._last_dataframe_state = None
 

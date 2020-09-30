@@ -21,7 +21,7 @@ rectangle use_cases as "=Intended use cases" #LightGray {
 
 rectangle interfaces as "=Interfaces" #LightGray {
     file table as "=Table"
-    file df as "=PandasTable"
+    file df as "=TableDataFrame"
 }
 
 table --> df : <b>Table.df

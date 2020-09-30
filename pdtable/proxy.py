@@ -3,15 +3,15 @@ from typing import Union, Dict, List, Optional, Set
 import pandas as pd
 
 from .units import UnitPolicy
-from .pandastable import (
-    PandasTable,
-    get_table_data,
-    is_pdtable,
-    make_pdtable,
+from .frame import (
+    TableDataFrame,
+    get_table_info,
+    is_table_dataframe,
+    make_table_dataframe,
     set_units,
     add_column,
 )
-from .table_metadata import TableMetadata, ColumnMetadata, TableData
+from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
 
 
 class Column:
@@ -23,12 +23,12 @@ class Column:
           via proxy interface. Alternative is to use "add_column()"
     """
 
-    def __init__(self, df: PandasTable, name: str, table_data: TableData = None):
+    def __init__(self, df: TableDataFrame, name: str, table_info: ComplementaryTableInfo = None):
         self._name = name
         self._values = df[name]
-        if not table_data:
-            table_data = get_table_data(df)
-        self._meta = table_data.columns[name]
+        if not table_info:
+            table_info = get_table_info(df)
+        self._meta = table_info.columns[name]
 
     @property
     def name(self):
@@ -67,14 +67,14 @@ class Column:
 
 class Table:
     """
-    A Table object is a facade for a backing PandasTable object.
+    A Table object is a facade for a backing TableDataFrame object.
 
     Can be created in two ways:
-    1) From PandasTable object
+    1) From TableDataFrame object
        table = Table(tdf)
     2) From normal dataframe by including minimum metadata:
        table = Table(df, name='Foo')
-       table = Table(df, TableData(name='Foo'))
+       table = Table(df, ComplementaryTableInfo(name='Foo'))
 
     The .df property will return a dataframe subclass that retains all table information.
     To obtain a bare DataFrame object, use `pd.DataFrame(t.df)
@@ -86,10 +86,10 @@ class Table:
     For situations where this is unacceptable for performance, use direct dataframe access methods.
     """
 
-    def __init__(self, df: Union[None, PandasTable, pd.DataFrame] = None, **kwargs):
-        if not (df is not None and is_pdtable(df)):
-            # Creating a new table: initialize PandasTable
-            df = make_pdtable(df if df is not None else pd.DataFrame(), **kwargs)
+    def __init__(self, df: Union[None, TableDataFrame, pd.DataFrame] = None, **kwargs):
+        if not (df is not None and is_table_dataframe(df)):
+            # Creating a new table: initialize TableDataFrame
+            df = make_table_dataframe(df if df is not None else pd.DataFrame(), **kwargs)
         elif kwargs:
             raise Exception(
                 f"Got unexpected keyword arguments when creating Table object from "
@@ -98,20 +98,20 @@ class Table:
         self._df = df
 
     @property
-    def df(self) -> PandasTable:
+    def df(self) -> TableDataFrame:
         """
-        Return a pandas dataframe with all table information stored as metadata (a PandasTable object).
+        Return a pandas dataframe with all table information stored as metadata (a TableDataFrame object).
 
         This dataframe always exist and is the single source of truth for table data.
         The Table obects (this object) merely acts as a facade to allow simpler manipulation of
         associated metadata. It is consequently safe to simultaneously manipulate a Table object and the
-        associated PandasTable object, as well as deleting the Table object.
+        associated TableDataFrame object, as well as deleting the Table object.
         """
         return self._df
 
     @property
-    def table_data(self) -> TableData:
-        return get_table_data(self._df)
+    def table_data(self) -> ComplementaryTableInfo:
+        return get_table_info(self._df)
 
     @property
     def metadata(self) -> TableMetadata:
@@ -137,8 +137,8 @@ class Table:
     @property
     def column_proxies(self) -> List[Column]:
         df = self._df
-        table_data = get_table_data(df)
-        return [Column(df, name, table_data=table_data) for name in self.column_names]
+        table_data = get_table_info(df)
+        return [Column(df, name, table_info=table_data) for name in self.column_names]
 
     @property
     def units(self) -> List[str]:
@@ -176,7 +176,7 @@ class Table:
 
     def __iter__(self):
         table_data = self.table_data
-        return (Column(self._df, name, table_data=table_data) for name in table_data.columns.keys())
+        return (Column(self._df, name, table_info=table_data) for name in table_data.columns.keys())
 
     def __getitem__(self, name: str):
         """Get column proxy for existing column"""

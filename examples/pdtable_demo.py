@@ -20,8 +20,8 @@
 # The `pdtable` package allows working with StarTable tables as pandas dataframes while consistently keeping track of StarTable-specific metadata such as table destinations and column units.
 #
 # This is implemented by providing two interfaces to the same backing object:
-# - `PandasTable` is derived from `pandas.DataFrame`. It carries the data and is the interface of choice for interacting with the data using the pandas API, with all the convenience that this entails.  It also carries StarTable metadata, but in a less accessible way.
-# - `Table` is a stateless façade for a backing `PandasTable` object. `Table` is the interface of choice for convenient access to StarTable-specific metadata such as column units, and table destinations and origin. Some data manipulation is also possible in the `Table` interface, though this functionality is limited.
+# - `TableDataFrame` is derived from `pandas.DataFrame`. It carries the data and is the interface of choice for interacting with the data using the pandas API, with all the convenience that this entails.  It also carries StarTable metadata, but in a less accessible way.
+# - `Table` is a stateless façade for a backing `TableDataFrame` object. `Table` is the interface of choice for convenient access to StarTable-specific metadata such as column units, and table destinations and origin. Some data manipulation is also possible in the `Table` interface, though this functionality is limited.
 #
 # ![Table interfaces](../docs/diagrams/img/table_interfaces/table_interfaces.svg)
 #
@@ -30,21 +30,21 @@
 # ## Idea
 #
 # The central idea is that as much as possible of the table information is stored as a pandas dataframe,
-# and that the remaining information is stored as a `TableData` object attached to the dataframe as registered metadata.
+# and that the remaining information is stored as a `ComplementaryTableInfo` object attached to the dataframe as registered metadata.
 # Further, access to the full table datastructure is provided through a facade object (of class `Table`). `Table` objects
 # have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded afterwards:
 #
 # ```
-# dft = make_pdtable(...)
-# unit_height = Table(dft).height.unit
+# tdf = make_table_dataframe(...)
+# unit_height = Table(tdf).height.unit
 # ```
 #
 # Advantages of this approach are that:
 #
-# 1. Code can be written for (and tested with) pandas dataframes and still operate on `PandasTable` objects.
+# 1. Code can be written for (and tested with) pandas dataframes and still operate on `TableDataFrame` objects.
 #    This frees client code from necessarily being coupled to the startable project.
-#    A first layer of client code can read and manipulate StarTable data, and then pass it on as a (`PandasTable`-flavoured) `pandas.DataFrame` to a further layer having no knowledge of `pdtable`.
-# 2. The access methods of pandas `DataFrames`, `Series`, etc. are available for use by consumer code via the `PandasTable` interface. This both saves the work
+#    A first layer of client code can read and manipulate StarTable data, and then pass it on as a (`TableDataFrame`-flavoured) `pandas.DataFrame` to a further layer having no knowledge of `pdtable`.
+# 2. The access methods of pandas `DataFrames`, `Series`, etc. are available for use by consumer code via the `TableDataFrame` interface. This both saves the work
 #    of re-implementing similar access methods on a StarTable-specific object, and likely allows better performance and documentation.
 
 # %%
@@ -75,20 +75,20 @@ if Path.cwd().name == "examples":
 # Data manipulation functions exist, and more are easily added -- but focus is on metadata.
 
 # %%
-from pdtable import pandastable
+from pdtable import frame
 from pdtable.proxy import Table
 
 # %%
 t = Table(name="mytable")
 
 # Add columns explicitly...
-t.add_column("a", range(5), "km")
+t.add_column("places", ["home", "work", "beach", "unicornland"], "text")
 
 # ...or via item access
-t["b"] = ["the foo"] * 5
+t["distance"] = [0, 1, 2, 42]
 
 # Modify column metadata through column proxy objets:
-t["a"].unit = "m"
+t["distance"].unit = "km"  # (oops I had forgotten to set distance unit!)
 
 # Table renders as annotated dataframe
 t
@@ -98,7 +98,7 @@ t.column_names
 
 # %%
 # Each column has associated metadata object that can be manipulated:
-t["b"]
+t["places"]
 
 # %%
 t.units
@@ -115,23 +115,24 @@ t2 = Table(pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=
 t2
 
 # %% [markdown]
-# ## The `PandasTable` / `pd.DataFrame` aspect
+# ## The `TableDataFrame` aspect
 #
-# Both the table contents and metadata displayed and manipulated throught the `Table`-class is stored as a `PandasTable` object, which is a normal pandas dataframe with two modifications:
+# Both the table contents and metadata displayed and manipulated throught the `Table`-class is stored as a `TableDataFrame` object, which is a normal pandas dataframe with two modifications:
 #
 # * It has a `_table_data` field registered as a metadata field, so that pandas will include it in copy operations, etc.
-# * It will preserve column and table metadata for some pandas operations, and fall back to returning a normal dataframe if this is not possible/implemented.
+# * It will preserve column and table metadata for some pandas operations, and fall back to returning a vanilla `pandas.DataFrame` if this is not possible/implemented.
 #
 
 # %%
-# After getting a reference to the dataframe backing t, it is safe to delete t:
+# After getting a reference to the TableDataFrame backing Table t, it is safe to delete t:
 df = t.df
 del t
+# Just construct a new Table facade, and everything is back in place.
 Table(df)
 
 # %%
 # Interacting with table metadata form  without the Table proxy is slightly verbose
-df2 = pandastable.make_pdtable(
+df2 = frame.make_table_dataframe(
     pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=["m", "kg"]
 )
 
