@@ -32,9 +32,9 @@ import pandas as pd
 
 from .fixer import ParseFixer
 from .columns import parse_column
-from ... import pandastable
+from ... import frame
 from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
-from ...ancillary_blocks import MetadataBlock, Directive
+from ...auxiliary import MetadataBlock, Directive
 from pdtable import Table
 from pdtable import BlockType, BlockGenerator
 from ...table_metadata import TableOriginCSV, TableMetadata
@@ -127,10 +127,10 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwarg
 
     json_precursor = make_table_json_precursor(cells, origin=origin, **kwargs)
     return Table(
-        pandastable.make_pdtable(
+        frame.make_table_dataframe(
             pd.DataFrame(json_precursor["columns"]),
             units=json_precursor["units"],
-            metadata=TableMetadata(
+            table_metadata=TableMetadata(
                 name=json_precursor["name"],
                 destinations=set(json_precursor["destinations"].keys()),
                 origin=json_precursor["origin"],

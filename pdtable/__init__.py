@@ -6,7 +6,7 @@ CSV_SEP = ";"  # User can overwrite this default
 
 from .proxy import Table
 from .table_metadata import TableMetadata, TableOrigin
-from .ancillary_blocks import Directive, MetadataBlock
+from .auxiliary import Directive, MetadataBlock
 from .store import TableBundle, BlockType, BlockGenerator
 from .units import UnitPolicy
 from .io import ParseFixer

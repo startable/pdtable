@@ -1,42 +1,42 @@
 """
-The `pdtable` module allows working with StarTable tables as pandas dataframes.
+The `frame` module allows working with StarTable tables as pandas dataframes.
 
-This is implemented by providing both `Table` and `PandasTable` (dataframe) interfaces to the same object.
+This is implemented by providing both `Table` and `TableDataFrame` interfaces to the same object.
 
 ## Idea
 
 The central idea is that as much as possible of the table information is stored as a pandas dataframe,
-and that the remaining information is stored as a `TableData` object attached to the dataframe as registered metadata.
-Further, access to the full table datastructure is provided through a facade object (of class `Table`). `Table` objects
+and that the remaining information is stored as a `ComplementaryTableInfo` object attached to the dataframe as registered metadata.
+Further, access to the full table data structure is provided through a facade object (of class `Table`). `Table` objects
 have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded
 afterwards:
 
 ```
-dft = make_pdtable(...)
+dft = make_table_dataframe(...)
 unit_height = Table(dft).height.unit
 ```
 
 Advantages of this approach are that:
 
-1. Code can be written for (and tested with) pandas dataframes and still operate on `pdtable` objects.
-   This avoids unnecessary coupling to the startable project.
+1. Code can be written for (and tested with) pandas dataframes and still operate on `TableDataFrame`
+   objects. This avoids unnecessary coupling to the StarTable project.
 2. The table access methods of pandas are available for use by consumer code. This both saves the work
    of making startable-specific access methods, and likely allows better performance and documentation.
 
 ## Implementation details
 
-The decorated dataframe objects are represented by the `PandasTable` class.
+The decorated dataframe objects are represented by the `TableDataFrame` class.
 
 ### Dataframe operations
 
 Pandas allows us to hook into operations on dataframes via the `__finalize__` method.
 This makes it possible to propagate table metadata over select dataframe operations.
-See `PandasTable` documentation for details.
+See `TableDataFrame` documentation for details.
 
 ### Column metadata
 
-Propagating metadata would be greatly simplified if column-specific metadata was stored with the column.
-However, metadata attached to `Series` object  is not retained within the dataframe, see
+Propagating metadata would be greatly simplified if column-specific metadata was stored with the
+column. However, metadata attached to `Series` object is not retained within the dataframe, see
 https://github.com/pandas-dev/pandas/issues/6923#issuecomment-41043225.
 
 ## Alternative approaches
@@ -50,9 +50,9 @@ import pandas as pd
 import warnings
 from typing import Set, Dict, Optional, Iterable
 
-from .table_metadata import TableMetadata, ColumnMetadata, TableData
+from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
 
-_TABLE_DATA_FIELD_NAME = "_table_data"
+_TABLE_INFO_FIELD_NAME = "_table_data"
 
 
 class UnknownOperationError(Exception):
@@ -63,7 +63,7 @@ class InvalidTableCombineError(Exception):
     pass
 
 
-def _combine_tables(obj: "PandasTable", other, method, **kwargs) -> TableData:
+def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> ComplementaryTableInfo:
     """
     Called from __finalize__ when operations have been performed via the pandas.DataFrame API.
 
@@ -89,7 +89,7 @@ def _combine_tables(obj: "PandasTable", other, method, **kwargs) -> TableData:
     if len(src) == 0:
         raise UnknownOperationError(f"No operands for operation {method}")
 
-    data = [get_table_data(s) for s in src if is_pdtable(s)]
+    data = [get_table_info(s) for s in src if is_table_dataframe(s)]
 
     # 1: Create table metadata as combination of all
     meta = TableMetadata(
@@ -115,10 +115,10 @@ def _combine_tables(obj: "PandasTable", other, method, **kwargs) -> TableData:
                     )
                 col.update_from(c)
 
-    return TableData(metadata=meta, columns=columns)
+    return ComplementaryTableInfo(table_metadata=meta, columns=columns)
 
 
-class PandasTable(pd.DataFrame):
+class TableDataFrame(pd.DataFrame):
     """
     A pandas.DataFrame subclass with associated table metadata.
 
@@ -126,13 +126,13 @@ class PandasTable(pd.DataFrame):
     through pandas operations. If this is not possible, the manipulations
     will return a plain pandas.DataFrame.
 
-    No StarTable-specific methods are available directly on this class, and PandasTable
+    No StarTable-specific methods are available directly on this class, and TableDataFrame
     objects should not be created directly.
     Instead, use either the methods in the this module, or the Table proxy
-    object, which can be constructed for a PandasTable object 'tdf' via Table(tdf).
+    object, which can be constructed for a TableDataFrame object 'tdf' via Table(tdf).
     """
 
-    _metadata = [_TABLE_DATA_FIELD_NAME]  # Register metadata fieldnames here
+    _metadata = [_TABLE_INFO_FIELD_NAME]  # Register metadata fieldnames here
 
     # If implemented, must handle metadata copying etc
     # def __init__(self, *args, **kwargs):
@@ -150,13 +150,13 @@ class PandasTable(pd.DataFrame):
 
     @property
     def _constructor(self):
-        return PandasTable
+        return TableDataFrame
 
     def __finalize__(self, other, method=None, **kwargs):
         """
         Overrides pandas.core.generic.NDFrame.__finalize__()
 
-        This method is responsible for populating PandasTable metadata
+        This method is responsible for populating TableDataFrame metadata
         when creating a new Table object.
 
         If left out, no metadata would be retained across table
@@ -166,33 +166,33 @@ class PandasTable(pd.DataFrame):
 
         try:
             data = _combine_tables(self, other, method, **kwargs)
-            object.__setattr__(self, _TABLE_DATA_FIELD_NAME, data)
+            object.__setattr__(self, _TABLE_INFO_FIELD_NAME, data)
         except UnknownOperationError as e:
             warnings.warn(f"Falling back to dataframe: {e}")
             return pd.DataFrame(self)
         return self
 
     @staticmethod
-    def from_table_data(df: pd.DataFrame, data: TableData) -> "PandasTable":
-        df = PandasTable(df)
-        object.__setattr__(df, _TABLE_DATA_FIELD_NAME, data)
-        data._check_dataframe(df)
+    def from_table_info(df: pd.DataFrame, table_info: ComplementaryTableInfo) -> "TableDataFrame":
+        df = TableDataFrame(df)
+        object.__setattr__(df, _TABLE_INFO_FIELD_NAME, table_info)
+        table_info._check_dataframe(df)
         return df
 
 
-def is_pdtable(df: pd.DataFrame) -> bool:
-    return _TABLE_DATA_FIELD_NAME in df._metadata
+def is_table_dataframe(df: pd.DataFrame) -> bool:
+    return _TABLE_INFO_FIELD_NAME in df._metadata
 
 
-def make_pdtable(
+def make_table_dataframe(
     df: pd.DataFrame,
     units: Optional[Iterable[str]] = None,
     unit_map: Optional[Dict[str, str]] = None,
-    metadata: Optional[TableMetadata] = None,
+    table_metadata: Optional[TableMetadata] = None,
     **kwargs,
-) -> PandasTable:
+) -> TableDataFrame:
     """
-    Create PandasTable object from a pandas.DataFream and table metadata elements.
+    Create TableDataFrame object from a pandas.DataFream and table metadata elements.
 
     Unknown keyword arguments (e.g. `name = ...`) are used to create a `TableMetadata` object.
     Alternatively, a `TableMetadata` object can be provided directly.
@@ -201,17 +201,19 @@ def make_pdtable(
     are assigned.
 
     Example:
-    tdf = make_pdtable(df, name='MyTable')
+    tdf = make_table_dataframe(df, name='MyTable')
     """
 
     # build metadata
-    if (metadata is not None) == bool(kwargs):
+    if (table_metadata is not None) == bool(kwargs):
         raise Exception("Supply either metadata or keyword-arguments for TableMetadata constructor")
     if kwargs:
         # This is intended to fail if args are insufficient
-        metadata = TableMetadata(**kwargs)
+        table_metadata = TableMetadata(**kwargs)
 
-    df = PandasTable.from_table_data(df, data=TableData(metadata=metadata))
+    df = TableDataFrame.from_table_info(
+        df, table_info=ComplementaryTableInfo(table_metadata=table_metadata)
+    )
 
     # set units
     if units and unit_map:
@@ -224,46 +226,46 @@ def make_pdtable(
     return df
 
 
-def get_table_data(
-    df: PandasTable, fail_if_missing=True, check_dataframe=True
-) -> Optional[TableData]:
+def get_table_info(
+    df: TableDataFrame, fail_if_missing=True, check_dataframe=True
+) -> Optional[ComplementaryTableInfo]:
     """
-    Get TableData from existing PandasTable object.
+    Get ComplementaryTableInfo from existing TableDataFrame object.
 
-    When called with default options, get_table_data will either raise an exception
-    or return a TableData object with a valid ColumnMetadata defined for each column.
+    When called with default options, get_table_info will either raise an exception
+    or return a ComplementaryTableInfo object with a valid ColumnMetadata defined for each column.
 
     check_dataframe: Check that the table data is valid with respect to dataframe.
                      If the dataframe has been manipulated directly, table will be updated to match.
-    fail_if_missing: Whether to raise an exception if TableData object is missing
+    fail_if_missing: Whether to raise an exception if ComplementaryTableInfo object is missing
     """
-    name: str = _TABLE_DATA_FIELD_NAME
+    name: str = _TABLE_INFO_FIELD_NAME
     if name not in df._metadata:
         raise Exception(
             "Attempt to extract table data from normal pd.DataFrame object."
-            "TableData can only be associated with PandasTable objects"
+            "ComplementaryTableInfo can only be associated with TableDataFrame objects"
         )
-    table_data = getattr(df, _TABLE_DATA_FIELD_NAME, None)
+    table_data = getattr(df, _TABLE_INFO_FIELD_NAME, None)
     if not table_data:
         if fail_if_missing:
             raise Exception(
-                "Missing TableData object on PandasTable."
-                "PandasTable objects should be created via make_pdtable or a Table proxy."
+                "Missing ComplementaryTableInfo object on TableDataFrame."
+                "TableDataFrame objects should be created via make_table_dataframe or a Table proxy."
             )
     elif check_dataframe:
         table_data._check_dataframe(df)
     return table_data
 
 
-# example of manipulator function that directly manipulates PandasTable objects without constructing Table facade
-def add_column(df: PandasTable, name: str, values, unit: Optional[str] = None, **kwargs):
+# example of manipulator function that directly manipulates TableDataFrame objects without constructing Table facade
+def add_column(df: TableDataFrame, name: str, values, unit: Optional[str] = None, **kwargs):
     """
     Add or update column in table. If omitted, unit will be partially inferred from value dtype.
 
     keyword arguments will be forwarded to ColumnMetadata constructor together with unit
     """
     df[name] = values
-    columns = get_table_data(df, check_dataframe=False).columns
+    columns = get_table_info(df, check_dataframe=False).columns
 
     new_col = (
         ColumnMetadata.from_dtype(df[name].dtype, **kwargs)
@@ -279,16 +281,16 @@ def add_column(df: PandasTable, name: str, values, unit: Optional[str] = None, *
         col.update_from(new_col)
 
 
-def set_units(df: PandasTable, unit_map: Dict[str, str]):
-    columns = get_table_data(df).columns
+def set_units(df: TableDataFrame, unit_map: Dict[str, str]):
+    columns = get_table_info(df).columns
     for col, unit in unit_map.items():
         columns[col] = unit
 
 
-def set_all_units(df: PandasTable, units: Iterable[Optional[str]]):
+def set_all_units(df: TableDataFrame, units: Iterable[Optional[str]]):
     """
     Set units for all columns in table.
     """
-    columns = get_table_data(df).columns
+    columns = get_table_info(df).columns
     for col, unit in zip(df.columns, units):
         columns[col].unit = unit

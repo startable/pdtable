@@ -13,7 +13,7 @@ Examples include:
 
 from enum import Enum, auto
 from typing import Iterable, Tuple, Any, Iterator, Optional
-from .pandastable import PandasTable
+from .frame import TableDataFrame
 
 
 class BlockType(Enum):
@@ -35,7 +35,7 @@ class BlockType(Enum):
 
 BlockGenerator = Iterable[Tuple[BlockType, Optional[Any]]]
 
-TableType = PandasTable
+TableType = TableDataFrame
 
 
 class TableBundle:
@@ -43,7 +43,7 @@ class TableBundle:
     Simple table store with no regard for destinations
 
     Ignores everything but Table-tokens.
-    Both get_attr and get_item returns PandasTable instances.
+    Both get_attr and get_item returns TableDataFrame instances.
     These can be wrapped in pdtable.Table facades for access to metadata (units etc.)
 
     For discoverability, it would be better to return Table facade objects directly,
