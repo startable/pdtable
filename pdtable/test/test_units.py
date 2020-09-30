@@ -50,12 +50,12 @@ def test_convert_units(unit_policy):
 
 
 class MoreComplexUnitPolicy(UnitPolicy):
-    """ Unit conversion based on TableColumn and TableName
+    """ Unit conversion based on column_name and table_name
     """
 
     def convert_value_to_base(self, value, unit: str) -> Tuple[Any, str]:
         """ Here any unit converter can be integrated, pint, Unum &c.
-            This converter demonstrates the use of TableName and TableColumn
+            This converter demonstrates the use of table_name and column_name
         """
         if self.table_name != "input_files_derived":
             return value, unit
@@ -66,7 +66,6 @@ class MoreComplexUnitPolicy(UnitPolicy):
         elif self.column_name == "flt":
             if unit == "m":
                 return value * 100, "cm"
-        print(f"{self.column_name} {value} {unit}")
         return value, unit
 
 
