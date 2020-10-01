@@ -1,8 +1,8 @@
 from io import StringIO
 from textwrap import dedent
 
-from ..store import TableBundle
-from ..io.parsers.blocks import parse_blocks
+from pdtable import TableBundle
+from pdtable.io.parsers.blocks import parse_blocks
 
 
 cell_rows = [
@@ -45,7 +45,7 @@ def test_TableBundle():
 
     # pdtable generator
     table = TableBundle(parse_blocks(cell_rows,to="pdtable"))
-#    assert table.input_files_derived.column.values[0] == "file_bytes"
+    assert table.input_files_derived.file_bytes.values[1] == 15326.0
     assert table is not None
     assert len(table) == 2
 
