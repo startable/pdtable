@@ -1,9 +1,7 @@
-from io import StringIO
 from textwrap import dedent
 
 from pdtable import TableBundle
 from pdtable.io.parsers.blocks import parse_blocks
-
 
 cell_rows = [
     line.split(";")
@@ -37,19 +35,19 @@ cell_rows = [
 def test_bundle_from_csv():
 
     # with StringIO(lines) as f:
-    table = TableBundle(parse_blocks(cell_rows))
+    bundle = TableBundle(parse_blocks(cell_rows))
 
-    assert table.foo.column.values[0] == "bar"
+    assert bundle.foo.column.values[0] == "bar"
 
 def test_TableBundle():
 
     # pdtable generator
-    table = TableBundle(parse_blocks(cell_rows,to="pdtable"))
-    assert table.input_files_derived.file_bytes.values[1] == 15326.0
-    assert table is not None
-    assert len(table) == 2
+    bundle = TableBundle(parse_blocks(cell_rows,to="pdtable"))
+    assert bundle.input_files_derived.file_bytes.values[1] == 15326.0
+    assert bundle is not None
+    assert len(bundle) == 2
 
     # do not error on other table types
-    table = TableBundle(parse_blocks(cell_rows,to="cellgrid"))
+    bundle = TableBundle(parse_blocks(cell_rows,to="cellgrid"))
 
-    assert table is not None
+    assert bundle is not None

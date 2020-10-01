@@ -12,7 +12,7 @@ Examples include:
 
 
 from enum import Enum, auto
-from typing import Iterable, Tuple, Any, Iterator, Optional
+from typing import Iterable, Tuple, Any, Iterator, Optional, Union, List
 from .frame import TableDataFrame
 from .proxy import Table
 
@@ -36,43 +36,51 @@ class BlockType(Enum):
 
 BlockGenerator = Iterable[Tuple[BlockType, Optional[Any]]]
 
-TableType = TableDataFrame
+TableType = Union[Table, TableDataFrame]
 
 
 class TableBundle:
     """
     Simple table store with no regard for destinations
 
-    Ignores everything but Table-tokens.
-    Both get_attr and get_item returns TableDataFrame instances.
-    These can be wrapped in pdtable.Table facades for access to metadata (units etc.)
-
-    For discoverability, it would be better to return Table facade objects directly,
-    but the current approach has the advantage of allowing normal dataframes.
+    Ignores everything but Table blocks.
     """
 
     def __init__(self, block_gen: BlockGenerator, as_Table: bool = True):
         self._tables = {}
-        for token_type, token in block_gen:
-            if token_type != BlockType.TABLE:
+        for block_type, block in block_gen:
+            if block_type != BlockType.TABLE:
                 continue
-            if not hasattr(token, "df"):
+            if not hasattr(block, "df"):
+                # Could be e.g. JsonData or other alternative data structure
                 continue
-            assert self._tables.get(token.name) is None  # no overwrite
+            table = block
+            assert self._tables.get(table.name) is None  # TODO add to list for this name
             if as_Table:
-                self._tables[token.name] = token
+                self._tables[table.name] = table  # TODO add to list for this name
             else:
-                self._tables[token.name] = token.df
+                self._tables[table.name] = table.df  # TODO add to list for this name
 
     def __getattr__(self, name: str) -> TableType:
+        # TODO should return bundle.unique(name)
         return self._tables[name]
 
     def __getitem__(self, name: str) -> TableType:
+        # TODO should return bundle.unique(name)
         return self._tables[name]
 
     def __iter__(self) -> Iterator[str]:
         """Iterator over table names"""
+        # TODO return the tables themselves, not just name
         return iter(self._tables)
 
     def __len__(self):
         return self._tables.__len__()
+
+    def unique(self, name: str) -> TableType:
+        """Returns table if there is exactly only one table of this name, raises error otherwise."""
+        raise NotImplementedError()
+
+    def all(self, name: str) -> List[TableType]:
+        """Returns all tables with this name."""
+        raise NotImplementedError()
