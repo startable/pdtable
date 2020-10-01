@@ -51,7 +51,7 @@ class TableBundle:
     but the current approach has the advantage of allowing normal dataframes.
     """
 
-    def __init__(self, block_gen: BlockGenerator, as_Table: bool = False):
+    def __init__(self, block_gen: BlockGenerator, as_Table: bool = True):
         self._tables = {}
         for token_type, token in block_gen:
             if token_type != BlockType.TABLE:
@@ -60,7 +60,7 @@ class TableBundle:
                 continue
             assert self._tables.get(token.name) is None  # no overwrite
             if as_Table:
-                self._tables[token.name] = Table(token.df)
+                self._tables[token.name] = token
             else:
                 self._tables[token.name] = token.df
 
