@@ -14,6 +14,7 @@ Examples include:
 from enum import Enum, auto
 from typing import Iterable, Tuple, Any, Iterator, Optional
 from .frame import TableDataFrame
+from .proxy import Table
 
 
 class BlockType(Enum):
@@ -50,12 +51,18 @@ class TableBundle:
     but the current approach has the advantage of allowing normal dataframes.
     """
 
-    def __init__(self, ts: BlockGenerator):
-        self._tables = {
-            token.name: token.df
-            for token_type, token in ts
-            if token is not None and token_type == BlockType.TABLE
-        }
+    def __init__(self, block_gen: BlockGenerator, as_Table: bool = False):
+        self._tables = {}
+        for token_type, token in block_gen:
+            if token_type != BlockType.TABLE:
+                continue
+            if not hasattr(token, "df"):
+                continue
+            assert self._tables.get(token.name) is None  # no overwrite
+            if as_Table:
+                self._tables[token.name] = Table(token.df)
+            else:
+                self._tables[token.name] = token.df
 
     def __getattr__(self, name: str) -> TableType:
         return self._tables[name]
