@@ -80,9 +80,6 @@ class TableBundle:
 
     def __iter__(self) -> Iterator[str]:
         """Iterator over tables"""
-#        all = []
-#        for tn in self._tables.keys():
-#            all.extend(self._tables[tn])
         return iter(self._indexed)
 
     def __len__(self):
