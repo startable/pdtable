@@ -48,13 +48,12 @@ def test_read_bundle_from_csv():
 
     for tab in bundle:
         assert tab["flt"].unit == "g"
-        assert tab["flt"][4] == 200000
+        assert tab["flt"].values[4] == 200000
 
     # test 2]: unit_policy as a type
     stream = io.StringIO(instr)
     bundle = read_bundle_from_csv(stream, unit_policy=convert_kg)
     assert len(bundle) > 0
-    for tn in bundle:
-        tab = bundle[tn]
+    for tab in bundle:
         assert tab["flt"].unit == "g"
-        assert tab["flt"][0] == 3000
+        assert tab["flt"].values[0] == 3000
