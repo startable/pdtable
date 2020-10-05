@@ -48,39 +48,56 @@ class TableBundle:
 
     def __init__(self, block_gen: BlockGenerator, as_Table: bool = True):
         self._tables = {}
+        self._indexed = []
         for block_type, block in block_gen:
             if block_type != BlockType.TABLE:
                 continue
-            if not hasattr(block, "df"):
+            if not hasattr(block, "name"):
                 # Could be e.g. JsonData or other alternative data structure
+                self._indexed.append(block)
                 continue
             table = block
-            assert self._tables.get(table.name) is None  # TODO add to list for this name
+            if self._tables.get(table.name) is None:
+                self._tables[table.name] = []
             if as_Table:
-                self._tables[table.name] = table  # TODO add to list for this name
+                self._tables[table.name].append(table)
+                self._indexed.append(table)
             else:
-                self._tables[table.name] = table.df  # TODO add to list for this name
+                self._tables[table.name].append(table.df)
+                self._indexed.append(table.df)
 
     def __getattr__(self, name: str) -> TableType:
-        # TODO should return bundle.unique(name)
-        return self._tables[name]
+        return self.unique(name)
 
-    def __getitem__(self, name: str) -> TableType:
-        # TODO should return bundle.unique(name)
-        return self._tables[name]
+    def __getitem__(self, idx: Union[str,int]) -> TableType:
+        """ Allow tb[0] as well as tb["tname"] """
+        if isinstance(idx,str):
+            return self.unique(idx)
+        if isinstance(idx,int):
+            return self._indexed[idx]
+
+        raise NotImplementedError(f"getitem of type: {type(idx)}")
 
     def __iter__(self) -> Iterator[str]:
-        """Iterator over table names"""
-        # TODO return the tables themselves, not just name
-        return iter(self._tables)
+        """Iterator over tables"""
+        all = []
+        for tn in self._tables.keys():
+            all.extend(self._tables[tn])
+        return iter(all)
 
     def __len__(self):
-        return self._tables.__len__()
+        size = 0
+        for tn in self._tables:
+            size += len(self._tables[tn])
+        return size
 
     def unique(self, name: str) -> TableType:
         """Returns table if there is exactly only one table of this name, raises error otherwise."""
+        lst = self._tables.get(name)
+        if lst is not None and len(lst) == 1:
+            return lst[0]
         raise NotImplementedError()
 
     def all(self, name: str) -> List[TableType]:
         """Returns all tables with this name."""
-        raise NotImplementedError()
+        raise self._tables.get(name)
