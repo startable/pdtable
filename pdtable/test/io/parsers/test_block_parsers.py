@@ -210,7 +210,7 @@ def test_parse_blocks():
     assert t.df["column"].iloc[0] == "bar"
 
     # Bundle
-    table_bundle = TableBundle(parse_blocks(cell_rows))
+    table_bundle = TableBundle(parse_blocks(cell_rows),as_Table=False)
     assert table_bundle.foo.column.values[0] == "bar"
     assert table_bundle.foo.dash.values[0] == 10
 
@@ -359,24 +359,24 @@ def test_read_csv_compatible1():
         .split("\n")
     ]
 
-    table = TableBundle(parse_blocks(cell_rows))
-    assert table
+    table_bundle = TableBundle(parse_blocks(cell_rows),as_Table=False)
+    assert table_bundle
 
-    assert table.test_input.onoffs[0] == False
-    assert table.test_input.onoffs[1] == True
-    assert table.test_input.onoffs[2] == True
+    assert table_bundle.test_input.onoffs[0] == False
+    assert table_bundle.test_input.onoffs[1] == True
+    assert table_bundle.test_input.onoffs[2] == True
     for idx in range(0, 3):
-        assert table.test_input.dates[idx].year == 2020
-        assert table.test_input.dates[idx].month == 7
-        assert table.test_input.dates[idx].day == 8
+        assert table_bundle.test_input.dates[idx].year == 2020
+        assert table_bundle.test_input.dates[idx].month == 7
+        assert table_bundle.test_input.dates[idx].day == 8
 
     for idx in range(0, 3):
-        assert table.test_input.numerical[idx] == 123
+        assert table_bundle.test_input.numerical[idx] == 123
 
-    assert table.test_input.numerical[3] == 1.23
-    assert table.test_input.numerical[5] == 1.23
-    assert table.test_input.numerical[7] == 1.23
-    assert table.test_input.numerical[6] == -1.23
+    assert table_bundle.test_input.numerical[3] == 1.23
+    assert table_bundle.test_input.numerical[5] == 1.23
+    assert table_bundle.test_input.numerical[7] == 1.23
+    assert table_bundle.test_input.numerical[6] == -1.23
 
 
 def test_read_csv_compatible2():
@@ -401,9 +401,9 @@ def test_read_csv_compatible2():
         .split("\n")
     ]
 
-    table = TableBundle(parse_blocks(cell_rows))
-    assert table
+    table_bundle = TableBundle(parse_blocks(cell_rows),as_Table=False)
+    assert table_bundle
 
-    assert table.test_input.onoffs[0] == False
-    assert table.test_input.dates[0].year == 2020
-    assert table.test_input.numerical[0] == 123
+    assert table_bundle.test_input.onoffs[0] == False
+    assert table_bundle.test_input.dates[0].year == 2020
+    assert table_bundle.test_input.numerical[0] == 123
