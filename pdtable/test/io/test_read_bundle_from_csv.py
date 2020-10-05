@@ -43,11 +43,11 @@ def test_read_bundle_from_csv():
     # test 1]: unit_policy as an instance
     stream = io.StringIO(instr)
     bundle = read_bundle_from_csv(stream, unit_policy=convert_kg())
+
     assert len(bundle) > 0
-    for tn in bundle:
-        tab = bundle[tn]
-        cols = get_table_info(tab).columns
-        assert cols["flt"].unit == "g"
+
+    for tab in bundle:
+        assert tab["flt"].unit == "g"
         assert tab["flt"][4] == 200000
 
     # test 2]: unit_policy as a type
@@ -56,6 +56,5 @@ def test_read_bundle_from_csv():
     assert len(bundle) > 0
     for tn in bundle:
         tab = bundle[tn]
-        cols = get_table_info(tab).columns
-        assert cols["flt"].unit == "g"
+        assert tab["flt"].unit == "g"
         assert tab["flt"][0] == 3000
