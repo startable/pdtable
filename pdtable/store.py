@@ -11,6 +11,7 @@ Examples include:
 """
 
 import sys
+from collections import defaultdict
 from enum import Enum, auto
 from typing import Iterable, Tuple, Any, Iterator, Optional, Union, List
 from .frame import TableDataFrame
@@ -52,26 +53,24 @@ class TableBundle:
 
     def __init__(self, block_gen: BlockGenerator, as_Table: bool = True):
 
-        # Dict of lists; each list contains all tables that have a certain name
-        self._by_table_name = {}
+        # Dict of lists of tables; each list contains all tables that have a certain name
+        self._tables_named = defaultdict(list)
         # List of tables indexed by the the order in which they are appear in the block generator
-        self._in_order = []
+        self._tables_in_order = []
         for block_type, block in block_gen:
             if block_type != BlockType.TABLE:
                 continue
             table = block
             if not hasattr(table, "name"):
                 # Could be e.g. JsonData or other alternative data structure
-                self._in_order.append(table)
+                self._tables_in_order.append(table)
                 continue
-            if self._by_table_name.get(table.name) is None:
-                self._by_table_name[table.name] = []
             if as_Table:
-                self._by_table_name[table.name].append(table)
-                self._in_order.append(table)
+                self._tables_named[table.name].append(table)
+                self._tables_in_order.append(table)
             else:
-                self._by_table_name[table.name].append(table.df)
-                self._in_order.append(table.df)
+                self._tables_named[table.name].append(table.df)
+                self._tables_in_order.append(table.df)
 
     def __getattr__(self, name: str) -> TableType:
         return self.unique(name)
@@ -84,28 +83,28 @@ class TableBundle:
         if isinstance(idx, str):
             return self.unique(idx)
         if isinstance(idx, int):
-            return self._in_order[idx]
+            return self._tables_in_order[idx]
 
         raise TypeError(f"getitem of type: {type(idx)}")
 
     def __iter__(self) -> Iterator[str]:
         """Iterator over tables"""
-        return iter(self._in_order)
+        return iter(self._tables_in_order)
 
     def __len__(self):
         """Total number of tables in this bundle"""
-        return sum(len(self._by_table_name[name]) for name in self._by_table_name)
+        return sum(len(self._tables_named[name]) for name in self._tables_named)
 
     def unique(self, name: str) -> TableType:
         """Returns table if there is exactly only one table of this name, raises error otherwise."""
-        lst = self._by_table_name.get(name)
+        lst = self._tables_named.get(name)
         if lst is not None and len(lst) == 1:
             return lst[0]
         raise LookupError()
 
     def all(self, name: str) -> List[TableType]:
         """Returns all tables with this name."""
-        lst = self._by_table_name.get(name)
+        lst = self._tables_named.get(name)
         if lst is not None:
             return lst
         raise KeyError()
