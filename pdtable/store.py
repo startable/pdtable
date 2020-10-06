@@ -41,9 +41,13 @@ TableType = Union[Table, TableDataFrame]
 
 class TableBundle:
     """
-    Simple table store with no regard for destinations
+    Simple table store with no regard for destinations.
 
-    Ignores everything but Table blocks.
+    Upon creation from a block generator, ignores everything but Table blocks.
+
+    Table blocks can be supplied as Table objects or any alternative data structure e.g. JsonData.
+    If supplied as Table objects, the table blocks can be stored as TableDataFrame by setting
+    as_Table=False.
     """
 
     def __init__(self, block_gen: BlockGenerator, as_Table: bool = True):
@@ -52,11 +56,11 @@ class TableBundle:
         for block_type, block in block_gen:
             if block_type != BlockType.TABLE:
                 continue
-            if not hasattr(block, "name"):
-                # Could be e.g. JsonData or other alternative data structure
-                self._indexed.append(block)
-                continue
             table = block
+            if not hasattr(table, "name"):
+                # Could be e.g. JsonData or other alternative data structure
+                self._indexed.append(table)
+                continue
             if self._tables.get(table.name) is None:
                 self._tables[table.name] = []
             if as_Table:
@@ -70,7 +74,10 @@ class TableBundle:
         return self.unique(name)
 
     def __getitem__(self, idx: Union[str, int]) -> TableType:
-        """ Allow tb[0] as well as tb["tname"] """
+        """Get table by numerical index or by name.
+
+        Allows dual syntax: bundle[0] as well as bundle['table_name']
+        """
         if isinstance(idx, str):
             return self.unique(idx)
         if isinstance(idx, int):
@@ -83,10 +90,8 @@ class TableBundle:
         return iter(self._indexed)
 
     def __len__(self):
-        size = 0
-        for tn in self._tables:
-            size += len(self._tables[tn])
-        return size
+        """Total number of tables in this bundle"""
+        return sum(len(self._tables[name]) for name in self._tables)
 
     def unique(self, name: str) -> TableType:
         """Returns table if there is exactly only one table of this name, raises error otherwise."""
