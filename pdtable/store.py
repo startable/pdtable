@@ -10,7 +10,7 @@ Examples include:
 - directive handling
 """
 
-
+import sys
 from enum import Enum, auto
 from typing import Iterable, Tuple, Any, Iterator, Optional, Union, List
 from .frame import TableDataFrame
@@ -76,7 +76,7 @@ class TableBundle:
         if isinstance(idx,int):
             return self._indexed[idx]
 
-        raise NotImplementedError(f"getitem of type: {type(idx)}")
+        raise TypeError(f"getitem of type: {type(idx)}")
 
     def __iter__(self) -> Iterator[str]:
         """Iterator over tables"""
@@ -93,8 +93,11 @@ class TableBundle:
         lst = self._tables.get(name)
         if lst is not None and len(lst) == 1:
             return lst[0]
-        raise NotImplementedError()
+        raise LookupError()
 
     def all(self, name: str) -> List[TableType]:
         """Returns all tables with this name."""
-        raise self._tables.get(name)
+        lst = self._tables.get(name)
+        if lst is not None:
+            return lst
+        raise KeyError()
