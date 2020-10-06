@@ -126,6 +126,7 @@ def test_TableBundle_unique():
     with pytest.raises(LookupError):
         tab = bundle2.unique("infs")
 
+
 def test_TableBundle_getitem():
     """ Verify that unique() is functioning as expected
     """
@@ -190,6 +191,7 @@ def test_TableBundle_getitem():
 
     with pytest.raises(IndexError):
         tab = bundle2[4]
+
 
 def test_TableBundle_all():
     """ Verify that all() is functioning as expected

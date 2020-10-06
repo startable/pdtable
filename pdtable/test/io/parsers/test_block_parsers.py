@@ -210,7 +210,7 @@ def test_parse_blocks():
     assert t.df["column"].iloc[0] == "bar"
 
     # Bundle
-    table_bundle = TableBundle(parse_blocks(cell_rows),as_Table=False)
+    table_bundle = TableBundle(parse_blocks(cell_rows), as_Table=False)
     assert table_bundle.foo.column.values[0] == "bar"
     assert table_bundle.foo.dash.values[0] == 10
 
@@ -359,7 +359,7 @@ def test_read_csv_compatible1():
         .split("\n")
     ]
 
-    table_bundle = TableBundle(parse_blocks(cell_rows),as_Table=False)
+    table_bundle = TableBundle(parse_blocks(cell_rows), as_Table=False)
     assert table_bundle
 
     assert table_bundle.test_input.onoffs[0] == False
@@ -401,7 +401,7 @@ def test_read_csv_compatible2():
         .split("\n")
     ]
 
-    table_bundle = TableBundle(parse_blocks(cell_rows),as_Table=False)
+    table_bundle = TableBundle(parse_blocks(cell_rows), as_Table=False)
     assert table_bundle
 
     assert table_bundle.test_input.onoffs[0] == False

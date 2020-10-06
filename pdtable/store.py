@@ -69,11 +69,11 @@ class TableBundle:
     def __getattr__(self, name: str) -> TableType:
         return self.unique(name)
 
-    def __getitem__(self, idx: Union[str,int]) -> TableType:
+    def __getitem__(self, idx: Union[str, int]) -> TableType:
         """ Allow tb[0] as well as tb["tname"] """
-        if isinstance(idx,str):
+        if isinstance(idx, str):
             return self.unique(idx)
-        if isinstance(idx,int):
+        if isinstance(idx, int):
             return self._indexed[idx]
 
         raise TypeError(f"getitem of type: {type(idx)}")
