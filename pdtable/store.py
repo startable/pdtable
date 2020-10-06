@@ -51,24 +51,27 @@ class TableBundle:
     """
 
     def __init__(self, block_gen: BlockGenerator, as_Table: bool = True):
-        self._tables = {}
-        self._indexed = []
+
+        # Dict of lists; each list contains all tables that have a certain name
+        self._by_table_name = {}
+        # List of tables indexed by the the order in which they are appear in the block generator
+        self._in_order = []
         for block_type, block in block_gen:
             if block_type != BlockType.TABLE:
                 continue
             table = block
             if not hasattr(table, "name"):
                 # Could be e.g. JsonData or other alternative data structure
-                self._indexed.append(table)
+                self._in_order.append(table)
                 continue
-            if self._tables.get(table.name) is None:
-                self._tables[table.name] = []
+            if self._by_table_name.get(table.name) is None:
+                self._by_table_name[table.name] = []
             if as_Table:
-                self._tables[table.name].append(table)
-                self._indexed.append(table)
+                self._by_table_name[table.name].append(table)
+                self._in_order.append(table)
             else:
-                self._tables[table.name].append(table.df)
-                self._indexed.append(table.df)
+                self._by_table_name[table.name].append(table.df)
+                self._in_order.append(table.df)
 
     def __getattr__(self, name: str) -> TableType:
         return self.unique(name)
@@ -81,28 +84,28 @@ class TableBundle:
         if isinstance(idx, str):
             return self.unique(idx)
         if isinstance(idx, int):
-            return self._indexed[idx]
+            return self._in_order[idx]
 
         raise TypeError(f"getitem of type: {type(idx)}")
 
     def __iter__(self) -> Iterator[str]:
         """Iterator over tables"""
-        return iter(self._indexed)
+        return iter(self._in_order)
 
     def __len__(self):
         """Total number of tables in this bundle"""
-        return sum(len(self._tables[name]) for name in self._tables)
+        return sum(len(self._by_table_name[name]) for name in self._by_table_name)
 
     def unique(self, name: str) -> TableType:
         """Returns table if there is exactly only one table of this name, raises error otherwise."""
-        lst = self._tables.get(name)
+        lst = self._by_table_name.get(name)
         if lst is not None and len(lst) == 1:
             return lst[0]
         raise LookupError()
 
     def all(self, name: str) -> List[TableType]:
         """Returns all tables with this name."""
-        lst = self._tables.get(name)
+        lst = self._by_table_name.get(name)
         if lst is not None:
             return lst
         raise KeyError()
