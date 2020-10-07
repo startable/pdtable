@@ -37,7 +37,7 @@ cell_rows = [
 def test_bundle_from_csv():
 
     # with StringIO(lines) as f:
-    bundle = TableBundle(parse_blocks(cell_rows), as_Table=False)
+    bundle = TableBundle(parse_blocks(cell_rows), as_dataframe=True)
 
     assert bundle.foo.column.values[0] == "bar"
 
@@ -47,21 +47,21 @@ def test_TableBundle_as_Table():
     """
 
     # pdtable generator
-    bundle = TableBundle(parse_blocks(cell_rows, to="pdtable"), as_Table=False)
+    bundle = TableBundle(parse_blocks(cell_rows, to="pdtable"), as_dataframe=True)
     assert bundle.infs.file_bytes.values[1] == 15326.0
     assert bundle is not None
     assert len(bundle) == 2
     assert isinstance(bundle[0], TableDataFrame)
 
     # pdtable generator
-    bundle = TableBundle(parse_blocks(cell_rows, to="pdtable"), as_Table=True)
+    bundle = TableBundle(parse_blocks(cell_rows, to="pdtable"), as_dataframe=False)
     assert bundle.infs["file_bytes"].values[1] == 15326.0
     assert bundle is not None
     assert len(bundle) == 2
     assert isinstance(bundle[1], Table)
 
     # do not error on other table types
-    bundle = TableBundle(parse_blocks(cell_rows, to="cellgrid"), as_Table=False)
+    bundle = TableBundle(parse_blocks(cell_rows, to="cellgrid"), as_dataframe=True)
     assert bundle is not None
     assert isinstance(bundle[0], list)  # cellgrid
 

@@ -51,7 +51,7 @@ class TableBundle:
     as_Table=False.
     """
 
-    def __init__(self, block_gen: BlockGenerator, as_Table: bool = True):
+    def __init__(self, block_gen: BlockGenerator, as_dataframe: bool = False):
 
         # Dict of lists of tables; each list contains all tables that have a certain name
         self._tables_named = defaultdict(list)
@@ -61,16 +61,29 @@ class TableBundle:
             if block_type != BlockType.TABLE:
                 continue
             table = block
-            if not hasattr(table, "name"):
+            if not hasattr(table, "df"):
+                self._tables_in_order.append(table)
                 # Could be e.g. JsonData or other alternative data structure
-                self._tables_in_order.append(table)
+                if hasattr(table,"name"):
+                    name = table.name  # TTT test
+                elif isinstance(table,dict) and isinstance(table.get("name"),str):
+                    name = table.get("name") # TTT test
+                elif isinstance(table,list) and len(table) > 1:
+                        cell0 = table[0][0]
+                        if isinstance(cell0,str):
+                            name = cell0 # skip ** # TTT test
+                else:
+                    raise NotImplemented( # TTT test
+                        "TableBundle: unable to extract table name from Table of type({type(table)})"
+                        )
+                self._tables_named[name].append(table)
                 continue
-            if as_Table:
-                self._tables_named[table.name].append(table)
-                self._tables_in_order.append(table)
-            else:
-                self._tables_named[table.name].append(table.df)
+            if as_dataframe:
                 self._tables_in_order.append(table.df)
+                self._tables_named[table.name].append(table.df)
+            else:
+                self._tables_in_order.append(table)
+                self._tables_named[table.name].append(table)
 
     def __getattr__(self, name: str) -> TableType:
         return self.unique(name)
