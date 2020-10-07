@@ -36,7 +36,6 @@ cell_rows = [
 
 def test_bundle_from_csv():
 
-    # with StringIO(lines) as f:
     bundle = TableBundle(parse_blocks(cell_rows), as_dataframe=True)
 
     assert bundle.foo.column.values[0] == "bar"
