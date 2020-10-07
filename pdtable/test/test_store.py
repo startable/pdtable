@@ -42,8 +42,8 @@ def test_bundle_from_csv():
     assert bundle.foo.column.values[0] == "bar"
 
 
-def test_TableBundle_as_Table():
-    """ Verify that as_Table is functioning as expected (switch TableType)
+def test_TableBundle_as_dataframe():
+    """ Verify that as_dataframe is functioning as expected (switch TableType)
     """
 
     # pdtable generator
@@ -90,6 +90,18 @@ def test_TableBundle_iterator():
         assert tab[0][0] in {"**foo", "**infs"}
         count += 1
     assert count == 2
+    assert bundle["foo"] is not None
+    assert bundle["infs"] is not None
+
+    bundle = TableBundle(parse_blocks(cell_rows, to="jsondata"))
+    count = 0
+    for tab in bundle:
+        assert type(tab) is dict
+        assert tab["name"] in {"foo", "infs"}
+        count += 1
+    assert count == 2
+    assert bundle["foo"] is not None
+    assert bundle["infs"] is not None
 
 
 def test_TableBundle_unique():
@@ -200,8 +212,8 @@ def test_TableBundle_all():
     # bundle1 now contains one 'foo' and one 'infs'
     assert len(bundle1) == 2
 
-    with pytest.raises(KeyError):
-        lst = bundle1.all("-not there-")
+    lst = bundle1.all("-not there-")
+    assert len(lst) == 0
 
     lst = bundle1.all("foo")
     assert len(lst) == 1
@@ -222,8 +234,8 @@ def test_TableBundle_all():
     # bundle2 now contains two 'foo' and two 'infs'
     assert len(bundle2) == 4
 
-    with pytest.raises(KeyError):
-        lst = bundle2.all("-not there-")
+    lst = bundle2.all("-not there-")
+    assert len(lst) == 0
 
     lst = bundle2.all("foo")
     assert len(lst) == 2
