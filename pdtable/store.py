@@ -119,7 +119,7 @@ class TableBundle:
         lst = self._tables_named.get(name)
         if lst is not None and len(lst) == 1:
             return lst[0]
-        raise LookupError()
+        raise KeyError()
 
     def all(self, name: str) -> List[TableType]:
         """Returns all tables with this name."""
