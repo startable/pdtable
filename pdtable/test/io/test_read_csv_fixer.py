@@ -140,7 +140,7 @@ def test_FAT():
 
 
 def test_stop_on_errors():
-    """ Unit test ParseFixer.stop_on_errors
+    """ Unit test cusrom ParseFixer.stop_on_errors
     """
     # fmt: off
     table_lines = [
@@ -190,7 +190,7 @@ def test_stop_on_errors():
     assert pi == 3  # 😉
 
 
-def test_stop_on_errors():
+def test_stop_on_errors_default_fixer():
     """ Unit test ParseFixer: raise ValueError on empty float and empty onoff
     """
     # fmt: off
