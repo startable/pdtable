@@ -1,41 +1,31 @@
-from typing import Tuple, Any
-
-import pytest
-from ..units import UnitPolicy
-from ..io.parsers.blocks import make_table
 from textwrap import dedent
 
+import numpy as np
 
-class SuperSimpleUnitPolicy(UnitPolicy):
-    def convert_value_to_base(self, value, unit: str) -> Tuple[Any, str]:
-        if unit == "mm":
-            return value * 1e-3, "m"
-        else:
-            return value, unit
+from ..demo.unit_converter import convert_this
+from ..io.parsers.blocks import make_table
 
 
-@pytest.fixture
-def unit_policy() -> UnitPolicy:
-    return SuperSimpleUnitPolicy()
+def test_demo_converter__converts_values():
+    assert convert_this(1, "m", "mm") == 1000
+    assert convert_this(0, "C", "K") == 273.16
+    np.testing.assert_array_equal(
+        convert_this(np.array([1, 42]), "m", "mm"), np.array([1000, 42000])
+    )
 
 
-def test_unit_policy__converts_values(unit_policy):
-    assert unit_policy.convert_value_to_base(1, "mm") == (1e-3, "m")
-    assert unit_policy.convert_value_to_base("test", "text") == ("test", "text")
-
-
-def test_convert_units(unit_policy):
+def test_convert_units():
 
     cells = [
         [cell.strip() for cell in line.split(";")]
         for line in dedent(
             r"""
-    **input_files_derived;
+    **foo;
     all;
-    file_bytes;file_date;has_table;length;
-    -;text;onoff;mm;
-    15373;a;0;1;
-    15326;b;1;2;
+    diameter;mean_temp;no_conversion;
+    mm;C;mm;
+    42000;0;666;
+    1000;20;666;
     """
         )
         .strip()
@@ -43,64 +33,16 @@ def test_convert_units(unit_policy):
     ]
     t = make_table(cells)
 
-    t.convert_units(unit_policy)
+    t.convert_units(to={"diameter": "m", "mean_temp": "K"}, engine=convert_this)
 
-    assert t["length"].values[0] == 1e-3
-    assert t["length"].unit == "m"
+    # Conversion done on columns as requested
+    np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
+    assert t["diameter"].unit == "m"
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([273.16, 293.16]))
+    assert t["mean_temp"].unit == "K"
 
-
-class MoreComplexUnitPolicy(UnitPolicy):
-    """ Unit conversion based on column_name and table_name
-    """
-
-    def convert_value_to_base(self, value, unit: str) -> Tuple[Any, str]:
-        """ Here any unit converter can be integrated, pint, Unum &c.
-            This converter demonstrates the use of table_name and column_name
-        """
-        if self.table_name != "input_files_derived":
-            return value, unit
-
-        if self.column_name == "length":
-            if unit == "mm":
-                return value * 1e-3, "m"
-        elif self.column_name == "flt":
-            if unit == "m":
-                return value * 100, "cm"
-        return value, unit
+    # Column for which no conversion was requested stays unchanged
+    np.testing.assert_array_equal(t["no_conversion"].values, np.array([666, 666]))
+    assert t["no_conversion"].unit == "mm"
 
 
-def test_convert_units__with_more_complex_unit_policy():
-    # fmt off
-    cells = [
-        ["**input_files_derived"],
-        ["all"],
-        ["file_bytes", "file_date", "has_table", "length", "flt"],
-        ["-", "text", "onoff", "mm", "m"],
-        [15373, "a", 0, 1, 22.4],
-        [15326, "b", 1, 2, 21.7],
-    ]
-    # fmt on
-    t = make_table(cells)
-    t.convert_units(MoreComplexUnitPolicy())
-
-    assert t["length"].values[0] == 1e-3
-    assert t["length"].unit == "m"
-    assert t["flt"].values[0] == 2240.0
-    assert t["flt"].unit == "cm"
-
-    # fmt off
-    cells2 = [
-        ["**input_2"],
-        ["all"],
-        ["file_bytes", "file_date", "has_table", "length"],
-        ["-", "text", "onoff", "mm"],
-        [15373, "a", 0, 1],
-        [15326, "b", 1, 2],
-    ]
-    # fmt on
-
-    t_ident = make_table(cells2)
-    t_ident.convert_units(MoreComplexUnitPolicy())
-
-    assert t_ident["length"].values[0] == 1
-    assert t_ident["length"].unit == "mm"

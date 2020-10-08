@@ -1,4 +1,4 @@
-from typing import Union, Dict, List, Optional, Set
+from typing import Union, Dict, List, Optional, Set, Callable
 
 import pandas as pd
 
@@ -54,6 +54,12 @@ class Column:
     @values.setter
     def values(self, values):
         self._values.update(pd.Series(values))
+
+    def convert_units(self, to: str, engine: Callable[[float, str, str], float]):
+        """Converts units in place."""
+        if to != self.unit:
+            self.values = engine(self.values, self.unit, to)
+            self.unit = to
 
     def to_numpy(self):
         """
@@ -237,17 +243,12 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, unit_policy: UnitPolicy):
+    def convert_units(self, to: Dict[str, str], engine: Callable[[float, str, str], float]):
         """Apply unit policy, modifying table in-place"""
         # TODO a convenient way to specify "pls convert back to display_units"
-        unit_policy.table_name = self.name
         for column in self.column_proxies:
-            unit = column.unit
-            unit_policy.column_name = column.name
-            new_values, new_unit = unit_policy.convert_value_to_base(column.values, unit)
-            if not unit == new_unit:
-                column.values = new_values
-                column.unit = new_unit
+            if column.name in to:
+                column.convert_units(to[column.name], engine)
 
 
 def _equal_or_same(a, b):
