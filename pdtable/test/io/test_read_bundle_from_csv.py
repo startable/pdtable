@@ -12,14 +12,14 @@ from textwrap import dedent
 def input_dir() -> Path:
     return Path(__file__).parent / "input"
 
-class convert_kg(UnitPolicy):
-    """ Specific UnitPolicy, convert kg to g
-    """
-
-    def convert_value_to_base(self, values, unit: str):
-        if unit != "kg":
-            return values, unit
-        return values * 1000, "g"
+def convert_kg(value, from_unit, to_unit):
+    requested_conversion = (from_unit, to_unit)
+    available_conversions = {
+        ("kg", "g"): lambda x: x * 1000,
+    }
+    if requested_conversion not in available_conversions:
+        raise KeyError(f"I don't know how to convert from '{from_unit}' to '{to_unit}'")
+    return available_conversions[requested_conversion](value)
 
 
 def test_read_bundle_from_csv():
@@ -47,7 +47,8 @@ def test_read_bundle_from_csv():
 
     # test 1]: unit_policy as an instance
     stream = io.StringIO(instr)
-    bundle = read_bundle_from_csv(stream, unit_policy=convert_kg())
+    ucs = {"farm_types1": {"flt": "g"}}
+    bundle = read_bundle_from_csv(stream, unit_conversion_schedule=ucs, unit_converter=convert_kg)
 
     assert len(bundle) > 0
 
@@ -57,7 +58,7 @@ def test_read_bundle_from_csv():
 
     # test 2]: unit_policy as a type
     stream = io.StringIO(instr)
-    bundle = read_bundle_from_csv(stream, unit_policy=convert_kg)
+    bundle = read_bundle_from_csv(stream, unit_conversion_schedule=ucs, unit_converter=convert_kg)
     assert len(bundle) > 0
     for tab in bundle:
         assert tab["flt"].unit == "g"

@@ -243,12 +243,12 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, to: Dict[str, str], engine: Callable[[float, str, str], float]):
+    def convert_units(self, to: Dict[str, str], converter: Callable[[float, str, str], float]):
         """Apply unit policy, modifying table in-place"""
         # TODO a convenient way to specify "pls convert back to display_units"
         for column in self.column_proxies:
             if column.name in to:
-                column.convert_units(to[column.name], engine)
+                column.convert_units(to[column.name], converter)
 
 
 def _equal_or_same(a, b):

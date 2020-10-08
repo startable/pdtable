@@ -33,7 +33,7 @@ def test_convert_units():
     ]
     t = make_table(cells)
 
-    t.convert_units(to={"diameter": "m", "mean_temp": "K"}, engine=convert_this)
+    t.convert_units(to={"diameter": "m", "mean_temp": "K"}, converter=convert_this)
 
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
