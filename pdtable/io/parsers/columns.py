@@ -60,7 +60,7 @@ def _parse_onoff_column(values: Iterable, fixer: ParseFixer = None):
             bool_values.append(_onoff_to_bool(val))
         except KeyError as err:
             if fixer is not None:
-                fixer.table_row = row  # TBC: index
+                fixer.table_row = row
                 fix_value = fixer.fix_illegal_cell_value("onoff", val)
                 bool_values.append(fix_value)
             else:
@@ -91,7 +91,7 @@ def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
                 float_values.append(_float_convert(val))
             except (KeyError, ValueError) as err:
                 if fixer is not None:
-                    fixer.table_row = row  # TBC: index
+                    fixer.table_row = row
                     fix_value = fixer.fix_illegal_cell_value("float", val)
                     float_values.append(fix_value)
                 else:
@@ -99,7 +99,7 @@ def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
         else:
             # It isn't even a string. WTF let the fixer have a shot at it.
             if fixer is not None:
-                fixer.table_row = row  # TBC: index
+                fixer.table_row = row
                 fix_value = fixer.fix_illegal_cell_value("float", val)
                 float_values.append(fix_value)
             else:
@@ -120,23 +120,31 @@ def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
             continue
 
         # It's something else than a datetime. Presumably a string.
-        # TODO Fails when val is None. There is ambiguity about this None: if it came from a JsonData, it could be a legal NaT, but from Excel it could be an illegal empty cell!
+        if val is None:
+            if fixer is not None:
+                fixer.table_row = row
+                fix_value = fixer.fix_illegal_cell_value("datetime", val)
+                datetime_values.append(fix_value)
+                continue
+            else:
+                raise ValueError("Illegal value in datetime column", val) from err
+
         val = val.strip()
         if len(val) > 0 and (val[0].isdigit() or val in ["-", "nan"]):
             try:
                 # Parsing the string as one of the expected things (a datetime or missing value)
                 datetime_values.append(_to_datetime(val))
             except ValueError as err:
-                # TBC: register exc !?
                 if fixer is not None:
-                    fixer.table_row = row  # TBC: index
+                    fixer.table_row = row
                     fix_value = fixer.fix_illegal_cell_value("datetime", val)
                     datetime_values.append(fix_value)
+                    continue
                 else:
                     raise ValueError("Illegal value in datetime column", val) from err
         else:
             if fixer is not None:
-                fixer.table_row = row  # TBC: index
+                fixer.table_row = row
                 fix_value = fixer.fix_illegal_cell_value("datetime", val)
                 datetime_values.append(fix_value)
             else:

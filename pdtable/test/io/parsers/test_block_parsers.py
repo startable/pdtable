@@ -3,8 +3,8 @@ import pandas as pd
 import datetime as dt
 from textwrap import dedent
 
-from ....proxy import Table
-from ....store import TableBundle, BlockType
+from pdtable import Table, TableBundle, BlockType
+from pdtable import ParseFixer
 from ....io.parsers.blocks import (
     make_metadata_block,
     make_directive,
@@ -337,29 +337,26 @@ def test_read_csv_compatible1():
       handle leading and trailing wsp
     """
 
+    # fmt off
     cell_rows = [
-        line.split(";")
-        for line in dedent(
-            r"""
-    **test_input;
-    all;
-    numerical;dates;onoffs;
-    -;datetime;onoff;
-    123;08/07/2020;0;
-     123; 08-07-2020; 1;
-     123 ; 08-07-2020 ; 1 ;
-    1.23;-;-;
-     1.23; -; -;
-     1.23 ; - ; - ;
-     -1.23 ; - ; - ;
-     +1.23 ; - ; - ;
-    """
-        )
-        .strip()
-        .split("\n")
+        ["**test_input"],
+        ["all"],
+        ["numerical", "dates", "onoffs"],
+        ["-", "datetime", "onoff"],
+        [123, "08/07/2020", 0],
+        [123, "08-07-2020", 1],
+        [123, "08-07-2020", 1],
+        [1.23, None, None],
+        [1.23, None, None],
+        [1.23, None, None],
+        [-1.23, None, None],
+        [1.23, None, None],
     ]
-
-    table_bundle = TableBundle(parse_blocks(cell_rows), as_dataframe=True)
+    # fmt on
+    fix = ParseFixer()
+    fix.stop_on_errors = False
+    fix._called_from_test = True
+    table_bundle = TableBundle(parse_blocks(cell_rows, fixer=fix), as_dataframe=True)
     assert table_bundle
 
     assert table_bundle.test_input.onoffs[0] == False

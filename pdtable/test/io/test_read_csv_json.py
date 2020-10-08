@@ -6,11 +6,15 @@ from textwrap import dedent
 import numpy as np
 import pandas as pd
 
-from pdtable import BlockType
+from pdtable import BlockType, ParseFixer
 from pdtable.io import json_data_to_table, table_to_json_data
 from pdtable.io._json import to_json_serializable
 from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
+
+_test_fixer = ParseFixer()
+_test_fixer.stop_on_errors = False
+_test_fixer._called_from_test = True
 
 
 def input_dir() -> Path:
@@ -42,7 +46,7 @@ def test_json_pdtable():
     ]
     pandas_pdtab = None
     # with io.StringIO(csv_src) as fh:
-    g = parse_blocks(cell_rows, **{"origin": '"types1.csv" row 1'})
+    g = parse_blocks(cell_rows, **{"origin": '"types1.csv" row 1'}, fixer=_test_fixer)
     for tp, tab in g:
         pandas_pdtab = tab
     # fmt: off
@@ -62,7 +66,7 @@ def test_json_pdtable():
     }
     # fmt: on
 
-    json_pdtab = json_data_to_table(table_json_data)
+    json_pdtab = json_data_to_table(table_json_data, fixer=_test_fixer)
     assert pandas_pdtab.equals(json_pdtab)
 
 
@@ -84,7 +88,7 @@ def test_json_data_to_pdtable():
         ["goose", 2, 9, 0],
     ]
 
-    table_from_cell_grid = make_table(lines_target)
+    table_from_cell_grid = make_table(lines_target, fixer=_test_fixer)
 
     # Make an identical table, but starting from JSON
 
@@ -106,12 +110,12 @@ def test_json_data_to_pdtable():
     }
     # fmt: on
 
-    table_from_json = json_data_to_table(table_json_data)
+    table_from_json = json_data_to_table(table_json_data, fixer=_test_fixer)
     assert table_from_cell_grid.equals(table_from_json)
 
     # Round trip
     table_json_data_back = table_to_json_data(table_from_json)
-    table_from_json_round_trip = json_data_to_table(table_json_data_back)
+    table_from_json_round_trip = json_data_to_table(table_json_data_back, fixer=_test_fixer)
     assert table_from_cell_grid.equals(table_from_json_round_trip)
 
 
@@ -143,7 +147,9 @@ def test_fat():
             continue
         with open(input_dir() / fn, "r") as fh:
             cell_rows = (line.rstrip("\n").split(";") for line in fh)
-            g = parse_blocks(cell_rows, **{"origin": f'"{fn}"', "to": "jsondata"})
+            g = parse_blocks(
+                cell_rows, **{"origin": f'"{fn}"', "to": "jsondata"}, fixer=_test_fixer
+            )
 
             for tp, tt in g:
                 if tp == BlockType.TABLE:
