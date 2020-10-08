@@ -173,6 +173,37 @@ def test_stop_on_errors():
 
     assert pi == 3  # 😉
 
+def test_stop_on_errors():
+    """ Unit test ParseFixer: raise ValueError on empty float and empty onoff
+    """
+    # fmt: off
+    table_lines_flt = [
+        ["**tab_ok"],
+        ["dst1"],
+        [ "a1"  , "a2"  , "a3"  , "a4"  ],
+        [ "-"   , "-"   , "-"   , "-"   ],
+        [ 1     , 2     , 3     , 3.14  ],
+        [],
+        ["**tab_errors"],
+        ["dst1"],
+        [ "a1"  , "a2"  , "a3"  , "a4"  ],
+        [ "-"   , "-"   , "-"   , "-"    ],
+        [ 1     , 2     , 3     , ""  ],
+    ]
+    # fmt: on
+
+    g = parse_blocks(table_lines_flt,filter=lambda ty,tn: ty == BlockType.TABLE)
+    typ, tab = next(g)
+    assert tab.name == "tab_ok"
+    assert tab.df["a4"][0] == 3.14
+
+    # TODO: check ParseFixer raises ValueError by default on empty float
+#    with pytest.raises(ValueError):
+#        typ, tab = next(g)
+#        print(f"-oOo-: {typ} {tab}")
+
+    # same tests on onoff / datetime (TBV)
+
 
 def test_converter():
     """ Unit test

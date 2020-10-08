@@ -22,8 +22,9 @@ def read_bundle_from_csv(
     inputs = read_csv(input_path, sep)
 
     if unit_policy is not None:
-        if type(unit_policy) in {type, type(ABC)}:
-            unit_policy = unit_policy() #  instantiate
+        if isinstance(unit_policy, type):
+            # It's a class, not an instance. Make an instance here.
+            unit_policy = unit_policy()
         inputs = normalized_table_generator(unit_policy, inputs)
 
     return TableBundle(inputs)
