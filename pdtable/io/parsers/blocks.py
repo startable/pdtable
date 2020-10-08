@@ -58,6 +58,22 @@ def make_directive(cells: CellGrid, origin: Optional[str] = None, **_) -> Direct
     directive_lines = [row[0] for row in cells[1:]]
     return Directive(name, directive_lines, origin)
 
+def default_fixer(**kwargs):
+    """ Determine if user has supplied custom fixer
+        Else return default ParseFixer() instance.
+    """
+    fixer = kwargs.get("fixer")
+    if fixer is not None:
+        if type(fixer) is type:
+            # It's a class, not an instance. Make an instance here.
+            fixer = kwargs["fixer"]()
+        else:
+            assert isinstance(fixer, ParseFixer)
+    else:
+        fixer = ParseFixer()
+    assert fixer is not None
+    fixer.origin = kwargs.get("origin")
+    return fixer
 
 def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
@@ -73,7 +89,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
     table_name = cells[0][0][2:]
 
-    fixer = kwargs["fixer"] if "fixer" in kwargs else ParseFixer()
+    fixer = default_fixer(**kwargs)
     fixer.table_name = table_name
 
     # internally hold destinations as json-compatible dict
@@ -208,19 +224,9 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
 
     origin = kwargs["origin"] if "origin" in kwargs else "stream"
 
-    fixer = kwargs.get("fixer")
-    if fixer is not None:
-        if type(fixer) is type:
-            # It's a class, not an instance. Make an instance here.
-            kwargs["fixer"] = fixer()
-        else:
-            assert isinstance(kwargs["fixer"], ParseFixer)
-            pass  # It's an instance. Use the instance.
-    else:
-        kwargs["fixer"] = ParseFixer()
-    assert kwargs["fixer"] is not None
-    kwargs["fixer"].origin = origin
-    kwargs["fixer"].reset_fixes()
+    fixer = default_fixer(**kwargs)
+    kwargs["fixer"] = fixer # use in make_block
+    fixer.reset_fixes()
 
     def is_blank(cell):
         """

@@ -12,10 +12,11 @@ from pdtable.io.parsers.blocks import make_table
 from pdtable.io import table_to_json_data
 
 
-_test_fixer = ParseFixer()
-_test_fixer.stop_on_errors = False
-_test_fixer._called_from_test = True
-
+class custom_test_fixer(ParseFixer):
+    def __init__(self):
+        ParseFixer.__init__(self)
+        self.stop_on_errors = False
+        self._called_from_test = True
 
 def input_dir() -> Path:
     return Path(__file__).parent / "input/with_errors"
@@ -28,7 +29,7 @@ def test_columns_duplicate():
     """
     tab = None
     with open(input_dir() / "cols1.csv", "r") as fh:
-        g = read_csv(fh, fixer=_test_fixer)
+        g = read_csv(fh, fixer=custom_test_fixer)
         for tp, tt in g:
             if True:
                 if tp == BlockType.TABLE:
@@ -47,7 +48,7 @@ def test_columns_missing():
     """
     tab = None
     with open(input_dir() / "cols2.csv", "r") as fh:
-        g = read_csv(fh, fixer=_test_fixer)
+        g = read_csv(fh, fixer=custom_test_fixer)
         for tp, tt in g:
             if True:
                 if tp == BlockType.TABLE:
@@ -125,7 +126,7 @@ def test_FAT():
             continue
 
         with open(input_dir() / fn, "r") as fh:
-            g = read_csv(fh, origin=f'"{fn}"', to="jsondata", fixer=_test_fixer)
+            g = read_csv(fh, origin=f'"{fn}"', to="jsondata", fixer=custom_test_fixer)
             count = 0
             for tp, tt in g:
                 if tp == BlockType.TABLE:
@@ -284,9 +285,10 @@ def test_converter():
         [ 1     , 2     , 3     , 3.14  ],
     ]
     # fmt: on
-    pandas_pdtab = make_table(table_lines, fixer=_test_fixer)
+    cf = custom_test_fixer()
+    pandas_pdtab = make_table(table_lines, fixer=cf)
     js_obj = table_to_json_data(pandas_pdtab)
     assert js_obj["columns"]["a3"]["values"][0] is None
     assert js_obj["columns"]["a4"]["values"][1] == 3.14
 
-    assert _test_fixer.fixes == 2  # Nine and Ten
+    assert cf.fixes == 2  # Nine and Ten
