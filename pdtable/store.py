@@ -10,13 +10,19 @@ Examples include:
 - directive handling
 """
 
-import sys
+import re
 from collections import defaultdict
 from enum import Enum, auto
 from typing import Iterable, Tuple, Any, Iterator, Optional, Union, List
+
 from .frame import TableDataFrame
 from .proxy import Table
-import re
+
+
+class TableNameNotUniqueInBundleError(LookupError):
+    """Raised when trying to access a table from a bundle by unique name, when in fact there
+    are multiple tables with this same name in the bundle."""
+    pass
 
 
 class BlockType(Enum):
@@ -28,6 +34,7 @@ class BlockType(Enum):
     To aid reusable generation of metadata, it could be relevant to include
     synthetic block types FILE_BEGIN/END, SHEET_BEGIN/END.
     """
+    # TODO class BlockType does not belong in this module, should be moved. Same for BlockGenerator.
 
     DIRECTIVE = auto()
     TABLE = auto()  # Interface: TableType
@@ -115,15 +122,18 @@ class TableBundle:
         return sum(len(self._tables_named[name]) for name in self._tables_named)
 
     def unique(self, name: str) -> TableType:
-        """Returns table if there is exactly only one table of this name, raises error otherwise."""
+        """Returns table if there is exactly one table with this name, raises error otherwise."""
         lst = self._tables_named.get(name)
-        if lst is not None and len(lst) == 1:
-            return lst[0]
-        raise KeyError()
+        if lst is None:
+            # Ain't no table with this name.
+            raise KeyError()
+        if len(lst) > 1:
+            # This name ain't unique, human.
+            raise TableNameNotUniqueInBundleError()
+        # Found exactly one table with this name. Here you go.
+        return lst[0]
 
     def all(self, name: str) -> List[TableType]:
         """Returns all tables with this name."""
         lst = self._tables_named.get(name)
-        if lst is not None:
-            return lst
-        return []
+        return lst if lst is not None else []
