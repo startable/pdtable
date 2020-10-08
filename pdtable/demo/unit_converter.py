@@ -29,6 +29,8 @@ def convert_this(value, from_unit: str, to_unit: str):
         ("mm", "m"): lambda x: x / 1000,
         ("C", "K"): lambda x: x + 273.16,
         ("K", "C"): lambda x: x - 273.16,
+        ("kg", "g"): lambda x: x * 1000,
+        ("g", "kg"): lambda x: x / 1000,
     }
     if requested_conversion not in available_conversions:
         raise KeyError(f"I don't know how to convert from '{from_unit}' to '{to_unit}'")

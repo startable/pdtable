@@ -1,25 +1,16 @@
 import io
-
-# TBC: group these types in same import
-from pdtable.frame import get_table_info
-from pdtable.units import UnitPolicy
-from pdtable.utils import read_bundle_from_csv
-from pdtable import TableBundle, read_csv, read_excel
-from pdtable import Table, TableDataFrame
 from pathlib import Path
 from textwrap import dedent
 
+from pdtable import Table, TableDataFrame
+from pdtable import TableBundle, read_csv, read_excel
+# TBC: group these types in same import
+from pdtable.demo.unit_converter import convert_this
+from pdtable.utils import read_bundle_from_csv
+
+
 def input_dir() -> Path:
     return Path(__file__).parent / "input"
-
-def convert_kg(value, from_unit, to_unit):
-    requested_conversion = (from_unit, to_unit)
-    available_conversions = {
-        ("kg", "g"): lambda x: x * 1000,
-    }
-    if requested_conversion not in available_conversions:
-        raise KeyError(f"I don't know how to convert from '{from_unit}' to '{to_unit}'")
-    return available_conversions[requested_conversion](value)
 
 
 def test_read_bundle_from_csv():
@@ -48,7 +39,7 @@ def test_read_bundle_from_csv():
     # test 1]: unit_policy as an instance
     stream = io.StringIO(instr)
     ucs = {"farm_types1": {"flt": "g"}}
-    bundle = read_bundle_from_csv(stream, unit_conversion_schedule=ucs, unit_converter=convert_kg)
+    bundle = read_bundle_from_csv(stream, unit_conversion_schedule=ucs, unit_converter=convert_this)
 
     assert len(bundle) > 0
 
@@ -58,7 +49,7 @@ def test_read_bundle_from_csv():
 
     # test 2]: unit_policy as a type
     stream = io.StringIO(instr)
-    bundle = read_bundle_from_csv(stream, unit_conversion_schedule=ucs, unit_converter=convert_kg)
+    bundle = read_bundle_from_csv(stream, unit_conversion_schedule=ucs, unit_converter=convert_this)
     assert len(bundle) > 0
     for tab in bundle:
         assert tab["flt"].unit == "g"
