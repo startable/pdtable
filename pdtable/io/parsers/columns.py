@@ -121,13 +121,15 @@ def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
 
         # It's something else than a datetime. Presumably a string.
         if val is None:
+            # fixer should always be defined (= default ParseFixer)
+            # when used via our top level API (read_csv, parse_blocks &c.)
             if fixer is not None:
                 fixer.table_row = row
                 fix_value = fixer.fix_illegal_cell_value("datetime", val)
                 datetime_values.append(fix_value)
                 continue
             else:
-                raise ValueError("Illegal value in datetime column", val) from err
+                raise ValueError(f"Illegal value in datetime column {val}")
 
         val = val.strip()
         if len(val) > 0 and (val[0].isdigit() or val in ["-", "nan"]):
