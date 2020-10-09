@@ -65,6 +65,7 @@ goose;2;9;
 ;;1234;-;-;
 
 # error/handle: illegal value (missing ';') in table.farm_animals.zybra.n_legs
+
 **farm_animals2;;;
 your_farm my_farm farms_galore;;;
 species;n_legs;avg_weight;
@@ -78,6 +79,7 @@ goose;2;9;
 ;;1234;-;-;
 
 # error/handle: empty cell in chicken:avg_weight
+
 **farm_animals3;;;
 your_farm my_farm farms_galore;;;
 species;n_legs;avg_weight;
@@ -118,6 +120,7 @@ goose;2;9;
 ;;1234;-;-;
 
 # error/handle: zybra has less columns.
+
 **farm_row2;;;
 your_farm my_farm farms_galore;;;
 species;n_legs;avg_weight;
@@ -131,6 +134,7 @@ goose;2;9;
 ;;1234;-;-;
 
 # error/handle: zybra has two extra columns
+
 **farm_types1;;;
 your_farm my_farm farms_galore;;;
 species;  num;  flt;    log;
@@ -171,6 +175,7 @@ cow;              -;  NaN;  200;      1;           -;   200;      1;
 goose;             ;    2;    9;       ;            ;     9;       ;
 
 # error/handle: missing/illegal values in multiple columns of different types
+
 **farm_units1;;;
 your_farm my_farm farms_galore;;;
 species;  num;  flt;

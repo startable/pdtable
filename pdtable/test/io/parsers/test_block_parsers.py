@@ -188,7 +188,7 @@ def test_parse_blocks():
     ]
 
     blocks = [b for b in parse_blocks(cell_rows)]
-    assert len(blocks) == 10  # includes blanks
+    assert len(blocks) == 6  # incl. directive
 
     metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
     assert len(metadata_blocks) == 1

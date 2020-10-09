@@ -1,0 +1,32 @@
+
+graph id {
+        node [ color=black;
+           penwidth = 1;
+           shape = circle;
+    ];
+
+    rankdir = LR;
+    S [label = "0"]
+    T [label = "**Tab"; ];
+    D [label = "***Dir"; ];
+    TEMP [label = ":Temp"];
+    M [label = "Meta"; ];
+
+
+    edge [dir="forward", arrowhead="open";  penwidth = 0.4];
+    S -- S [label = "empty"];
+    S -- T [label = "**str"];
+    S -- D [label = "***str"];
+    S -- TEMP [ label = ":"];
+    TEMP -- TEMP [label = "non-empty"]
+    TEMP -- S [label = "empty"]
+    S -- M [label = "other"];
+    M -- M [label = "non-empty"];
+    M -- S [label = "empty"];
+    T -- S [label = "empty"];
+    T -- T [label = "non-empty"];
+    D -- D [label = "non-empty"];
+    D -- S [label = "empty"];
+
+    {rank = same; T; D; TEMP;}
+}
