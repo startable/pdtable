@@ -13,9 +13,12 @@ from .frame import (
 from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
 
 INCONVERTIBLE_UNIT_INDICATORS = ["text", "datetime", "-"]
+UnitConverter = Callable[[float, str, str], float]
+ColumnTargetUnits = Union[Sequence[str], Dict[str, str], Callable[[str], str]]
 
 
 class UnitConversionNotDefinedError(ValueError):
+    """Raised when a unit conversion is attempted on an inconvertible unit indicator"""
     pass
 
 
@@ -60,7 +63,7 @@ class Column:
     def values(self, values):
         self._values.update(pd.Series(values))
 
-    def convert_units(self, to: Optional[str], engine: Callable[[float, str, str], float]):
+    def convert_units(self, to: Optional[str], converter: UnitConverter):
         """Converts units in place."""
         if to is None:
             # By convention, no unit conversion.
@@ -69,7 +72,7 @@ class Column:
             raise UnitConversionNotDefinedError(
                 f"Unit conversion is not defined for unit '{self.unit}' of column '{self.name}'")
         if to != self.unit:
-            self.values = engine(self.values, self.unit, to)
+            self.values = converter(self.values, self.unit, to)
             self.unit = to
 
     def to_numpy(self):
@@ -254,8 +257,7 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, to: Union[Sequence[str], Dict[str, str], Callable[[str], str]],
-                      converter: Callable[[float, str, str], float]):
+    def convert_units(self, to: ColumnTargetUnits, converter: UnitConverter):
         """Applies unit conversion to columns, modifying table in-place
 
         Args:

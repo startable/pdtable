@@ -5,6 +5,7 @@ from typing import Optional, Any, Tuple, Iterable, Dict, Callable, Union, Sequen
 
 from pdtable import TableBundle, BlockType, Table
 from pdtable import read_csv
+from pdtable.proxy import UnitConverter
 
 
 def normalized_table_generator(block_gen: Iterable[Tuple[BlockType, Optional[Any]]],
@@ -23,7 +24,7 @@ def normalized_table_generator(block_gen: Iterable[Tuple[BlockType, Optional[Any
 def read_bundle_from_csv(
         input_path: PathLike, sep: Optional[str] = ";",
         unit_conversion_schedule: Dict[str, Union[Sequence[str], Dict[str, str], Callable[[str], str]]] = None,
-        unit_converter: Callable[[float, str, str], float] = None,
+        unit_converter: UnitConverter = None,
 ) -> TableBundle:
     """Read single csv-file to TableBundle"""
     if (unit_conversion_schedule is None) != (unit_converter is None):
