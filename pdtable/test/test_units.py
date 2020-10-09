@@ -1,6 +1,8 @@
 from textwrap import dedent
+from typing import Optional
 
 import numpy as np
+from pytest import fixture
 
 from ..demo.unit_converter import convert_this
 from ..io.parsers.blocks import make_table
@@ -14,9 +16,9 @@ def test_demo_converter__converts_values():
     )
 
 
-def test_convert_units():
-
-    cells = [
+@fixture
+def table_cells():
+    return [
         [cell.strip() for cell in line.split(";")]
         for line in dedent(
             r"""
@@ -31,8 +33,25 @@ def test_convert_units():
         .strip()
         .split("\n")
     ]
-    t = make_table(cells)
 
+
+def test_convert_units__list(table_cells):
+    t = make_table(table_cells)
+    t.convert_units(to=["m", "K", None], converter=convert_this)
+
+    # Conversion done on columns as requested
+    np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
+    assert t["diameter"].unit == "m"
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([273.16, 293.16]))
+    assert t["mean_temp"].unit == "K"
+
+    # Column for which no conversion was requested stays unchanged
+    np.testing.assert_array_equal(t["no_conversion"].values, np.array([666, 666]))
+    assert t["no_conversion"].unit == "mm"
+
+
+def test_convert_units__dict(table_cells):
+    t = make_table(table_cells)
     t.convert_units(to={"diameter": "m", "mean_temp": "K"}, converter=convert_this)
 
     # Conversion done on columns as requested
@@ -46,3 +65,22 @@ def test_convert_units():
     assert t["no_conversion"].unit == "mm"
 
 
+def test_convert_units__callable(table_cells):
+    def to_units_fun(table_name: str) -> Optional[str]:
+        return {"diameter": "m", "mean_temp": "K"}.get(table_name)
+
+    t = make_table(table_cells)
+    t.convert_units(to=to_units_fun, converter=convert_this)
+
+    # Conversion done on columns as requested
+    np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
+    assert t["diameter"].unit == "m"
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([273.16, 293.16]))
+    assert t["mean_temp"].unit == "K"
+
+    # Column for which no conversion was requested stays unchanged
+    np.testing.assert_array_equal(t["no_conversion"].values, np.array([666, 666]))
+    assert t["no_conversion"].unit == "mm"
+
+
+# TODO deal with column unit = text, datetime

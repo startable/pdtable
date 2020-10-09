@@ -1,4 +1,4 @@
-from typing import Union, Dict, List, Optional, Set, Callable
+from typing import Union, Dict, List, Optional, Set, Callable, Sequence
 
 import pandas as pd
 
@@ -243,12 +243,50 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, to: Dict[str, str], converter: Callable[[float, str, str], float]):
-        """Apply unit policy, modifying table in-place"""
+    def convert_units(self, to: Union[Sequence[str], Dict[str, str], Callable[[str], str]],
+                      converter: Callable[[float, str, str], float]):
+        """Applies unit conversion to columns, modifying table in-place
+
+        Args:
+            to:
+                Specifies what units to convert which columns to. Can be:
+                - A list specifying the target unit of each column by position. (A None element
+                  implies no conversion for that column.)
+                - A dictionary of {column_name: target_unit}. Superfluous column names are ignored.
+                - A callable with one argument (column name). Must return the target unit, or None
+                  if no unit conversion is to be done.
+            converter:
+                A callable that converts values from one unit to another. Must have three arguments:
+                - value to be converted
+                - from unit (str)
+                - to unit (str)
+                Must return the value with unit conversion applied.
+
+        Returns:
+            None
+
+        """
         # TODO a convenient way to specify "pls convert back to display_units"
-        for column in self.column_proxies:
-            if column.name in to:
-                column.convert_units(to[column.name], converter)
+        if isinstance(to, Sequence):
+            if len(to) != len(self.column_proxies):
+                raise ValueError("Unequal number of columns and of 'to' units",
+                                 len(self.column_proxies), len(to))
+            for col, to_unit in zip(self.column_proxies, to):
+                if to_unit is not None:
+                    col.convert_units(to_unit, converter)
+
+        elif isinstance(to, Dict):
+            for column in self.column_proxies:
+                if column.name in to:
+                    column.convert_units(to[column.name], converter)
+
+        else:
+            # Assume 'to' is callable
+            for column in self.column_proxies:
+                to_unit = to(column.name)
+                if to_unit is not None:
+                    column.convert_units(to_unit, converter)
+
 
 
 def _equal_or_same(a, b):
