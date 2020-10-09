@@ -2,10 +2,9 @@
 # TODO These functions seem out of sync with the rest of the pdtable.io API. Needs revisiting.
 from os import PathLike
 from typing import Optional, Any, Tuple, Iterable, Dict, Callable, Union, Sequence
-from abc import ABC
+
 from pdtable import TableBundle, BlockType, Table
 from pdtable import read_csv
-from . import units
 
 
 def normalized_table_generator(block_gen: Iterable[Tuple[BlockType, Optional[Any]]],

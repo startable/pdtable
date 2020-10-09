@@ -2,7 +2,6 @@ from typing import Union, Dict, List, Optional, Set, Callable, Sequence
 
 import pandas as pd
 
-from .units import UnitPolicy
 from .frame import (
     TableDataFrame,
     get_table_info,
@@ -12,6 +11,12 @@ from .frame import (
     add_column,
 )
 from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
+
+INCONVERTIBLE_UNIT_INDICATORS = ["text", "datetime", "-"]
+
+
+class UnitConversionNotDefinedError(ValueError):
+    pass
 
 
 class Column:
@@ -55,8 +60,14 @@ class Column:
     def values(self, values):
         self._values.update(pd.Series(values))
 
-    def convert_units(self, to: str, engine: Callable[[float, str, str], float]):
+    def convert_units(self, to: Optional[str], engine: Callable[[float, str, str], float]):
         """Converts units in place."""
+        if to is None:
+            # By convention, no unit conversion.
+            return
+        if self.unit in INCONVERTIBLE_UNIT_INDICATORS:
+            raise UnitConversionNotDefinedError(
+                f"Unit conversion is not defined for unit '{self.unit}' of column '{self.name}'")
         if to != self.unit:
             self.values = engine(self.values, self.unit, to)
             self.unit = to
@@ -286,7 +297,6 @@ class Table:
                 to_unit = to(column.name)
                 if to_unit is not None:
                     column.convert_units(to_unit, converter)
-
 
 
 def _equal_or_same(a, b):

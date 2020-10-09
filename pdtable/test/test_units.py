@@ -2,10 +2,12 @@ from textwrap import dedent
 from typing import Optional
 
 import numpy as np
+import pytest
 from pytest import fixture
 
 from ..demo.unit_converter import convert_this
 from ..io.parsers.blocks import make_table
+from ..proxy import UnitConversionNotDefinedError
 
 
 def test_demo_converter__converts_values():
@@ -24,10 +26,10 @@ def table_cells():
             r"""
     **foo;
     all;
-    diameter;mean_temp;no_conversion;
-    mm;C;mm;
-    42000;0;666;
-    1000;20;666;
+    diameter;mean_temp;no_conversion;remark;tod;
+    mm;C;mm;text;datetime;
+    42000;0;666;pretty cold;2020-10-09;
+    1000;20;666;room temp;2020-10-09;
     """
         )
         .strip()
@@ -37,7 +39,7 @@ def table_cells():
 
 def test_convert_units__list(table_cells):
     t = make_table(table_cells)
-    t.convert_units(to=["m", "K", None], converter=convert_this)
+    t.convert_units(to=["m", "K", None, None, None], converter=convert_this)
 
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
@@ -83,4 +85,14 @@ def test_convert_units__callable(table_cells):
     assert t["no_conversion"].unit == "mm"
 
 
-# TODO deal with column unit = text, datetime
+def test_conver_units__fails_on_inconvertible_unit(table_cells):
+    t = make_table(table_cells)
+    with pytest.raises(UnitConversionNotDefinedError):
+        # Attempt to convert units of a datetime
+        t.convert_units(to=[None, None, None, "m", None], converter=convert_this)
+    with pytest.raises(UnitConversionNotDefinedError):
+        # Attempt to convert units of a text
+        t.convert_units(to=[None, None, None, None, "m"], converter=convert_this)
+
+
+# TODO deal with NaN values in columns
