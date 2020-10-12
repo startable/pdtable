@@ -198,9 +198,10 @@ def make_block(
     return block_type, cells if factory is None else factory(cells, origin, **kwargs)
 
 
-_re_token = re.compile(r"^\s*((\*\*\*?)|([:])|([^;:]+[:]\s*[;]))|([;]?)")
-# $1 = table, directive, template_row or metadata
-# $5 = empty 1. cell
+_re_token = re.compile(r"(^(\*\*\*?)|(:{1,3}))|(^\s*$)")
+# $1 = table, directive, or template_row (metadata is not detected using this regex)
+# $5 = empty cell
+# including metadata would be: r"(^(\*\*\*?)|(:{1,3})|([^:]+:))|(^\s*$)"
 
 
 def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
@@ -266,8 +267,8 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
                 else:
                     next_state = BlockType.TEMPLATE_ROW
             else:
-                # meta line
-                assert mm.group(5) is not None
+                # metadata line is not detected by the current regex
+                assert mm.group(5) is not None  # cell not empty
                 cell_grid.append(row)
                 continue
         else:
