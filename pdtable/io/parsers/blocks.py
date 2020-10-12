@@ -24,9 +24,8 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
-import sys
-import io
-from typing import Sequence, Optional, Tuple, Any, Iterable, List
+import re
+from typing import Sequence, Optional, Tuple, Any, Iterable
 
 import pandas as pd
 
@@ -106,7 +105,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     units = cells[3][:n_col]
     units = [el.strip() for el in units]
 
-    column_data = [l[:n_col] for l in cells[4:]]
+    column_data = [ll[:n_col] for ll in cells[4:]]
     column_data = [[el for el in col] for col in column_data]
 
     # ensure all data columns are populated
@@ -141,8 +140,6 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
 def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwargs) -> Table:
     """Parses cell grid into a pdtable-style Table block object."""
-    table_name = cells[0][0][2:]
-
     json_precursor = make_table_json_precursor(cells, origin=origin, **kwargs)
     return Table(
         frame.make_table_dataframe(
@@ -201,6 +198,11 @@ def make_block(
     return block_type, cells if factory is None else factory(cells, origin, **kwargs)
 
 
+_re_token = re.compile(r"^\s*((\*\*\*?)|([:])|([^;:]+[:]\s*[;]))|([;]?)")
+# $1 = table, directive, template_row or metadata
+# $5 = empty 1. cell
+
+
 def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     """Parses blocks from a single sheet as rows of cells.
 
@@ -222,7 +224,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     if to is None:
         kwargs["to"] = to = "pdtable"
     elif to not in {"pdtable", "jsondata", "cellgrid"}:
-        raise NotImplementedError(f"Unsupported parsing output type", to)
+        raise NotImplementedError(f"Unsupported parsing output type {to}")
 
     origin = kwargs["origin"] if "origin" in kwargs else "stream"
 
@@ -239,40 +241,53 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
 
     cell_grid = []
 
-    state = 0
+    state = BlockType.METADATA
+    next_state = None
     this_block_1st_row = 0
     for row_number_0based, row in enumerate(cell_rows):
         #        print(f"parse_blocks: {state} {row[0] if len(row) > 0 else ' (empty) '}")
         if row is None or len(row) == 0 or is_blank(row[0]):
-            if state == 0:
-                continue  # ignore multiple empty
+            if state != BlockType.BLANK:
+                next_state = BlockType.BLANK
+            else:
+                continue
+        elif isinstance(row[0], str):
+            # possible token
+            mm = _re_token.match(row[0])
+            if mm is None:  # TBC (PEP 572)
+                cell_grid.append(row)
+                continue
 
-            # Current block has ended. Emit it.
-            kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-            block_type, block = make_block(state, cell_grid, **kwargs)
-            if block_type is not None:
-                yield block_type, block
-
-            # TODO augment TableOriginCSV with one tailored for Excel
-            # Prepare to read next block
-            cell_grid = []
-            state = 0
+            if mm.group(1) is not None:
+                if mm.group(1) == "**":
+                    next_state = BlockType.TABLE
+                elif mm.group(1) == "***":
+                    next_state = BlockType.DIRECTIVE
+                else:
+                    next_state = BlockType.TEMPLATE_ROW
+            else:
+                # meta line
+                assert mm.group(5) is not None
+                cell_grid.append(row)
+                continue
+        else:
+            # binary (excel &c.)
+            cell_grid.append(row)
             continue
 
-        cell_grid.append(row)
-        first_cell = row[0]
-        if state == 0:
-            # Check whether it's a block start marker
-            this_block_1st_row = row_number_0based + 1
-            if first_cell.startswith("**"):
-                if first_cell.startswith("***"):
-                    state = BlockType.DIRECTIVE
-                else:
-                    state = BlockType.TABLE
-            elif first_cell.startswith(":"):
-                state = BlockType.TEMPLATE_ROW
-            else:
-                state = BlockType.METADATA
+        if next_state is not None:
+            # Current block has ended. Emit it.
+            if len(cell_grid) > 0:
+                kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
+                block_type, block = make_block(state, cell_grid, **kwargs)
+                if block_type is not None:
+                    yield block_type, block
+            # TODO augment TableOriginCSV with one tailored for Excel
+            cell_grid = []
+            state = next_state
+            next_state = None
+            if state != BlockType.BLANK:
+                cell_grid.append(row)
 
     if cell_grid:
         # Block ended with EOF. Emit it.

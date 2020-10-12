@@ -131,7 +131,7 @@ def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
             else:
                 raise ValueError(f"Illegal value in datetime column {val}")
 
-        if not isinstance(val,str):
+        if not isinstance(val, str):
             raise ValueError(f"Illegal value in datetime column {val}")
 
         val = val.strip()

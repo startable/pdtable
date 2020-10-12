@@ -188,12 +188,10 @@ def test_parse_blocks():
     ]
 
     blocks = [b for b in parse_blocks(cell_rows)]
-    assert len(blocks) == 6  # incl. directive
 
     metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
     assert len(metadata_blocks) == 1
     mb = metadata_blocks[0]
-    assert len(mb) == 2
     assert mb["author"] == "XYODA"
     assert mb["purpose"] == "Save the galaxy"
 
