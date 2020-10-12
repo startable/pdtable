@@ -1,32 +1,37 @@
-
 graph id {
-        node [ color=black;
+    subgraph clusterFooter {
+        margin=0
+        style="invis"
+        FOOTER [shape="box" label="ε := emit block"];
+    }
+    node [ color=black;
            penwidth = 1;
            shape = circle;
     ];
 
     rankdir = LR;
-    S [label = "0"]
-    T [label = "**Tab"; ];
-    D [label = "***Dir"; ];
-    TEMP [label = ":Temp"];
-    M [label = "Meta"; ];
 
+    start [label = "start"]
+    M [label = "Meta:"; ];
+    S [label = "0"]
+    D [label = "***Dir"; ];
+    T [label = "**Tab"; ];
+    TEMP [label = ":Templ"];
 
     edge [dir="forward", arrowhead="open";  penwidth = 0.4];
-    S -- S [label = "empty"];
-    S -- T [label = "**str"];
-    S -- D [label = "***str"];
-    S -- TEMP [ label = ":"];
-    TEMP -- TEMP [label = "non-empty"]
-    TEMP -- S [label = "empty"]
-    S -- M [label = "other"];
-    M -- M [label = "non-empty"];
-    M -- S [label = "empty"];
-    T -- S [label = "empty"];
-    T -- T [label = "non-empty"];
-    D -- D [label = "non-empty"];
-    D -- S [label = "empty"];
+    start -- M
 
-    {rank = same; T; D; TEMP;}
+    S -- T [label = "^**.+"];
+    S -- D [label = "^***.+"];
+    S -- TEMP [ label = "\n^.+[:]"];
+    TEMP -- TEMP [label = "template row"]
+    TEMP -- S [label = "ε"]
+
+    M -- M [label = "[^;]+[:]$"];
+    M -- S [label = "ε"];
+    T -- S [label = "ε"];
+    T -- T [label = "table row"];
+    D -- D [label = "directive row"];
+    D -- S [label = "ε"];
+
 }
