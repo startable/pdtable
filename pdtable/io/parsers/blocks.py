@@ -200,8 +200,17 @@ def make_block(
     return block_type, cells if factory is None else factory(cells, origin, **kwargs)
 
 
-_re_token = re.compile(r"(^(\*\*\*?)|(:{1,3})|([^:]+:))|(^\s*$)")
-# $1 = Non-empty separator
+# Regex that matches valid block start markers
+_re_block_marker = re.compile(
+    r"^("  # Marker must start exactly at start of cell
+    r"(?<!\*)(\*\*\*?)(?!\*)"  # **table or ***directive but not ****undefined
+    r"|"
+    r"((?<!:):{1,3}(?!:))[^:]*\s*$"  # :col, ::table, :::file but not ::::undefined, :ambiguous:
+    r"|"
+    r"([^:]+:)\s*$"  # metadata:  but not :ambiguous:
+    r")"
+)
+# $1 = Valid block start marker
 # $2 = **Table / ***Directive
 # $3 = :Template
 # $4 = Metadata:
@@ -259,7 +268,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
                 continue
         elif isinstance(row[0], str):
             # possible token
-            mm = _re_token.match(row[0])
+            mm = _re_block_marker.match(row[0])
             if mm is None:  # TBC (PEP 572)
                 cell_grid.append(row)
                 continue
