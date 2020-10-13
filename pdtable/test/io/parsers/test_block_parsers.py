@@ -3,8 +3,8 @@ import pandas as pd
 import datetime as dt
 from textwrap import dedent
 
-from ....proxy import Table
-from ....store import TableBundle, BlockType
+from pdtable import Table, TableBundle, BlockType
+from pdtable import ParseFixer
 from ....io.parsers.blocks import (
     make_metadata_block,
     make_directive,
@@ -188,12 +188,10 @@ def test_parse_blocks():
     ]
 
     blocks = [b for b in parse_blocks(cell_rows)]
-    assert len(blocks) == 10  # includes blanks
 
     metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
     assert len(metadata_blocks) == 1
     mb = metadata_blocks[0]
-    assert len(mb) == 2
     assert mb["author"] == "XYODA"
     assert mb["purpose"] == "Save the galaxy"
 
@@ -337,29 +335,26 @@ def test_read_csv_compatible1():
       handle leading and trailing wsp
     """
 
+    # fmt off
     cell_rows = [
-        line.split(";")
-        for line in dedent(
-            r"""
-    **test_input;
-    all;
-    numerical;dates;onoffs;
-    -;datetime;onoff;
-    123;08/07/2020;0;
-     123; 08-07-2020; 1;
-     123 ; 08-07-2020 ; 1 ;
-    1.23;-;-;
-     1.23; -; -;
-     1.23 ; - ; - ;
-     -1.23 ; - ; - ;
-     +1.23 ; - ; - ;
-    """
-        )
-        .strip()
-        .split("\n")
+        ["**test_input"],
+        ["all"],
+        ["numerical", "dates", "onoffs"],
+        ["-", "datetime", "onoff"],
+        [123, "08/07/2020", 0],
+        [123, "08-07-2020", 1],
+        [123, "08-07-2020", 1],
+        [1.23, None, None],
+        [1.23, None, None],
+        [1.23, None, None],
+        [-1.23, None, None],
+        [1.23, None, None],
     ]
-
-    table_bundle = TableBundle(parse_blocks(cell_rows), as_dataframe=True)
+    # fmt on
+    fix = ParseFixer()
+    fix.stop_on_errors = False
+    fix._called_from_test = True
+    table_bundle = TableBundle(parse_blocks(cell_rows, fixer=fix), as_dataframe=True)
     assert table_bundle
 
     assert table_bundle.test_input.onoffs[0] == False
@@ -407,3 +402,112 @@ def test_read_csv_compatible2():
     assert table_bundle.test_input.onoffs[0] == False
     assert table_bundle.test_input.dates[0].year == 2020
     assert table_bundle.test_input.numerical[0] == 123
+
+
+def test_parse_blocks__block_types():
+    """ Unit test
+        Verify that block types are  are handled consistently
+    """
+    # fmt: off
+    cell_rows = [
+        ["author: ", "XYODA"                       ],
+        ["purpose:", "Save the galaxy"             ],
+        ["**tab_1"                                 ],
+        ["all" ,                                   ],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        [ ],                                         # term. by newline
+        ["**tab_2"                                 ],
+        ["all" ,                                   ],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        ["**tab_3" ,                               ],# term. by table
+        ["all" ,                                   ],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        ["***foo"],                                  # term. by directive
+        ["bar"],
+        ["baz"],
+        [":template", "whatnot?"],
+        [],
+        ["# extra lines 1", "check type"],             # BLANK 1
+        ["# extra lines 2"],
+        ["**tab_4"                                 ],
+        ["all"                                     ],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        ["meta-test1:", "test meta not in header"  ],  # BLANK 2
+        ["meta-test2:", "test meta not in header"  ],  # BLANK 3
+        ["**tab_5"                                 ],
+        ["all"                                     ],
+        ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
+        ["text"    , "-"   , "-"   , "-"   , "-"   ],
+        ["chicken" , 1     , 2     , 3     , 4     ],
+        ["***foo2"],
+        ["bar"],
+        ["baz"],
+    ]
+    # fmt: on
+
+    seen = {}
+    for ty, block in parse_blocks(cell_rows, to="cellgrid"):
+        #  print(f"\n-oOo- {ty} {block}")
+        if seen.get(ty) == None:
+            seen[ty] = []
+        seen[ty].append(block)
+
+    assert len(seen[BlockType.METADATA]) == 1
+    assert len(seen[BlockType.TABLE]) == 5
+    assert len(seen[BlockType.DIRECTIVE]) == 2
+    assert len(seen[BlockType.TEMPLATE_ROW]) == 1
+    assert len(seen[BlockType.BLANK]) == 3
+
+
+def test_parse_blocks__test_demo():
+    """ Unit test
+        Verify that block types are  are handled consistently
+    """
+    # fmt: off
+    cell_rows = [
+       ["author:" ,"XYODA"                     ],
+       ["purpose:","Save the galaxy"           ],
+       [                                       ],
+       ["***gunk"                              ],
+       ["grok"                                 ],
+       ["jiggyjag"                             ],
+       [                                       ],
+       ["**places",                            ],
+       ["all"                                  ],
+       ["place","distance","ETA","is_hot"      ],
+       ["text","km","datetime","onoff"         ],
+       ["home",0.0,"2020-08-04 08:00:00",1     ],
+       ["work",1.0,"2020-08-04 09:00:00",0     ],
+       ["beach",2.0,"2020-08-04 17:00:00",1    ],
+       [                                       ],
+       ["**farm_animals"                       ],
+       ["your_farm my_farm other_farm"         ],
+       ["species","n_legs","avg_weight"        ],
+       ["text","-","kg"                        ],
+       ["chicken",2,2                          ],
+       ["pig",4,89                             ],
+       ["cow",4,200                            ],
+       ["unicorn",4,None                       ],
+     ]
+    # fmt: on
+
+    seen = {}
+    for ty, block in parse_blocks(cell_rows, to="cellgrid"):
+        # print(f"\n-oOo- {ty} {block}")
+        if seen.get(ty) == None:
+            seen[ty] = []
+        seen[ty].append(block)
+
+    assert len(seen.get(BlockType.METADATA)) == 1
+    assert len(seen.get(BlockType.TABLE)) == 2
+    assert len(seen.get(BlockType.DIRECTIVE)) == 1
+    assert seen.get(BlockType.TEMPLATE_ROW) == None
+    assert seen.get(BlockType.BLANK) == None

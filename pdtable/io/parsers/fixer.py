@@ -23,7 +23,7 @@ class ParseFixer:
         self._dbg = False
         self._errors = 0
         self._warnings = 0
-        self._stop_on_errors = 0
+        self._stop_on_errors = 1
 
         # Context info
         self.origin = None
@@ -135,7 +135,7 @@ class ParseFixer:
             txt = f"Error(s): stop after {self.fixes} errors in input table '{self.table_name}'"
             raise ValueError(txt)
 
-        if hasattr(ParseFixer, "_called_from_test"):
+        if hasattr(self, "_called_from_test"):
             # TODO intended behaviour when _called_from_test = something else than True?
             return
 

@@ -24,9 +24,8 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
-import sys
-import io
-from typing import Sequence, Optional, Tuple, Any, Iterable, List
+import re
+from typing import Sequence, Optional, Tuple, Any, Iterable
 
 import pandas as pd
 
@@ -41,6 +40,8 @@ from ...table_metadata import TableOriginCSV, TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
+
+VALID_PARSING_OUTPUT_TYPES = {"pdtable", "jsondata", "cellgrid"}
 
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None, **_) -> MetadataBlock:
@@ -59,6 +60,24 @@ def make_directive(cells: CellGrid, origin: Optional[str] = None, **_) -> Direct
     return Directive(name, directive_lines, origin)
 
 
+def default_fixer(**kwargs):
+    """ Determine if user has supplied custom fixer
+        Else return default ParseFixer() instance.
+    """
+    fixer = kwargs.get("fixer")
+    if fixer is not None:
+        if type(fixer) is type:
+            # It's a class, not an instance. Make an instance here.
+            fixer = kwargs["fixer"]()
+        else:
+            assert isinstance(fixer, ParseFixer)
+    else:
+        fixer = ParseFixer()
+    assert fixer is not None
+    fixer.origin = kwargs.get("origin")
+    return fixer
+
+
 def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
 
@@ -73,7 +92,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
     table_name = cells[0][0][2:]
 
-    fixer = kwargs["fixer"] if "fixer" in kwargs else ParseFixer()
+    fixer = default_fixer(**kwargs)
     fixer.table_name = table_name
 
     # internally hold destinations as json-compatible dict
@@ -88,7 +107,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     units = cells[3][:n_col]
     units = [el.strip() for el in units]
 
-    column_data = [l[:n_col] for l in cells[4:]]
+    column_data = [ll[:n_col] for ll in cells[4:]]
     column_data = [[el for el in col] for col in column_data]
 
     # ensure all data columns are populated
@@ -123,8 +142,6 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
 def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwargs) -> Table:
     """Parses cell grid into a pdtable-style Table block object."""
-    table_name = cells[0][0][2:]
-
     json_precursor = make_table_json_precursor(cells, origin=origin, **kwargs)
     return Table(
         frame.make_table_dataframe(
@@ -183,6 +200,22 @@ def make_block(
     return block_type, cells if factory is None else factory(cells, origin, **kwargs)
 
 
+# Regex that matches valid block start markers
+_re_block_marker = re.compile(
+    r"^("  # Marker must start exactly at start of cell
+    r"(?<!\*)(\*\*\*?)(?!\*)"  # **table or ***directive but not ****undefined
+    r"|"
+    r"((?<!:):{1,3}(?!:))[^:]*\s*$"  # :col, ::table, :::file but not ::::undefined, :ambiguous:
+    r"|"
+    r"([^:]+:)\s*$"  # metadata:  but not :ambiguous:
+    r")"
+)
+# $1 = Valid block start marker
+# $2 = **Table / ***Directive
+# $3 = :Template
+# $4 = Metadata:
+
+
 def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     """Parses blocks from a single sheet as rows of cells.
 
@@ -203,24 +236,17 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     to = kwargs.get("to")
     if to is None:
         kwargs["to"] = to = "pdtable"
-    elif to not in {"pdtable", "jsondata", "cellgrid"}:
-        raise NotImplementedError(f"Unsupported parsing output type", to)
+    elif to not in VALID_PARSING_OUTPUT_TYPES:
+        raise ValueError(
+            f"Unknown parsing output type; expected one of {VALID_PARSING_OUTPUT_TYPES}.", to
+        )
 
     origin = kwargs["origin"] if "origin" in kwargs else "stream"
 
-    fixer = kwargs.get("fixer")
-    if fixer is not None:
-        if type(fixer) is type:
-            # It's a class, not an instance. Make an instance here.
-            kwargs["fixer"] = fixer()
-        else:
-            assert isinstance(kwargs["fixer"], ParseFixer)
-            pass  # It's an instance. Use the instance.
-    else:
-        kwargs["fixer"] = ParseFixer()
-    assert kwargs["fixer"] is not None
-    kwargs["fixer"].origin = origin
-    kwargs["fixer"].reset_fixes()
+    fixer = default_fixer(**kwargs)
+    kwargs["fixer"] = fixer  # use in make_block
+    fixer.reset_fixes()
+    fixer.origin = origin
 
     def is_blank(cell):
         """
@@ -229,44 +255,65 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
         return cell is None or (isinstance(cell, str) and not cell.strip())
 
     cell_grid = []
-    this_block_type = BlockType.METADATA
+
+    state = BlockType.METADATA
+    next_state = None
     this_block_1st_row = 0
     for row_number_0based, row in enumerate(cell_rows):
-        next_block_type = None
-        first_cell = row[0] if len(row) > 0 else None
+        #  print(f"parse_blocks: {state} {row[0] if len(row) > 0 else ' (empty) '}")
+        if row is None or len(row) == 0 or is_blank(row[0]):
+            if state != BlockType.BLANK:
+                next_state = BlockType.BLANK
+            else:
+                continue
+        elif isinstance(row[0], str):
+            # possible token
+            mm = _re_block_marker.match(row[0])
+            if mm is None:  # TBC (PEP 572)
+                cell_grid.append(row)
+                continue
 
-        if is_blank(first_cell) and not this_block_type == BlockType.METADATA:
-            # Blank first cell means end of this block
-            next_block_type = BlockType.BLANK
-        elif isinstance(first_cell, str):
-            # Check whether it's a block start marker
-            if first_cell.startswith("**"):
-                if first_cell.startswith("***"):
-                    next_block_type = BlockType.DIRECTIVE
+            if mm.group(1) is not None:
+                if mm.group(1) == "**":
+                    next_state = BlockType.TABLE
+                elif mm.group(1) == "***":
+                    next_state = BlockType.DIRECTIVE
+                elif mm.group(4) is not None:
+                    if state == BlockType.METADATA:
+                        cell_grid.append(row)
+                        continue
+                    else:
+                        next_state = BlockType.BLANK
                 else:
-                    next_block_type = BlockType.TABLE
-            elif first_cell.startswith(":"):
-                next_block_type = BlockType.TEMPLATE_ROW
+                    next_state = BlockType.TEMPLATE_ROW
+        else:
+            # binary (excel &c.)
+            cell_grid.append(row)
+            continue
 
-        if next_block_type is not None:
+        if next_state is not None:
             # Current block has ended. Emit it.
-            kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-            block_type, block = make_block(this_block_type, cell_grid, **kwargs)
-            if block_type is not None:
-                yield block_type, block
-
+            if len(cell_grid) > 0:
+                kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
+                block_type, block = make_block(state, cell_grid, **kwargs)
+                if block_type is not None:
+                    yield block_type, block
             # TODO augment TableOriginCSV with one tailored for Excel
-            # Prepare to read next block
             cell_grid = []
-            this_block_type = next_block_type
-            this_block_1st_row = row_number_0based + 1
-
-        cell_grid.append(row)
+            state = next_state
+            next_state = None
+            if state != BlockType.BLANK:
+                cell_grid.append(row)
+            elif len(row) > 0:
+                #  emit non-empty lines, comments &c. as BLANK
+                if len(row) == 1 and is_blank(row[0]):
+                    continue
+                cell_grid.append(row)
 
     if cell_grid:
         # Block ended with EOF. Emit it.
         kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-        block_type, block = make_block(this_block_type, cell_grid, **kwargs)
+        block_type, block = make_block(state, cell_grid, **kwargs)
         if block_type is not None:
             yield block_type, block
 
