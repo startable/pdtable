@@ -3,8 +3,11 @@ from ._json import to_json_serializable, JsonData
 from .parsers.blocks import make_table
 
 
-def json_data_to_table(table_json_data: JsonData) -> Table:
+def json_data_to_table(table_json_data: JsonData, **kwargs) -> Table:
     """  translate table-dictionary (JSON-like) to Table
+
+    kwargs:
+        fixer: ParseFixer instance or class
     """
     lines_json = [
         [f'**{table_json_data["name"]}'],
@@ -17,7 +20,7 @@ def json_data_to_table(table_json_data: JsonData) -> Table:
     json_rows = list(map(list, zip(*data)))  # transposed columns
     lines_json.extend(json_rows)
     # note: this allows us to use ParseFixer !
-    return make_table(lines_json, origin="JsonData")
+    return make_table(lines_json, origin="JsonData", **kwargs)
 
 
 def table_to_json_data(table: Table) -> JsonData:

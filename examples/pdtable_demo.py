@@ -222,7 +222,7 @@ csv_data = StringIO(
 # Read the stream. Syntax is the same if reading CSV file.
 # Reader function returns a generator; unroll it in a list for convenience.
 block_list = list(read_csv(csv_data))
-assert len(block_list) == 6  # includes blanks
+assert len(block_list) == 4
 
 
 # %% [markdown]
@@ -236,7 +236,7 @@ for bt, b in block_list:
 # Here's one of the tables.
 
 # %%
-t = block_list[3][1]
+t = block_list[2][1]
 assert t.name == "places"
 print(t)
 

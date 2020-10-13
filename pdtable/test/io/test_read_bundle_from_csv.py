@@ -9,8 +9,10 @@ from pdtable import Table, TableDataFrame
 from pathlib import Path
 from textwrap import dedent
 
+
 def input_dir() -> Path:
     return Path(__file__).parent / "input"
+
 
 class convert_kg(UnitPolicy):
     """ Specific UnitPolicy, convert kg to g
@@ -100,4 +102,3 @@ def test_TableBundlebundle_from_file():
     assert bundle.unique("spelling_numbers").spelling[1] == "six"
     assert bundle[1].spelling[0] == "one"
     assert len(bundle.all("places_to_go")) == 2
-
