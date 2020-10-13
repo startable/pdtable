@@ -198,10 +198,11 @@ def make_block(
     return block_type, cells if factory is None else factory(cells, origin, **kwargs)
 
 
-_re_token = re.compile(r"(^(\*\*\*?)|(:{1,3}))|(^\s*$)")
-# $1 = table, directive, or template_row (metadata is not detected using this regex)
-# $5 = empty cell
-# including metadata would be: r"(^(\*\*\*?)|(:{1,3})|([^:]+:))|(^\s*$)"
+_re_token = re.compile(r"(^(\*\*\*?)|(:{1,3})|([^:]+:))|(^\s*$)")
+# $1 = Non-empty separator
+# $2 = **Table / ***Directive
+# $3 = :Template
+# $4 = Metadata:
 
 
 def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
@@ -246,7 +247,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     next_state = None
     this_block_1st_row = 0
     for row_number_0based, row in enumerate(cell_rows):
-        #        print(f"parse_blocks: {state} {row[0] if len(row) > 0 else ' (empty) '}")
+        #  print(f"parse_blocks: {state} {row[0] if len(row) > 0 else ' (empty) '}")
         if row is None or len(row) == 0 or is_blank(row[0]):
             if state != BlockType.BLANK:
                 next_state = BlockType.BLANK
@@ -264,13 +265,14 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
                     next_state = BlockType.TABLE
                 elif mm.group(1) == "***":
                     next_state = BlockType.DIRECTIVE
+                elif mm.group(4) is not None:
+                    if state == BlockType.METADATA:
+                        cell_grid.append(row)
+                        continue
+                    else:
+                        next_state = BlockType.BLANK
                 else:
                     next_state = BlockType.TEMPLATE_ROW
-            else:
-                # metadata line is not detected by the current regex
-                assert mm.group(5) is not None  # cell not empty
-                cell_grid.append(row)
-                continue
         else:
             # binary (excel &c.)
             cell_grid.append(row)
@@ -288,6 +290,11 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
             state = next_state
             next_state = None
             if state != BlockType.BLANK:
+                cell_grid.append(row)
+            elif len(row) > 0:
+                #  emit non-empty lines, comments &c. as BLANK
+                if len(row) == 1 and is_blank(row[0]):
+                    continue
                 cell_grid.append(row)
 
     if cell_grid:
