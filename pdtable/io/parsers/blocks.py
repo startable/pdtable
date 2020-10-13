@@ -41,6 +41,8 @@ from ...table_metadata import TableOriginCSV, TableMetadata
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
 
+VALID_PARSING_OUTPUT_TYPES = {"pdtable", "jsondata", "cellgrid"}
+
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None, **_) -> MetadataBlock:
     mb = MetadataBlock(origin)
@@ -225,8 +227,10 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
     to = kwargs.get("to")
     if to is None:
         kwargs["to"] = to = "pdtable"
-    elif to not in {"pdtable", "jsondata", "cellgrid"}:
-        raise NotImplementedError(f"Unsupported parsing output type {to}")
+    elif to not in VALID_PARSING_OUTPUT_TYPES:
+        raise ValueError(
+            f"Unknown parsing output type; expected one of {VALID_PARSING_OUTPUT_TYPES}.", to
+        )
 
     origin = kwargs["origin"] if "origin" in kwargs else "stream"
 
