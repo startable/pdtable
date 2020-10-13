@@ -39,7 +39,7 @@ def test_read_bundle_from_csv():
     # test 1]: unit_policy as an instance
     stream = io.StringIO(instr)
     ucs = {"farm_types1": {"flt": "g"}}
-    bundle = read_bundle_from_csv(stream, unit_conversion_schedule=ucs, unit_converter=convert_this)
+    bundle = read_bundle_from_csv(stream, convert_units_to=ucs, unit_converter=convert_this)
 
     assert len(bundle) > 0
 
@@ -49,7 +49,7 @@ def test_read_bundle_from_csv():
 
     # test 2]: unit_policy as a type
     stream = io.StringIO(instr)
-    bundle = read_bundle_from_csv(stream, unit_conversion_schedule=ucs, unit_converter=convert_this)
+    bundle = read_bundle_from_csv(stream, convert_units_to=ucs, unit_converter=convert_this)
     assert len(bundle) > 0
     for tab in bundle:
         assert tab["flt"].unit == "g"

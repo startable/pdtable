@@ -14,7 +14,7 @@ from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInf
 
 INCONVERTIBLE_UNIT_INDICATORS = ["text", "datetime", "onoff", "-"]
 UnitConverter = Callable[[float, str, str], float]
-ColumnTargetUnits = Union[Sequence[str], Dict[str, str], Callable[[str], str]]
+ColumnUnitDispatcher = Union[Sequence[str], Dict[str, str], Callable[[str], str]]
 
 
 class UnitConversionNotDefinedError(ValueError):
@@ -257,7 +257,7 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, to: ColumnTargetUnits, converter: UnitConverter):
+    def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter):
         """Applies unit conversion to columns, modifying table in-place
 
         Args:
@@ -290,7 +290,8 @@ class Table:
 
         elif isinstance(to, Dict):
             for column in self.column_proxies:
-                if column.name in to:
+                to_unit = to.get(column.name)
+                if to_unit is not None:
                     column.convert_units(to[column.name], converter)
 
         else:

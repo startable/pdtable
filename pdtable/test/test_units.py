@@ -85,7 +85,7 @@ def test_convert_units__callable(table_cells):
     assert t["no_conversion"].unit == "mm"
 
 
-def test_conver_units__fails_on_inconvertible_unit(table_cells):
+def test_convert_units__fails_on_inconvertible_unit(table_cells):
     t = make_table(table_cells)
     with pytest.raises(UnitConversionNotDefinedError):
         # Attempt to convert units of a datetime
