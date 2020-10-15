@@ -4,7 +4,7 @@
 
 The `pdtable` Python package offers interfaces to read, write, and manipulate StarTable data. 
 
-For a full demo, see the [pdtable_demo notebook](examples/pdtable_demo.ipynb) or, if you don't have a Jupyter viewer handy, the notebook's [paired script](examples/pdtable_demo.py).
+For a full demo, see the [pdtable_demo notebook](examples/pdtable_demo.ipynb) or, if you a Jupyter notebook doesn't do it for you, the notebook's [paired script](examples/pdtable_demo.py).
 
 ## Data and metadata: storage and access
 
