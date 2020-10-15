@@ -12,3 +12,4 @@ from .store import TableBundle, BlockType, BlockIterator
 from .io import ParseFixer
 from .io import read_csv, write_csv
 from .io import read_excel, write_excel
+from .units import convert_units, DefaultUnitConverter

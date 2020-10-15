@@ -10,6 +10,7 @@ dependencies:
   - pandas
 # OPTIONAL
   - openpyxl
+  - pint
 # TEST
   - pytest
   - coverage

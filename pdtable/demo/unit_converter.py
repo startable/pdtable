@@ -1,7 +1,7 @@
 """Demo unit conversion"""
 
 
-def convert_this(value, from_unit: str, to_unit: str):
+def convert_this(value, from_unit: str, to_unit: str) -> float:
     """
     A simple unit converter that hasn't read a lot of books.
 
