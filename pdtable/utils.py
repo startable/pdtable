@@ -37,7 +37,12 @@ def read_bundle_from_csv(
     convert_units_to: TableUnitDispatcher = None,
     unit_converter: UnitConverter = None,
 ) -> TableBundle:
-    """Read single csv-file to TableBundle"""
+    """Read single csv-file to TableBundle
+
+    With a demo of bulk unit conversion of all tables at read time.
+
+    unit_converter must accept units of type returned by the TableUnitDispatcher.
+    """
     if convert_units_to and not unit_converter:
         raise ValueError("No unit converter supplied.")
 

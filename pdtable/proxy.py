@@ -263,16 +263,19 @@ class Table:
         Args:
             to:
                 Specifies what units to convert which columns to. Can be:
-                - A list specifying the target unit of each column by position. (A None element
-                  implies no conversion for that column.)
                 - A dictionary of {column_name: target_unit}. Superfluous column names are ignored.
-                - A callable with one argument (column name). Must return the target unit, or None
+                - A callable with one argument: column name. Must return the target unit, or None
                   if no unit conversion is to be done.
+                - A list specifying the target unit of each column by position. (A None element
+                  implies no conversion for that column.) This is discouraged in production, as
+                  there is no check that the units are applied to the right columns by column name;
+                  but it is a useful shorthand during experimentation.
             converter:
                 A callable that converts values from one unit to another. Must have three arguments:
                 - value to be converted
-                - from unit (str)
-                - to unit (str)
+                - from unit
+                - to unit
+                Must accept units of type returned by the ColumnUnitDispatcher.
                 Must return the value with unit conversion applied.
 
         Returns:
