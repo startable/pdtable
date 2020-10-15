@@ -14,7 +14,7 @@ from typing import Union, Callable, Iterable
 from .parsers.blocks import parse_blocks
 from .parsers.fixer import ParseFixer
 from .. import BlockType, Table, TableBundle
-from ..store import BlockGenerator
+from ..store import BlockIterator
 
 
 def read_excel(
@@ -23,7 +23,7 @@ def read_excel(
     fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
-) -> BlockGenerator:
+) -> BlockIterator:
     """Reads StarTable blocks from an Excel workbook.
     # TODO copy most of read_csv() docstring over
 

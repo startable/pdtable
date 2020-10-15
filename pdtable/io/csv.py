@@ -8,7 +8,7 @@ from typing import TextIO, Union, Callable, Iterable
 import pdtable  # Required to read dynamically-set pdtable.CSV_SEP
 from ._represent import _represent_row_elements
 from .. import BlockType, Table, TableBundle
-from ..store import BlockGenerator
+from ..store import BlockIterator
 from .parsers.fixer import ParseFixer
 from .parsers.blocks import parse_blocks
 
@@ -20,7 +20,7 @@ def read_csv(
     fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
-) -> BlockGenerator:
+) -> BlockIterator:
     """Reads StarTable data from a CSV file or text stream, yielding one block at a time.
 
     Reads StarTable data from a CSV-format file or text stream. StarTable blocks are parsed from

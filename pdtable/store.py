@@ -43,7 +43,7 @@ class BlockType(Enum):
     BLANK = auto()
 
 
-BlockGenerator = Iterable[Tuple[BlockType, Optional[Any]]]
+BlockIterator = Iterable[Tuple[BlockType, Optional[Any]]]
 
 TableType = Union[Table, TableDataFrame]
 
@@ -59,7 +59,7 @@ class TableBundle:
     as_Table=False.
     """
 
-    def __init__(self, block_gen: BlockGenerator, as_dataframe: bool = False):
+    def __init__(self, block_gen: BlockIterator, as_dataframe: bool = False):
 
         # Dict of lists of tables; each list contains all tables that have a certain name
         self._tables_named = defaultdict(list)

@@ -35,7 +35,7 @@ from ... import frame
 from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
 from ...auxiliary import MetadataBlock, Directive
 from pdtable import Table
-from pdtable import BlockType, BlockGenerator
+from pdtable import BlockType, BlockIterator
 from ...table_metadata import TableOriginCSV, TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
@@ -216,7 +216,7 @@ _re_block_marker = re.compile(
 # $4 = Metadata:
 
 
-def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
+def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
     """Parses blocks from a single sheet as rows of cells.
 
     Takes an iterable of cell rows and parses it into blocks.
