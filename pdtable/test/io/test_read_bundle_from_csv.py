@@ -14,7 +14,7 @@ def input_dir() -> Path:
 
 def test_read_bundle_from_csv():
     # fmt off
-    instr = dedent(
+    stream = io.StringIO(dedent(
         """\
         **farm_types1;;;
         your_farm my_farm farms_galore;;;
@@ -26,28 +26,27 @@ def test_read_bundle_from_csv():
         zybra;      4;    -;      0;
         cow;      NaN;  200;      1;
         goose;      2;    9;      0;
+
+        **unrelated_table;;;
+        your_farm my_farm farms_galore;;;
+        species;  num;  flt;    log;
+        text;       -;   kg;  onoff;
+        unicorn;    2;    3;      1;
         """
-    )
+    ))
     # fmt on
+    unit_dispatcher = {"farm_types1": {"flt": "g"}}
 
-    # test 1]: unit_policy as an instance
-    stream = io.StringIO(instr)
-    ucs = {"farm_types1": {"flt": "g"}}
-    bundle = read_bundle_from_csv(stream, convert_units_to=ucs, unit_converter=convert_this)
+    bundle = read_bundle_from_csv(stream, convert_units_to=unit_dispatcher, unit_converter=convert_this)
 
-    assert len(bundle) > 0
-
-    for tab in bundle:
-        assert tab["flt"].unit == "g"
-        assert tab["flt"].values[4] == 200000
-
-    # test 2]: unit_policy as a type
-    stream = io.StringIO(instr)
-    bundle = read_bundle_from_csv(stream, convert_units_to=ucs, unit_converter=convert_this)
-    assert len(bundle) > 0
-    for tab in bundle:
-        assert tab["flt"].unit == "g"
-        assert tab["flt"].values[0] == 3000
+    # Correct number of tables read
+    assert len(bundle) == 2
+    # Units converted where dispatched
+    assert bundle["farm_types1"]["flt"].unit == "g"
+    assert bundle["farm_types1"]["flt"].values[4] == 200000
+    # Units not converted where not dispatched
+    assert bundle["unrelated_table"]["flt"].unit == "kg"
+    assert bundle["unrelated_table"]["flt"].values[0] == 3
 
 
 def test_TableBundlebundle_from_file():
