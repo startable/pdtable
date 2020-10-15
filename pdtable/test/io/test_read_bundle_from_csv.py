@@ -4,7 +4,6 @@ from textwrap import dedent
 
 from pdtable import Table, TableDataFrame
 from pdtable import TableBundle, read_csv, read_excel
-# TBC: group these types in same import
 from pdtable.demo.unit_converter import convert_this
 from pdtable.utils import read_bundle_from_csv
 
@@ -14,11 +13,6 @@ def input_dir() -> Path:
 
 
 def test_read_bundle_from_csv():
-    """ verify that custom UnitPolicy translates kg to g
-        verify that read_bundle_from_csv can be called with
-          unit_policy as an instance
-          unit_policy as a type
-    """
     # fmt off
     instr = dedent(
         """\
