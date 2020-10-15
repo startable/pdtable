@@ -14,8 +14,9 @@ def input_dir() -> Path:
 
 def test_read_bundle_from_csv():
     # fmt off
-    stream = io.StringIO(dedent(
-        """\
+    stream = io.StringIO(
+        dedent(
+            """\
         **farm_types1;;;
         your_farm my_farm farms_galore;;;
         species;  num;  flt;    log;
@@ -33,11 +34,14 @@ def test_read_bundle_from_csv():
         text;       -;   kg;  onoff;
         unicorn;    2;    3;      1;
         """
-    ))
+        )
+    )
     # fmt on
     unit_dispatcher = {"farm_types1": {"flt": "g"}}
 
-    bundle = read_bundle_from_csv(stream, convert_units_to=unit_dispatcher, unit_converter=convert_this)
+    bundle = read_bundle_from_csv(
+        stream, convert_units_to=unit_dispatcher, unit_converter=convert_this
+    )
 
     # Correct number of tables read
     assert len(bundle) == 2

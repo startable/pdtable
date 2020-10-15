@@ -1,7 +1,7 @@
 # TODO Get rid of this "utils" module; find a better home for its constituents.
 # TODO These functions seem out of sync with the rest of the pdtable.io API. Needs revisiting.
 from os import PathLike
-from typing import Optional, Any, Tuple, Iterable, Dict, Callable, Union, Sequence
+from typing import Optional, Any, Tuple, Iterable, Dict, Callable, Union, TextIO
 
 from pdtable import TableBundle, BlockType, Table
 from pdtable import read_csv
@@ -11,10 +11,11 @@ from pdtable.proxy import UnitConverter, ColumnUnitDispatcher
 TableUnitDispatcher = Union[Dict[str, ColumnUnitDispatcher], Callable[[str], ColumnUnitDispatcher]]
 
 
-def normalized_table_generator(block_gen: Iterable[Tuple[BlockType, Optional[Any]]],
-                               convert_units_to: TableUnitDispatcher = None,
-                               unit_converter: UnitConverter = None,
-                               ):
+def normalized_table_generator(
+    block_gen: Iterable[Tuple[BlockType, Optional[Any]]],
+    convert_units_to: TableUnitDispatcher = None,
+    unit_converter: UnitConverter = None,
+):
     for block_type, block in block_gen:
         if block is not None and block_type == BlockType.TABLE:
             # convert table units
@@ -31,9 +32,10 @@ def normalized_table_generator(block_gen: Iterable[Tuple[BlockType, Optional[Any
 
 
 def read_bundle_from_csv(
-        input_path: PathLike, sep: Optional[str] = ";",
-        convert_units_to: TableUnitDispatcher = None,
-        unit_converter: UnitConverter = None,
+    input_path: Union[str, PathLike, TextIO],
+    sep: Optional[str] = ";",
+    convert_units_to: TableUnitDispatcher = None,
+    unit_converter: UnitConverter = None,
 ) -> TableBundle:
     """Read single csv-file to TableBundle"""
     if convert_units_to and not unit_converter:
