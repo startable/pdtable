@@ -19,6 +19,7 @@ ColumnUnitDispatcher = Union[Sequence[str], Dict[str, str], Callable[[str], str]
 
 class UnitConversionNotDefinedError(ValueError):
     """Raised when a unit conversion is attempted on an inconvertible unit indicator"""
+
     pass
 
 
@@ -70,7 +71,8 @@ class Column:
             return
         if self.unit in INCONVERTIBLE_UNIT_INDICATORS:
             raise UnitConversionNotDefinedError(
-                f"Unit conversion is not defined for unit '{self.unit}' of column '{self.name}'")
+                f"Unit conversion is not defined for unit '{self.unit}' of column '{self.name}'"
+            )
         if to != self.unit:
             self.values = converter(self.values, self.unit, to)
             self.unit = to
@@ -120,12 +122,13 @@ class Table:
     @property
     def df(self) -> TableDataFrame:
         """
-        Return a pandas dataframe with all table information stored as metadata (a TableDataFrame object).
+        Return a pandas dataframe with all table information stored as
+        metadata (a TableDataFrame object).
 
         This dataframe always exist and is the single source of truth for table data.
-        The Table obects (this object) merely acts as a facade to allow simpler manipulation of
-        associated metadata. It is consequently safe to simultaneously manipulate a Table object and the
-        associated TableDataFrame object, as well as deleting the Table object.
+        The Table objects (this object) merely acts as a facade to allow simpler manipulation of
+        associated metadata. It is consequently safe to simultaneously manipulate a Table object
+        and the associated TableDataFrame object, as well as deleting the Table object.
         """
         return self._df
 
@@ -285,8 +288,9 @@ class Table:
         # TODO a convenient way to specify "pls convert back to display_units"
         if isinstance(to, Sequence):
             if len(to) != len(self.column_proxies):
-                raise ValueError("Unequal number of columns and of 'to' units",
-                                 len(self.column_proxies), len(to))
+                raise ValueError(
+                    "Unequal number of columns and of 'to' units", len(self.column_proxies), len(to)
+                )
             for col, to_unit in zip(self.column_proxies, to):
                 if to_unit is not None:
                     col.convert_units(to_unit, converter)
@@ -323,5 +327,6 @@ def _df_elements_all_equal_or_same(df1, df2):
     """Returns True if all corresponding elements are equal or 'the same' in both data frames."""
     try:
         return all(_equal_or_same(x1, x2) for x1, x2 in zip(_df_elements(df1), _df_elements(df2)))
-    except:
+    except Exception:
+        # If the comparison can't be made, then clearly they aren't the same
         return False

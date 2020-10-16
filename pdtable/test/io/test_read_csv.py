@@ -9,7 +9,8 @@ from pdtable import read_csv, BlockType, Table
 
 @fixture
 def csv_data() -> str:
-    return dedent("""\
+    return dedent(
+        """\
         author: ;XYODA     ;
         purpose:;Save the galaxy;
     
@@ -35,7 +36,8 @@ def csv_data() -> str:
         pig;4;89;
         cow;4;200;
         unicorn;4;NaN;
-        """)
+        """
+    )
 
 
 def test_read_csv(csv_data):
@@ -47,8 +49,8 @@ def test_read_csv(csv_data):
     assert len(met) == 1
     assert tables[0].df["place"][1] == "work"
     assert len(template_rows) == 1
-    
-    
+
+
 def test_read_csv__sep_is_comma(csv_data):
     bl = list(read_csv(io.StringIO(csv_data.replace(";", ",")), sep=","))
     tables: List[Table] = [b for t, b in bl if t == BlockType.TABLE]

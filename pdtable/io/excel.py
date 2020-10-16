@@ -43,7 +43,6 @@ def read_excel(
     kwargs = {"origin": origin, "fixer": fixer, "to": to, "filter": filter}
 
     try:
-        import openpyxl
         from ._excel_openpyxl import read_cell_rows_openpyxl as read_cell_rows
 
     except ImportError as err:
@@ -75,10 +74,11 @@ def write_excel(
         path:
             File path to which to write.
         na_rep:
-            Optional; String representation of missing values (NaN, None, NaT). If overriding the default '-', it is recommended to use another value compliant with the StarTable standard.
+            Optional; String representation of missing values (NaN, None, NaT).
+            If overriding the default '-', it is recommended to use another value compliant with
+            the StarTable standard.
     """
     try:
-        import openpyxl
         from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
 
     except ImportError as err:

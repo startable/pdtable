@@ -7,7 +7,7 @@ try:
     from openpyxl.worksheet.worksheet import Worksheet as OpenpyxlWorksheet
 except ImportError:
     # openpyxl < 2.6
-    from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
+    from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet  # noqa: F401
 
 from pdtable import Table
 from pdtable.io.excel import write_excel
@@ -42,9 +42,9 @@ def test__append_table_to_openpyxl_worksheet():
     # table data by column
     assert [ws.cell(r, 1).value for r in range(5, 9)] == ["home", "work", "beach", "wonderland"]
     assert [ws.cell(r, 2).value for r in range(5, 9)] == [0, 1, 2, "-"]
-    assert [ws.cell(r, 3).value for r in range(5, 9)] == [
-        x for x in pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00"])
-    ] + ["-"]
+    assert [ws.cell(r, 3).value for r in range(5, 9)] == list(
+        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00"])
+    ) + ["-"]
     assert [ws.cell(r, 4).value for r in range(5, 9)] == [1, 0, 1, 0]
 
 

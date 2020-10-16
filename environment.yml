@@ -16,6 +16,7 @@ dependencies:
   - coverage
   - pytest-cov
   - flake8
+  - flake8-black
   - flake8-comprehensions
 # DEV
   - twine

@@ -12,11 +12,13 @@ from pdtable.io._json import to_json_serializable
 from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
 
+
 class custom_test_fixer(ParseFixer):
     def __init__(self):
         ParseFixer.__init__(self)
         self.stop_on_errors = False
         self._called_from_test = True
+
 
 def input_dir() -> Path:
     return Path(__file__).parent / "input/with_errors"
@@ -106,8 +108,7 @@ def test_json_data_to_pdtable():
          "log": {"unit": "onoff",
                  "values": [True, False, True, False, True, False]}
       },
-      "destinations": {"your_farm": None, "my_farm": None,
-                        "farms_galore": None}
+      "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None}
     }
     # fmt: on
 

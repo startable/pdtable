@@ -67,6 +67,6 @@ def to_json_serializable(obj: JsonDataPrecursor) -> JsonData:
         jval = str(obj)
         return jval if jval != "NaT" else None
 
-    raise NotImplemented(
+    raise NotImplementedError(
         "Converting this type to a JSON-encodable type not yet implemented", type(obj)
     )

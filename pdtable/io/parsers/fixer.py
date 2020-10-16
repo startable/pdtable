@@ -73,7 +73,8 @@ class ParseFixer:
         """
         if self.verbose:
             print(
-                f"ParseFixer: fix duplicate column ({self.column_name}) {column_name} in table: {self.table_name}"
+                f"ParseFixer: fix duplicate column ({self.column_name}) {column_name} "
+                f"in table: {self.table_name}"
             )
 
         self._errors += 1
@@ -91,7 +92,8 @@ class ParseFixer:
         """
         if self.verbose:
             print(
-                f"ParseFixer: fix missing column ({self.column_name}) {input_columns} in table: {self.table_name}"
+                f"ParseFixer: fix missing column ({self.column_name}) {input_columns} "
+                f"in table: {self.table_name}"
             )
         return self.fix_duplicate_column_name("missing", input_columns)
 
@@ -141,10 +143,12 @@ class ParseFixer:
 
         if self._warnings > 0:
             print(
-                f"\nWarning: {self._warnings} data errors fixed while parsing table '{self.table_name}'\n"
+                f"\nWarning: {self._warnings} data errors fixed while parsing "
+                f"table '{self.table_name}'\n"
             )
 
         if self._errors > 0:
             sys.stderr.write(
-                f"\nError: {self._errors} column errors fixed while parsing table '{self.table_name}'\n"
+                f"\nError: {self._errors} column errors fixed while parsing "
+                f"table '{self.table_name}'\n"
             )

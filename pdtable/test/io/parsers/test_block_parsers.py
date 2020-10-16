@@ -187,7 +187,7 @@ def test_parse_blocks():
         .split("\n")
     ]
 
-    blocks = [b for b in parse_blocks(cell_rows)]
+    blocks = list(parse_blocks(cell_rows))
 
     metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
     assert len(metadata_blocks) == 1
@@ -417,18 +417,18 @@ def test_parse_blocks__block_types():
         ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
         ["text"    , "-"   , "-"   , "-"   , "-"   ],
         ["chicken" , 1     , 2     , 3     , 4     ],
-        [ ],                                         # term. by newline
+        [ ],                                           # term. by newline
         ["**tab_2"                                 ],
         ["all" ,                                   ],
         ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
         ["text"    , "-"   , "-"   , "-"   , "-"   ],
         ["chicken" , 1     , 2     , 3     , 4     ],
-        ["**tab_3" ,                               ],# term. by table
+        ["**tab_3" ,                               ],  # term. by table
         ["all" ,                                   ],
         ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
         ["text"    , "-"   , "-"   , "-"   , "-"   ],
         ["chicken" , 1     , 2     , 3     , 4     ],
-        ["***foo"],                                  # term. by directive
+        ["***foo"],                                    # term. by directive
         ["bar"],
         ["baz"],
         [":template", "whatnot?"],
@@ -456,7 +456,7 @@ def test_parse_blocks__block_types():
     seen = {}
     for ty, block in parse_blocks(cell_rows, to="cellgrid"):
         #  print(f"\n-oOo- {ty} {block}")
-        if seen.get(ty) == None:
+        if seen.get(ty) is None:
             seen[ty] = []
         seen[ty].append(block)
 
@@ -502,12 +502,12 @@ def test_parse_blocks__test_demo():
     seen = {}
     for ty, block in parse_blocks(cell_rows, to="cellgrid"):
         # print(f"\n-oOo- {ty} {block}")
-        if seen.get(ty) == None:
+        if seen.get(ty) is None:
             seen[ty] = []
         seen[ty].append(block)
 
     assert len(seen.get(BlockType.METADATA)) == 1
     assert len(seen.get(BlockType.TABLE)) == 2
     assert len(seen.get(BlockType.DIRECTIVE)) == 1
-    assert seen.get(BlockType.TEMPLATE_ROW) == None
-    assert seen.get(BlockType.BLANK) == None
+    assert seen.get(BlockType.TEMPLATE_ROW) is None
+    assert seen.get(BlockType.BLANK) is None

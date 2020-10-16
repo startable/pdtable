@@ -162,12 +162,3 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str, na_rep: str) -> None:
     )
 
     stream.write(the_whole_thing)
-
-    # Alternatively, write to stream one row at a time:
-    # stream.write(f"**{table.name}\n")
-    # stream.write(" ".join(str(x) for x in table.metadata.destinations) + "\n")
-    # stream.write(sep.join(str(x) for x in table.column_names) + "\n")
-    # stream.write(sep.join(str(x) for x in units) + "\n")
-    # for row in table.df.itertuples(index=False, name=None):
-    #     stream.write(sep.join(fs.format(x) if fs else str(x) for x, fs in zip(_represent_row_elements(row, units, na_rep), format_strings)) + "\n")
-    # stream.write("\n")

@@ -5,11 +5,12 @@ This is implemented by providing both `Table` and `TableDataFrame` interfaces to
 
 ## Idea
 
-The central idea is that as much as possible of the table information is stored as a pandas dataframe,
-and that the remaining information is stored as a `ComplementaryTableInfo` object attached to the dataframe as registered metadata.
-Further, access to the full table data structure is provided through a facade object (of class `Table`). `Table` objects
-have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded
-afterwards:
+The central idea is that as much as possible of the table information is stored as a pandas
+dataframe, and that the remaining information is stored as a `ComplementaryTableInfo` object
+attached to the dataframe as registered metadata. Further, access to the full table data
+structure is provided through a facade object (of class `Table`). `Table` objects have no state
+(except the underlying decorated dataframe) and are intended to be created when needed
+and discarded afterwards:
 
 ```
 dft = make_table_dataframe(...)
@@ -20,8 +21,9 @@ Advantages of this approach are that:
 
 1. Code can be written for (and tested with) pandas dataframes and still operate on `TableDataFrame`
    objects. This avoids unnecessary coupling to the StarTable project.
-2. The table access methods of pandas are available for use by consumer code. This both saves the work
-   of making startable-specific access methods, and likely allows better performance and documentation.
+2. The table access methods of pandas are available for use by consumer code. This both saves
+   the work of making startable-specific access methods, and likely allows better performance
+   and documentation.
 
 ## Implementation details
 
@@ -98,7 +100,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Complemen
 
     # 2: Check that units match for columns that appear in more than one table
     out_cols: Set[str] = set(obj.columns)
-    columns: Dict[str, ColumnMetadata] = dict()
+    columns: Dict[str, ColumnMetadata] = {}
     for d in data:
         for name, c in d.columns.items():
             if name not in out_cols:

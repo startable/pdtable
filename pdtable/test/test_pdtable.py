@@ -69,8 +69,8 @@ def test_add_column(dft):
     assert frame.get_table_info(dft).columns["colc"].unit == "text"
 
 
-def test_table_init():
-    t2 = Table(pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=["m", "kg"])
+def test_table_init__doesnt_crash():
+    Table(pd.DataFrame({"c": [1, 2, 3], "d": [4, 5, 6]}), name="table2", units=["m", "kg"])
 
 
 def test_table(dft):

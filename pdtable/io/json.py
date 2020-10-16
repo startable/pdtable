@@ -35,6 +35,6 @@ def table_to_json_data(table: Table) -> JsonData:
     for idx, cname in enumerate(table.column_names):
         table_data["columns"][cname] = {
             "unit": table.units[idx],
-            "values": [vv for vv in table.df[cname]],
+            "values": list(table.df[cname]),
         }
     return to_json_serializable(table_data)
