@@ -9,7 +9,7 @@ from pytest import fixture, raises
 from ..demo.unit_converter import convert_this
 from ..io.parsers.blocks import make_table
 from ..proxy import UnitConversionNotDefinedError
-from ..units import convert_units, DefaultUnitConverter
+from pdtable.units.converter import convert_units, DefaultUnitConverter
 
 
 def test_demo_converter__converts_values():
@@ -29,7 +29,6 @@ def test_default_converter__works():
 
 
 class CustomUnitConverter(DefaultUnitConverter):
-
     def __init__(self):
         super().__init__()
 
@@ -39,6 +38,7 @@ class CustomUnitConverter(DefaultUnitConverter):
         f = custom_unit_symbols.get(from_unit, from_unit)
         t = custom_unit_symbols.get(to_unit, to_unit)
         return super().__call__(value, f, t)
+
 
 @fixture
 def cuc():
