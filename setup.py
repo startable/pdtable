@@ -56,7 +56,7 @@ setup(
     packages=find_packages(exclude=["contrib", "doc", "docs", "test", "tests"]),
     python_requires=">=3.7",
     install_requires=["numpy", "pandas"],
-    tests_require=["pytest"],
+    tests_require=["pytest", "openpyxl", "pint"],
     # Same for developer dependencies
     # extras_require={
     #     'dev': ['check-manifest'],
