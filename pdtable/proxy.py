@@ -304,12 +304,14 @@ class Table:
                 if to_unit is not None:
                     column.convert_units(to[column.name], converter)
 
-        else:
-            # Assume 'to' is callable
+        elif isinstance(to, Callable):
             for column in self.column_proxies:
                 to_unit = to(column.name)
                 if to_unit is not None:
                     column.convert_units(to_unit, converter)
+
+        else:
+            raise TypeError("Column unit dispatcher of unexpected type.", type(to), to)
 
 
 def _equal_or_same(a, b):

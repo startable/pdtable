@@ -22,9 +22,14 @@ def normalized_table_generator(
             table: Table = block
             if isinstance(convert_units_to, Dict):
                 to_units: ColumnUnitDispatcher = convert_units_to.get(table.name)
-            else:
-                # Assume it's callable
+            elif isinstance(convert_units_to, Callable):
                 to_units: ColumnUnitDispatcher = convert_units_to(table.name)
+            else:
+                raise TypeError(
+                    "Table unit dispatcher of unexpected type.",
+                    type(convert_units_to),
+                    convert_units_to,
+                )
 
             if to_units is not None:
                 table.convert_units(to=convert_units_to[table.name], converter=unit_converter)
