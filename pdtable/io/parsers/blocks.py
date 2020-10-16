@@ -183,7 +183,7 @@ def make_block(
         block_name = cells[0][0][2:]
         to = kwargs.get("to")
         if to == "cellgrid":
-            factory = lambda c, *_, **__: c  # Just regurgitate the unprocessed cell grid
+            factory = lambda c, *_, **__: c  # Regurgitate the unprocessed cell grid  # noqa:E731
         elif to == "jsondata":
             factory = make_table_json_data
         else:

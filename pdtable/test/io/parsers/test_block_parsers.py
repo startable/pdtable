@@ -124,8 +124,8 @@ def test_make_table__parses_onoff_column():
 
     table_df = make_table(cells).df
     assert table_df.file_bytes[0] == 15373
-    assert table_df.has_table[0] == False
-    assert table_df.has_table[1] == True
+    assert not table_df.has_table[0]
+    assert table_df.has_table[1]
     tt = Table(table_df)
     assert tt.name == "input_files_derived"
     assert set(tt.metadata.destinations) == {"all"}
@@ -357,9 +357,9 @@ def test_read_csv_compatible1():
     table_bundle = TableBundle(parse_blocks(cell_rows, fixer=fix), as_dataframe=True)
     assert table_bundle
 
-    assert table_bundle.test_input.onoffs[0] == False
-    assert table_bundle.test_input.onoffs[1] == True
-    assert table_bundle.test_input.onoffs[2] == True
+    assert not table_bundle.test_input.onoffs[0]
+    assert table_bundle.test_input.onoffs[1]
+    assert table_bundle.test_input.onoffs[2]
     for idx in range(0, 3):
         assert table_bundle.test_input.dates[idx].year == 2020
         assert table_bundle.test_input.dates[idx].month == 7
@@ -399,7 +399,7 @@ def test_read_csv_compatible2():
     table_bundle = TableBundle(parse_blocks(cell_rows), as_dataframe=True)
     assert table_bundle
 
-    assert table_bundle.test_input.onoffs[0] == False
+    assert not table_bundle.test_input.onoffs[0]
     assert table_bundle.test_input.dates[0].year == 2020
     assert table_bundle.test_input.numerical[0] == 123
 

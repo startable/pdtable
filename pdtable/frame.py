@@ -113,7 +113,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Complemen
             else:
                 if not col.unit == c.unit:
                     raise InvalidTableCombineError(
-                        f'Column {name} appears with incompatible units "{col.unit}" and "{c.unit}".'
+                        "Column {name} appears with incompatible units.", col.unit, c.unit
                     )
                 col.update_from(c)
 
@@ -251,15 +251,15 @@ def get_table_info(
     if not table_data:
         if fail_if_missing:
             raise Exception(
-                "Missing ComplementaryTableInfo object on TableDataFrame."
-                "TableDataFrame objects should be created via make_table_dataframe or a Table proxy."
+                "Missing ComplementaryTableInfo object on TableDataFrame. TableDataFrame objects "
+                "should be created via make_table_dataframe or a Table proxy."
             )
     elif check_dataframe:
         table_data._check_dataframe(df)
     return table_data
 
 
-# example of manipulator function that directly manipulates TableDataFrame objects without constructing Table facade
+# example of manipulator function that directly manipulates TableDataFrame objects without constructing Table facade  # noqa
 def add_column(df: TableDataFrame, name: str, values, unit: Optional[str] = None, **kwargs):
     """
     Add or update column in table. If omitted, unit will be partially inferred from value dtype.
