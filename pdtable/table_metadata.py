@@ -54,13 +54,15 @@ class TableMetadata:
 
     def __str__(self):
         dst = (
-            " for {{}}".format(", ".join(d for d in self.destinations)) if self.destinations else ""
+            " for {{{}}}".format(", ".join(d for d in self.destinations))
+            if self.destinations
+            else ""
         )
         src = ""
         if self.origin:
             src = f" from {self.origin}"
         if self.parents:
-            src = " from {{}}".format(",".join(f"\n{c}" for c in self.parents))
+            src = " from {{{}}}".format(",".join(f"\n{c}" for c in self.parents))
         return f'Table "{self.name}" {dst}. {self.operation}{src}'
 
 
