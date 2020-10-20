@@ -8,8 +8,9 @@ requiring them (read_excel() or write_excel()) are called for the first time.
 
 """
 import os
+import io
 from os import PathLike
-from typing import Union, Callable, Iterable
+from typing import Union, Callable, Iterable, BinaryIO
 
 from .parsers.blocks import parse_blocks
 from .parsers.fixer import ParseFixer
@@ -18,7 +19,7 @@ from ..store import BlockGenerator
 
 
 def read_excel(
-    path: Union[str, PathLike],
+    source: Union[str, PathLike, BinaryIO],
     origin=None,
     fixer: ParseFixer = None,
     to: str = "pdtable",
@@ -31,7 +32,7 @@ def read_excel(
     Yields them one at a time as a tuple: (block type, block content)
 
     Args:
-        path:
+        source:
             Path of workbook to read.
 
 
@@ -43,7 +44,6 @@ def read_excel(
     kwargs = {"origin": origin, "fixer": fixer, "to": to, "filter": filter}
 
     try:
-        import openpyxl
         from ._excel_openpyxl import read_cell_rows_openpyxl as read_cell_rows
 
     except ImportError as err:
@@ -53,7 +53,10 @@ def read_excel(
             "Please install openpyxl for Excel I/O support."
         ) from err
 
-    yield from parse_blocks(read_cell_rows(path), **kwargs)
+    if not isinstance(source, (str, PathLike)):
+        assert isinstance(source, io.BufferedIOBase)
+
+    yield from parse_blocks(read_cell_rows(source), **kwargs)
 
 
 def write_excel(
@@ -78,7 +81,6 @@ def write_excel(
             Optional; String representation of missing values (NaN, None, NaT). If overriding the default '-', it is recommended to use another value compliant with the StarTable standard.
     """
     try:
-        import openpyxl
         from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
 
     except ImportError as err:

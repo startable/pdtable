@@ -1,5 +1,6 @@
 """Interface to read/write StarTable data from/to CSV"""
 import os
+import io
 from contextlib import nullcontext
 from os import PathLike
 
@@ -89,6 +90,9 @@ def read_csv(
             origin = str(source)
 
     kwargs = {"sep": sep, "origin": origin, "fixer": fixer, "to": to, "filter": filter}
+
+    if not isinstance(source, (str, PathLike)):
+        assert isinstance(source, io.TextIOBase)
 
     with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
