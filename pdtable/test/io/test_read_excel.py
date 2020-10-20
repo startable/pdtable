@@ -43,7 +43,7 @@ def test_read_excel():
 
     # raises exception if not binary stream
     with raises(Exception):
-        with open(Path(__file__).parent / "input" / "foo.xlsx", "r") as fh:
+        with open(Path(__file__).parent / "input" / "foo.xlsx", "r") as fh:  # text stream!
             blocks = read_excel(fh)
             tables_read_stream = [
                 block for (block_type, block) in blocks if block_type == BlockType.TABLE

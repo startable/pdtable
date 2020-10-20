@@ -71,6 +71,6 @@ def test_read_csv__from_stream():
 
     # raises exception on common error if not text stream
     with raises(Exception):
-        with open(Path(__file__).parent / "input" / "bundle.csv", "rb") as fh:
+        with open(Path(__file__).parent / "input" / "bundle.csv", "rb") as fh:  # binary stream!
             bls = list(read_csv(fh))
             tables = [bl for ty, bl in bls if ty == BlockType.TABLE]
