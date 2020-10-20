@@ -35,7 +35,7 @@ from ... import frame
 from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
 from ...auxiliary import MetadataBlock, Directive
 from pdtable import Table
-from pdtable import BlockType, BlockGenerator
+from pdtable import BlockType, BlockIterator
 from ...table_metadata import TableOriginCSV, TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
@@ -108,7 +108,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     units = [el.strip() for el in units]
 
     column_data = [ll[:n_col] for ll in cells[4:]]
-    column_data = [[el for el in col] for col in column_data]
+    column_data = [list(col) for col in column_data]
 
     # ensure all data columns are populated
     for irow, row in enumerate(column_data):
@@ -119,7 +119,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
             column_data[irow] = fix_row
 
     # build dictionary of columns iteratively to allow meaningful error messages
-    columns = dict()
+    columns = {}
     for name, unit, values in zip(column_names, units, zip(*column_data)):
         try:
             fixer.column_name = name
@@ -161,8 +161,8 @@ def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
     # attach unit directly to individual column
     units = impure_json["units"]
-    del impure_json["units"]  #  replaced by "unit" field in columns
-    del impure_json["origin"]  #  not relevant for json_data
+    del impure_json["units"]  # replaced by "unit" field in columns
+    del impure_json["origin"]  # not relevant for json_data
     columns = {}
     for cname, unit in zip(impure_json["columns"].keys(), units):
         columns[cname] = {"unit": unit, "values": impure_json["columns"][cname]}
@@ -183,7 +183,7 @@ def make_block(
         block_name = cells[0][0][2:]
         to = kwargs.get("to")
         if to == "cellgrid":
-            factory = lambda c, *_, **__: c  # Just regurgitate the unprocessed cell grid
+            factory = lambda c, *_, **__: c  # Regurgitate the unprocessed cell grid  # noqa:E731
         elif to == "jsondata":
             factory = make_table_json_data
         else:
@@ -216,7 +216,7 @@ _re_block_marker = re.compile(
 # $4 = Metadata:
 
 
-def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockGenerator:
+def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
     """Parses blocks from a single sheet as rows of cells.
 
     Takes an iterable of cell rows and parses it into blocks.

@@ -124,8 +124,8 @@ def test_make_table__parses_onoff_column():
 
     table_df = make_table(cells).df
     assert table_df.file_bytes[0] == 15373
-    assert table_df.has_table[0] == False
-    assert table_df.has_table[1] == True
+    assert not table_df.has_table[0]
+    assert table_df.has_table[1]
     tt = Table(table_df)
     assert tt.name == "input_files_derived"
     assert set(tt.metadata.destinations) == {"all"}
@@ -187,7 +187,7 @@ def test_parse_blocks():
         .split("\n")
     ]
 
-    blocks = [b for b in parse_blocks(cell_rows)]
+    blocks = list(parse_blocks(cell_rows))
 
     metadata_blocks = [b for t, b in blocks if t == BlockType.METADATA]
     assert len(metadata_blocks) == 1
@@ -357,9 +357,9 @@ def test_read_csv_compatible1():
     table_bundle = TableBundle(parse_blocks(cell_rows, fixer=fix), as_dataframe=True)
     assert table_bundle
 
-    assert table_bundle.test_input.onoffs[0] == False
-    assert table_bundle.test_input.onoffs[1] == True
-    assert table_bundle.test_input.onoffs[2] == True
+    assert not table_bundle.test_input.onoffs[0]
+    assert table_bundle.test_input.onoffs[1]
+    assert table_bundle.test_input.onoffs[2]
     for idx in range(0, 3):
         assert table_bundle.test_input.dates[idx].year == 2020
         assert table_bundle.test_input.dates[idx].month == 7
@@ -399,7 +399,7 @@ def test_read_csv_compatible2():
     table_bundle = TableBundle(parse_blocks(cell_rows), as_dataframe=True)
     assert table_bundle
 
-    assert table_bundle.test_input.onoffs[0] == False
+    assert not table_bundle.test_input.onoffs[0]
     assert table_bundle.test_input.dates[0].year == 2020
     assert table_bundle.test_input.numerical[0] == 123
 
@@ -417,18 +417,18 @@ def test_parse_blocks__block_types():
         ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
         ["text"    , "-"   , "-"   , "-"   , "-"   ],
         ["chicken" , 1     , 2     , 3     , 4     ],
-        [ ],                                         # term. by newline
+        [ ],                                           # term. by newline
         ["**tab_2"                                 ],
         ["all" ,                                   ],
         ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
         ["text"    , "-"   , "-"   , "-"   , "-"   ],
         ["chicken" , 1     , 2     , 3     , 4     ],
-        ["**tab_3" ,                               ],# term. by table
+        ["**tab_3" ,                               ],  # term. by table
         ["all" ,                                   ],
         ["species" , "a3"  , "a2"  , "a1"  , "a4"  ],
         ["text"    , "-"   , "-"   , "-"   , "-"   ],
         ["chicken" , 1     , 2     , 3     , 4     ],
-        ["***foo"],                                  # term. by directive
+        ["***foo"],                                    # term. by directive
         ["bar"],
         ["baz"],
         [":template", "whatnot?"],
@@ -456,7 +456,7 @@ def test_parse_blocks__block_types():
     seen = {}
     for ty, block in parse_blocks(cell_rows, to="cellgrid"):
         #  print(f"\n-oOo- {ty} {block}")
-        if seen.get(ty) == None:
+        if seen.get(ty) is None:
             seen[ty] = []
         seen[ty].append(block)
 
@@ -502,12 +502,12 @@ def test_parse_blocks__test_demo():
     seen = {}
     for ty, block in parse_blocks(cell_rows, to="cellgrid"):
         # print(f"\n-oOo- {ty} {block}")
-        if seen.get(ty) == None:
+        if seen.get(ty) is None:
             seen[ty] = []
         seen[ty].append(block)
 
     assert len(seen.get(BlockType.METADATA)) == 1
     assert len(seen.get(BlockType.TABLE)) == 2
     assert len(seen.get(BlockType.DIRECTIVE)) == 1
-    assert seen.get(BlockType.TEMPLATE_ROW) == None
-    assert seen.get(BlockType.BLANK) == None
+    assert seen.get(BlockType.TEMPLATE_ROW) is None
+    assert seen.get(BlockType.BLANK) is None

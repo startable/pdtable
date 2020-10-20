@@ -5,24 +5,24 @@ from pdtable.io.parsers.blocks import parse_blocks
 
 cell_rows = [
     # fmt off
-    ["**foo"                                ],
-    ["all"                                  ],
-    ["column"                               ],
-    ["text"                                 ],
-    ["bar"                                  ],
-    ["zoo"                                  ],
-    [ ],
-    ["::","Table foo describes"             ],
-    [None,"the fooness of things"           ],
-    [":.column","Column is a column in foo" ],
-    [ ],
-    ["**infs"                               ],
-    ["all"                                  ],
-    ["file_bytes","file_date","has_table"   ],
-    ["-","text","onoff"                     ],
-    [15373,"a",0                            ],
-    [15326,"b",1                            ],
-    [ ]
+    ["**foo"],
+    ["all"],
+    ["column"],
+    ["text"],
+    ["bar"],
+    ["zoo"],
+    [],
+    ["::", "Table foo describes"],
+    [None, "the fooness of things"],
+    [":.column", "Column is a column in foo"],
+    [],
+    ["**infs"],
+    ["all"],
+    ["file_bytes", "file_date", "has_table"],
+    ["-", "text", "onoff"],
+    [15373, "a", 0],
+    [15326, "b", 1],
+    []
     # fmt on
 ]
 

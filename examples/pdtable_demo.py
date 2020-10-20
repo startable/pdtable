@@ -377,10 +377,10 @@ table_to_json_data(t)  # Now it's back to JsonData
 
 # %%
 import functools
-from pdtable import BlockGenerator, Directive
+from pdtable import BlockIterator, Directive
 
 
-def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> BlockGenerator:
+def handle_includes(bg: BlockIterator, input_dir, recursive: bool = False) -> BlockIterator:
     """Handles 'include' directives, optionally recursively.
 
     Handles 'include' directives.

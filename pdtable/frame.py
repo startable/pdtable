@@ -5,11 +5,12 @@ This is implemented by providing both `Table` and `TableDataFrame` interfaces to
 
 ## Idea
 
-The central idea is that as much as possible of the table information is stored as a pandas dataframe,
-and that the remaining information is stored as a `ComplementaryTableInfo` object attached to the dataframe as registered metadata.
-Further, access to the full table data structure is provided through a facade object (of class `Table`). `Table` objects
-have no state (except the underlying decorated dataframe) and are intended to be created when needed and discarded
-afterwards:
+The central idea is that as much as possible of the table information is stored as a pandas
+dataframe, and that the remaining information is stored as a `ComplementaryTableInfo` object
+attached to the dataframe as registered metadata. Further, access to the full table data
+structure is provided through a facade object (of class `Table`). `Table` objects have no state
+(except the underlying decorated dataframe) and are intended to be created when needed
+and discarded afterwards:
 
 ```
 dft = make_table_dataframe(...)
@@ -20,8 +21,9 @@ Advantages of this approach are that:
 
 1. Code can be written for (and tested with) pandas dataframes and still operate on `TableDataFrame`
    objects. This avoids unnecessary coupling to the StarTable project.
-2. The table access methods of pandas are available for use by consumer code. This both saves the work
-   of making startable-specific access methods, and likely allows better performance and documentation.
+2. The table access methods of pandas are available for use by consumer code. This both saves
+   the work of making startable-specific access methods, and likely allows better performance
+   and documentation.
 
 ## Implementation details
 
@@ -98,7 +100,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Complemen
 
     # 2: Check that units match for columns that appear in more than one table
     out_cols: Set[str] = set(obj.columns)
-    columns: Dict[str, ColumnMetadata] = dict()
+    columns: Dict[str, ColumnMetadata] = {}
     for d in data:
         for name, c in d.columns.items():
             if name not in out_cols:
@@ -111,7 +113,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Complemen
             else:
                 if not col.unit == c.unit:
                     raise InvalidTableCombineError(
-                        f'Column {name} appears with incompatible units "{col.unit}" and "{c.unit}".'
+                        "Column {name} appears with incompatible units.", col.unit, c.unit
                     )
                 col.update_from(c)
 
@@ -249,15 +251,15 @@ def get_table_info(
     if not table_data:
         if fail_if_missing:
             raise Exception(
-                "Missing ComplementaryTableInfo object on TableDataFrame."
-                "TableDataFrame objects should be created via make_table_dataframe or a Table proxy."
+                "Missing ComplementaryTableInfo object on TableDataFrame. TableDataFrame objects "
+                "should be created via make_table_dataframe or a Table proxy."
             )
     elif check_dataframe:
         table_data._check_dataframe(df)
     return table_data
 
 
-# example of manipulator function that directly manipulates TableDataFrame objects without constructing Table facade
+# example of manipulator function that directly manipulates TableDataFrame objects without constructing Table facade  # noqa
 def add_column(df: TableDataFrame, name: str, values, unit: Optional[str] = None, **kwargs):
     """
     Add or update column in table. If omitted, unit will be partially inferred from value dtype.

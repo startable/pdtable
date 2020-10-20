@@ -1,15 +1,15 @@
-import sys
-import os
 import json
-import pytest
+import os
 from pathlib import Path
+
 import pandas as pd
+import pytest
 
 from pdtable import ParseFixer, BlockType
 from pdtable import read_csv
+from pdtable.io import table_to_json_data
 from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
-from pdtable.io import table_to_json_data
 
 
 class custom_test_fixer(ParseFixer):
@@ -17,6 +17,7 @@ class custom_test_fixer(ParseFixer):
         ParseFixer.__init__(self)
         self.stop_on_errors = False
         self._called_from_test = True
+
 
 def input_dir() -> Path:
     return Path(__file__).parent / "input/with_errors"
@@ -162,7 +163,7 @@ def test_stop_on_errors():
 
     fix = ParseFixer()
     fix.stop_on_errors = True
-    fix._dbg = False  #  ignore during test
+    fix._dbg = False  # ignore during test
     pi = 0
     with pytest.raises(ValueError):
         for typ, tab in parse_blocks(table_lines, fixer=fix, to="pdtable"):

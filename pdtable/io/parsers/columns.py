@@ -108,7 +108,8 @@ def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
     return np.array(float_values)
 
 
-_to_datetime = lambda val: pd.NaT if val in ["-", "nan"] else pd.to_datetime(val, dayfirst=True)
+def _to_datetime(val):
+    return pd.NaT if val in ["-", "nan"] else pd.to_datetime(val, dayfirst=True)
 
 
 def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
@@ -120,7 +121,7 @@ def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
             continue
 
         # It's something else than a datetime. Presumably a string.
-        # TODO Fails when val is None. There is ambiguity about this None: if it came from a JsonData, it could be a legal NaT, but from Excel it could be an illegal empty cell!
+        # TODO Fails when val is None. There is ambiguity about this None: if it came from a JsonData, it could be a legal NaT, but from Excel it could be an illegal empty cell!  # noqa:E501
         if val is None:
             # fixer should always be defined (= default ParseFixer)
             # when used via our top level API (read_csv, parse_blocks &c.)

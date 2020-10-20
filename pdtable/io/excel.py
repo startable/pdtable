@@ -15,7 +15,7 @@ from typing import Union, Callable, Iterable, BinaryIO
 from .parsers.blocks import parse_blocks
 from .parsers.fixer import ParseFixer
 from .. import BlockType, Table, TableBundle
-from ..store import BlockGenerator
+from ..store import BlockIterator
 
 
 def read_excel(
@@ -24,7 +24,7 @@ def read_excel(
     fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
-) -> BlockGenerator:
+) -> BlockIterator:
     """Reads StarTable blocks from an Excel workbook.
     # TODO copy most of read_csv() docstring over
 
@@ -78,7 +78,9 @@ def write_excel(
         path:
             File path to which to write.
         na_rep:
-            Optional; String representation of missing values (NaN, None, NaT). If overriding the default '-', it is recommended to use another value compliant with the StarTable standard.
+            Optional; String representation of missing values (NaN, None, NaT).
+            If overriding the default '-', it is recommended to use another value compliant with
+            the StarTable standard.
     """
     try:
         from ._excel_openpyxl import write_excel_openpyxl as write_excel_func

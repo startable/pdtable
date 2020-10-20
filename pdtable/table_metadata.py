@@ -38,7 +38,8 @@ class TableMetadata:
     """
     Node in tree describing table sources.
 
-    operation: Describes operation to create table, e.g. 'Created', 'Loaded', 'Concatenated', 'Merged'
+    operation: Describes operation to create table, e.g. 'Created',
+    'Loaded', 'Concatenated', 'Merged'
 
     Only parents or origin should be defined. Neither needs to be.
     """
@@ -53,13 +54,15 @@ class TableMetadata:
 
     def __str__(self):
         dst = (
-            " for {{}}".format(", ".join(d for d in self.destinations)) if self.destinations else ""
+            " for {{{}}}".format(", ".join(d for d in self.destinations))
+            if self.destinations
+            else ""
         )
         src = ""
         if self.origin:
             src = f" from {self.origin}"
         if self.parents:
-            src = " from {{}}".format(",".join(f"\n{c}" for c in self.parents))
+            src = " from {{{}}}".format(",".join(f"\n{c}" for c in self.parents))
         return f'Table "{self.name}" {dst}. {self.operation}{src}'
 
 
@@ -103,7 +106,8 @@ def unit_from_dtype(dtype: numpy.dtype) -> str:
         return _unit_from_dtype_kind[dtype.kind]
     except KeyError:
         raise ValueError(
-            "The numpy data type {dtype} is of kind {dtype.kind} which cannot be assigned a startable unit"
+            "The numpy data type {dtype} is of kind {dtype.kind} which "
+            "cannot be assigned a StarTable unit"
         )
 
 
@@ -123,11 +127,13 @@ class ColumnMetadata:
         if base_unit in _units_special:
             if not base_unit == self.unit:
                 raise Exception(
-                    f"Column unit {self.unit} not equal to {base_unit} expected from data type {dtype}{context_text}"
+                    f"Column unit {self.unit} not equal to {base_unit} expected "
+                    f"from data type {dtype}{context_text}"
                 )
         elif self.unit in _units_special:
             raise Exception(
-                f"Special column unit {self.unit} not applicable for data type {dtype}{context_text}"
+                f"Special column unit {self.unit} not applicable for "
+                f"data type {dtype}{context_text}"
             )
 
     @classmethod
@@ -151,9 +157,11 @@ class ColumnMetadata:
 
 
 class ComplementaryTableInfo:
-    """A ComplementaryTableInfo object is responsible for storing any table information not stored by native dataframe
+    """A ComplementaryTableInfo object is responsible for storing any table information
+    not stored by native dataframe
 
-    A TableDataFrame object is a dataframe with such a ComplementaryTableInfo object attached as metadata.
+    A TableDataFrame object is a dataframe with such a ComplementaryTableInfo object
+    attached as metadata.
     """
 
     def __init__(

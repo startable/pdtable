@@ -1,8 +1,7 @@
-from typing import Union, Dict, List, Optional, Set
+from typing import Union, Dict, List, Optional, Set, Callable, Sequence
 
 import pandas as pd
 
-from .units import UnitPolicy
 from .frame import (
     TableDataFrame,
     get_table_info,
@@ -12,6 +11,16 @@ from .frame import (
     add_column,
 )
 from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
+
+INCONVERTIBLE_UNIT_INDICATORS = ["text", "datetime", "onoff", "-"]
+UnitConverter = Callable[[float, str, str], float]
+ColumnUnitDispatcher = Union[Sequence[str], Dict[str, str], Callable[[str], str]]
+
+
+class UnitConversionNotDefinedError(ValueError):
+    """Raised when a unit conversion is attempted on an inconvertible unit indicator"""
+
+    pass
 
 
 class Column:
@@ -54,6 +63,19 @@ class Column:
     @values.setter
     def values(self, values):
         self._values.update(pd.Series(values))
+
+    def convert_units(self, to: Optional[str], converter: UnitConverter):
+        """Converts units in place."""
+        if to is None:
+            # By convention, no unit conversion.
+            return
+        if self.unit in INCONVERTIBLE_UNIT_INDICATORS:
+            raise UnitConversionNotDefinedError(
+                f"Unit conversion is not defined for unit '{self.unit}' of column '{self.name}'"
+            )
+        if to != self.unit:
+            self.values = converter(self.values, self.unit, to)
+            self.unit = to
 
     def to_numpy(self):
         """
@@ -100,12 +122,13 @@ class Table:
     @property
     def df(self) -> TableDataFrame:
         """
-        Return a pandas dataframe with all table information stored as metadata (a TableDataFrame object).
+        Return a pandas dataframe with all table information stored as
+        metadata (a TableDataFrame object).
 
         This dataframe always exist and is the single source of truth for table data.
-        The Table obects (this object) merely acts as a facade to allow simpler manipulation of
-        associated metadata. It is consequently safe to simultaneously manipulate a Table object and the
-        associated TableDataFrame object, as well as deleting the Table object.
+        The Table objects (this object) merely acts as a facade to allow simpler manipulation of
+        associated metadata. It is consequently safe to simultaneously manipulate a Table object
+        and the associated TableDataFrame object, as well as deleting the Table object.
         """
         return self._df
 
@@ -201,8 +224,11 @@ class Table:
 
     def __repr__(self):
         m = self.metadata
-        # TODO __repr__ shouldn't display the dataframe's index. Could also display units on their own line.
-        return f'**{m.name}\n{", ".join(s for s in m.destinations)}\n{self.as_dataframe_with_annotated_column_names()}'
+        # TODO __repr__ shouldn't display the dataframe's index. Could also display units on their own line.  # noqa
+        return (
+            f"**{m.name}\n{', '.join(s for s in m.destinations)}"
+            f"\n{self.as_dataframe_with_annotated_column_names()}"
+        )
 
     def __str__(self):
         return repr(self)
@@ -237,17 +263,55 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, unit_policy: UnitPolicy):
-        """Apply unit policy, modifying table in-place"""
+    def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter):
+        """Applies unit conversion to columns, modifying table in-place
+
+        Args:
+            to:
+                Specifies what units to convert which columns to. Can be:
+                - A dictionary of {column_name: target_unit}. Superfluous column names are ignored.
+                - A callable with one argument: column name. Must return the target unit, or None
+                  if no unit conversion is to be done.
+                - A list specifying the target unit of each column by position. (A None element
+                  implies no conversion for that column.) This is discouraged in production, as
+                  there is no check that the units are applied to the right columns by column name;
+                  but it is a useful shorthand during experimentation.
+            converter:
+                A callable that converts values from one unit to another. Must have three arguments:
+                - value to be converted
+                - from unit
+                - to unit
+                Must accept units of type returned by the ColumnUnitDispatcher.
+                Must return the value with unit conversion applied.
+
+        Returns:
+            None
+
+        """
         # TODO a convenient way to specify "pls convert back to display_units"
-        unit_policy.table_name = self.name
-        for column in self.column_proxies:
-            unit = column.unit
-            unit_policy.column_name = column.name
-            new_values, new_unit = unit_policy.convert_value_to_base(column.values, unit)
-            if not unit == new_unit:
-                column.values = new_values
-                column.unit = new_unit
+        if isinstance(to, Sequence):
+            if len(to) != len(self.column_proxies):
+                raise ValueError(
+                    "Unequal number of columns and of 'to' units", len(self.column_proxies), len(to)
+                )
+            for col, to_unit in zip(self.column_proxies, to):
+                if to_unit is not None:
+                    col.convert_units(to_unit, converter)
+
+        elif isinstance(to, Dict):
+            for column in self.column_proxies:
+                to_unit = to.get(column.name)
+                if to_unit is not None:
+                    column.convert_units(to[column.name], converter)
+
+        elif isinstance(to, Callable):
+            for column in self.column_proxies:
+                to_unit = to(column.name)
+                if to_unit is not None:
+                    column.convert_units(to_unit, converter)
+
+        else:
+            raise TypeError("Column unit dispatcher of unexpected type.", type(to), to)
 
 
 def _equal_or_same(a, b):
@@ -268,5 +332,6 @@ def _df_elements_all_equal_or_same(df1, df2):
     """Returns True if all corresponding elements are equal or 'the same' in both data frames."""
     try:
         return all(_equal_or_same(x1, x2) for x1, x2 in zip(_df_elements(df1), _df_elements(df2)))
-    except:
+    except Exception:
+        # If the comparison can't be made, then clearly they aren't the same
         return False

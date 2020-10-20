@@ -3,10 +3,10 @@ from pathlib import Path
 
 from ..auxiliary import Directive
 from ..io.csv import read_csv
-from ..store import BlockGenerator, BlockType
+from ..store import BlockIterator, BlockType
 
 
-def handle_includes(bg: BlockGenerator, input_dir, recursive: bool = False) -> BlockGenerator:
+def handle_includes(bg: BlockIterator, input_dir, recursive: bool = False) -> BlockIterator:
     """Handles 'include' directives, optionally recursively.
 
     Handles 'include' directives.

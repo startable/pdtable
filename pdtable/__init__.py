@@ -8,8 +8,8 @@ from .proxy import Table
 from .frame import TableDataFrame
 from .table_metadata import TableMetadata, TableOrigin
 from .auxiliary import Directive, MetadataBlock
-from .store import TableBundle, BlockType, BlockGenerator
-from .units import UnitPolicy
+from .store import TableBundle, BlockType, BlockIterator
 from .io import ParseFixer
 from .io import read_csv, write_csv
 from .io import read_excel, write_excel
+from .units.converter import convert_units, DefaultUnitConverter
