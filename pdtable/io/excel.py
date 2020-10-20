@@ -8,6 +8,7 @@ requiring them (read_excel() or write_excel()) are called for the first time.
 
 """
 import os
+import io
 from os import PathLike
 from typing import Union, Callable, Iterable
 
@@ -43,7 +44,6 @@ def read_excel(
     kwargs = {"origin": origin, "fixer": fixer, "to": to, "filter": filter}
 
     try:
-        import openpyxl
         from ._excel_openpyxl import read_cell_rows_openpyxl as read_cell_rows
 
     except ImportError as err:
@@ -52,6 +52,9 @@ def read_excel(
             "Tried using: 'openpyxl'.\n"
             "Please install openpyxl for Excel I/O support."
         ) from err
+
+    if not isinstance(path, (str, PathLike)):
+        assert isinstance(path, io.BufferedIOBase)
 
     yield from parse_blocks(read_cell_rows(path), **kwargs)
 
@@ -78,7 +81,6 @@ def write_excel(
             Optional; String representation of missing values (NaN, None, NaT). If overriding the default '-', it is recommended to use another value compliant with the StarTable standard.
     """
     try:
-        import openpyxl
         from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
 
     except ImportError as err:
