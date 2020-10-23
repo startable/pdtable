@@ -12,7 +12,7 @@ from .frame import (
 )
 from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
 
-INCONVERTIBLE_UNIT_INDICATORS = ["text", "datetime", "onoff", "-"]
+INCONVERTIBLE_UNIT_INDICATORS = ["text", "datetime", "onoff"]
 UnitConverter = Callable[[float, str, str], float]
 ColumnUnitDispatcher = Union[Sequence[str], Dict[str, str], Callable[[str], str]]
 

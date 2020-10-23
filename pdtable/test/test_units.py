@@ -9,7 +9,7 @@ from pytest import fixture, raises
 from ..demo.unit_converter import convert_this
 from ..io.parsers.blocks import make_table
 from ..proxy import UnitConversionNotDefinedError
-from pdtable.units.converter import convert_units, DefaultUnitConverter
+from pdtable.units.converter import pint_converter, DefaultUnitConverter
 
 
 def test_demo_converter__converts_values():
@@ -21,11 +21,11 @@ def test_demo_converter__converts_values():
 
 
 def test_default_converter__works():
-    assert convert_units(1, "m", "mm") == 1000
-    assert convert_units(0, "degC", "K") == 273.15
+    assert pint_converter(1, "m", "mm") == (1000, "millimeter")
+    assert pint_converter(0, "degC", "K") == (273.15, "kelvin")
     with raises(DimensionalityError):
         # "C" means "Coulomb" in Pint's unit registry
-        assert convert_units(0, "C", "K") == 273.15
+        pint_converter(0, "C", "K")  # Can't convert Coulomb to kelvin
 
 
 class CustomUnitConverter(DefaultUnitConverter):
@@ -38,6 +38,8 @@ class CustomUnitConverter(DefaultUnitConverter):
         f = custom_unit_symbols.get(from_unit, from_unit)
         t = custom_unit_symbols.get(to_unit, to_unit)
         return super().__call__(value, f, t)
+
+    # TODO override base_unit()
 
 
 @fixture

@@ -12,4 +12,4 @@ from .store import TableBundle, BlockType, BlockIterator
 from .io import ParseFixer
 from .io import read_csv, write_csv
 from .io import read_excel, write_excel
-from .units.converter import convert_units, DefaultUnitConverter
+from .units.converter import pint_converter, DefaultUnitConverter
