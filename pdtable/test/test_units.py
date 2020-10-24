@@ -91,7 +91,7 @@ def table_cells():
             r"""
     **foo;
     all;
-    diameter;mean_temp;no_conversion;remark;tod;
+    diameter;mean_temp;depth;remark;tod;
     mm;C;mm;text;datetime;
     42000;0;666;pretty cold;2020-10-09;
     1000;20;666;room temp;2020-10-09;
@@ -100,6 +100,19 @@ def table_cells():
         .strip()
         .split("\n")
     ]
+
+
+def test_convert_units__to_base_units(table_cells, cuc):
+    t = make_table(table_cells)
+    t.convert_units(to="base", converter=cuc)
+
+    # Converted to base units
+    np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
+    assert t["diameter"].unit == "meter"
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([273.15, 293.15]))
+    assert t["mean_temp"].unit == "kelvin"
+    np.testing.assert_array_equal(t["depth"].values, np.array([0.666, 0.666]))
+    assert t["depth"].unit == "meter"
 
 
 def test_convert_units__list(table_cells, cuc):
@@ -113,8 +126,8 @@ def test_convert_units__list(table_cells, cuc):
     assert t["mean_temp"].unit == "K"
 
     # Column for which no conversion was requested stays unchanged
-    np.testing.assert_array_equal(t["no_conversion"].values, np.array([666, 666]))
-    assert t["no_conversion"].unit == "mm"
+    np.testing.assert_array_equal(t["depth"].values, np.array([666, 666]))
+    assert t["depth"].unit == "mm"
 
 
 def test_convert_units__dict(table_cells, cuc):
@@ -128,8 +141,8 @@ def test_convert_units__dict(table_cells, cuc):
     assert t["mean_temp"].unit == "K"
 
     # Column for which no conversion was requested stays unchanged
-    np.testing.assert_array_equal(t["no_conversion"].values, np.array([666, 666]))
-    assert t["no_conversion"].unit == "mm"
+    np.testing.assert_array_equal(t["depth"].values, np.array([666, 666]))
+    assert t["depth"].unit == "mm"
 
 
 def test_convert_units__callable(table_cells, cuc):
@@ -146,8 +159,8 @@ def test_convert_units__callable(table_cells, cuc):
     assert t["mean_temp"].unit == "K"
 
     # Column for which no conversion was requested stays unchanged
-    np.testing.assert_array_equal(t["no_conversion"].values, np.array([666, 666]))
-    assert t["no_conversion"].unit == "mm"
+    np.testing.assert_array_equal(t["depth"].values, np.array([666, 666]))
+    assert t["depth"].unit == "mm"
 
 
 def test_convert_units__fails_on_inconvertible_unit(table_cells, cuc):

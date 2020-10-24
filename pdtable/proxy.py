@@ -65,17 +65,43 @@ class Column:
         self._values.update(pd.Series(values))
 
     def convert_units(self, to: Optional[str], converter: UnitConverter):
-        """Converts units in place."""
+        """Converts units in place.
+
+        Args:
+            to:
+                Can be any of:
+                - '__base__': converts to the current unit's base unit
+                - '__origin__': converts to the origin unit
+                - other str: the new unit
+                - None: no conversion
+            converter:
+                The converter.
+
+        Returns:
+            None
+
+        """
         if to is None:
             # By convention, no unit conversion.
+            return
+        if to == self.unit:
+            # It's already that unit. Nothing to do here.
             return
         if self.unit in INCONVERTIBLE_UNIT_INDICATORS:
             raise UnitConversionNotDefinedError(
                 f"Unit conversion is not defined for unit '{self.unit}' of column '{self.name}'"
             )
-        if to != self.unit:
-            self.values = converter(self.values, self.unit, to)
-            self.unit = to
+        if to == "__origin__":
+            # Convert to origin unit
+            raise NotImplementedError  # TODO
+        if to == "__base__":
+            # Convert to base unit
+            converted_values, to = converter(self.values, self.unit)
+        else:
+            # Convert to specified unit
+            converted_values, _ = converter(self.values, self.unit, to)
+        self.values = converted_values
+        self.unit = to
 
     def to_numpy(self):
         """
@@ -269,6 +295,10 @@ class Table:
         Args:
             to:
                 Specifies what units to convert which columns to. Can be:
+                - 'base': Converts all columns to their respective base units. Columns with
+                  inconvertible unit indicators are skipped.
+                - 'origin': Converts all columns to their respective origin units. Columns with
+                  inconvertible unit indicators are skipped.
                 - A dictionary of {column_name: target_unit}. Superfluous column names are ignored.
                 - A callable with one argument: column name. Must return the target unit, or None
                   if no unit conversion is to be done.
@@ -276,20 +306,51 @@ class Table:
                   implies no conversion for that column.) This is discouraged in production, as
                   there is no check that the units are applied to the right columns by column name;
                   but it is a useful shorthand during experimentation.
+
+                Individual columns' target units can be specified as any of:
+                - '__base__': the column's current unit's base unit
+                - '__origin__': the column's origin unit
+                - other str: explicitly specified unit
+                - None: keep the column's current unit; do no conversion.
+
             converter:
-                A callable that converts values from one unit to another. Must have three arguments:
-                - value to be converted
-                - from unit
-                - to unit
-                Must accept units of type returned by the ColumnUnitDispatcher.
-                Must return the value with unit conversion applied.
+                A callable that converts values from one unit to another. The converter must
+                fulfill the following specification:
+                - Must take three positional arguments:
+                    0. value to be converted
+                    1. from_unit
+                    2. Optional: to_unit.
+                - Must accept units of type returned by the ColumnUnitDispatcher.
+                - If the caller does not specify the optional argument to_unit, the converter
+                  should assume that the target unit is from_unit's base unit. If this assumption
+                  is not implemented in the converter, then calls to convert_units(to='base') will
+                  fail.
+                Must return a tuple of two elements:
+                    0.  The value with unit conversion applied
+                    1.  The converter's string representation of the target unit. This may differ
+                        from to_unit. For example, a pint-based converter called with to_unit="mm"
+                        would return "millimeter".
 
         Returns:
             None
 
         """
-        # TODO a convenient way to specify "pls convert back to display_units"
-        if isinstance(to, Sequence):
+        if to == "origin":
+            for col in self.column_proxies:
+                if col.unit in INCONVERTIBLE_UNIT_INDICATORS:
+                    # Skip this column
+                    continue
+                col.convert_units("__origin__", converter)
+
+        elif to == "base":
+            # Convert all columns to their respective base units
+            for col in self.column_proxies:
+                if col.unit in INCONVERTIBLE_UNIT_INDICATORS:
+                    # Skip this column
+                    continue
+                col.convert_units("__base__", converter)
+
+        elif isinstance(to, Sequence):
             if len(to) != len(self.column_proxies):
                 raise ValueError(
                     "Unequal number of columns and of 'to' units", len(self.column_proxies), len(to)
