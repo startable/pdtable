@@ -2,14 +2,15 @@ from textwrap import dedent
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 import pytest
 from pint import DimensionalityError, UndefinedUnitError
 from pytest import fixture, raises
 
+from pdtable.units.converter import pint_converter, DefaultUnitConverter
 from ..demo.unit_converter import convert_this
 from ..io.parsers.blocks import make_table
 from ..proxy import UnitConversionNotDefinedError
-from pdtable.units.converter import pint_converter, DefaultUnitConverter
 
 
 def test_demo_converter__converts_values():
@@ -113,6 +114,11 @@ def test_convert_units__to_base_units(table_cells, cuc):
     assert t["mean_temp"].unit == "kelvin"
     np.testing.assert_array_equal(t["depth"].values, np.array([0.666, 0.666]))
     assert t["depth"].unit == "meter"
+    # Columns with inconvertible units were skipped
+    np.testing.assert_array_equal(t["remark"].values, np.array(["pretty cold", "room temp"]))
+    assert t["remark"].unit == "text"
+    assert all(x == pd.to_datetime("2020-10-09") for x in t["tod"].values)
+    assert t["tod"].unit == "datetime"
 
 
 def test_convert_units__list(table_cells, cuc):
