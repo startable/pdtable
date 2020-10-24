@@ -13,11 +13,15 @@ from pdtable.units.converter import pint_converter, DefaultUnitConverter
 
 
 def test_demo_converter__converts_values():
-    assert convert_this(1, "m", "mm") == 1000
-    assert convert_this(0, "C", "K") == 273.16
-    np.testing.assert_array_equal(
-        convert_this(np.array([1, 42]), "m", "mm"), np.array([1000, 42000])
-    )
+    # Converts single value
+    assert convert_this(1, "m", "mm") == (1000, "mm")
+    assert convert_this(0, "C", "K") == (273.15, "K")
+    # Converts array
+    converted_vals, out_unit = convert_this(np.array([1, 42]), "m", "mm")
+    np.testing.assert_array_equal(converted_vals, np.array([1000, 42000]))
+    assert out_unit == "mm"
+    # Converts to base unit by default
+    assert convert_this(42_000, "mm") == (42, "m")
 
 
 def test_default_converter__works():

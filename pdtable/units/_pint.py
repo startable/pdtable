@@ -22,13 +22,13 @@ class PintUnitConverter:
         self,
         value: float,
         from_unit: Union[str, pint.Unit],
-        to_unit: Optional[Union[str, pint.Unit]] = None,
+        to_unit: Union[str, pint.Unit] = "__base_unit__",
     ) -> Tuple[float, str]:
         """Converts value from one unit to another unit.
 
         Both units must be defined in Pint's unit registry.
 
-        If to_unit is not specified (None), it defaults to from_unit's base unit.
+        If to_unit is not specified, it defaults to from_unit's base unit.
         For example, converting 2 'cm' will return 0.02 'meter'.
 
         Args:
@@ -39,14 +39,14 @@ class PintUnitConverter:
         Returns:
             The converted quantity's magnitude and unit. Note that if to_unit is specified,
             then the returned unit is pint's string representation of to_unit.
-            If, however, to_unit is not specified (None), then the returned unit is pint's string
+            If, however, to_unit is not specified, then the returned unit is pint's string
             representation of from_unit's base unit.
 
         """
         if str(to_unit) == str(from_unit):
             # Null conversion
             return value, str(from_unit)
-        elif to_unit is None:
+        elif to_unit == "__base_unit__":
             # Convert to base unit
             converted_quantity = self.ureg.Quantity(value, from_unit).to_base_units()
         else:
