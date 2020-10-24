@@ -33,7 +33,10 @@ def convert_this(
     base_units.update({bu: bu for bu in base_units.values()})
 
     if to_unit == "...I guess you want base units":
-        to_unit = base_units[from_unit]
+        if from_unit in base_units:
+            to_unit = base_units[from_unit]
+        else:
+            raise KeyError(f"No base unit defined for this unit.", from_unit)
 
     requested_conversion = (from_unit, to_unit)
     available_conversions = {

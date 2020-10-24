@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 import pytest
-from pint import DimensionalityError
+from pint import DimensionalityError, UndefinedUnitError
 from pytest import fixture, raises
 
 from ..demo.unit_converter import convert_this
@@ -22,28 +22,52 @@ def test_demo_converter__converts_values():
     assert out_unit == "mm"
     # Converts to base unit by default
     assert convert_this(42_000, "mm") == (42, "m")
+    # Fails when dimensionality error
+    with raises(KeyError):
+        convert_this(1, "m", "kg")
+    # Fails when unknown units
+    with raises(KeyError):
+        convert_this(1, "m", "zonk")
+    with raises(KeyError):
+        convert_this(1, "gork", "m")
+    with raises(KeyError):
+        convert_this(1, "quxx")
 
 
 def test_default_converter__works():
+    # Converts single value
     assert pint_converter(1, "m", "mm") == (1000, "millimeter")
     assert pint_converter(0, "degC", "K") == (273.15, "kelvin")
+    # Converts array
+    converted_vals, out_unit = pint_converter(np.array([1, 42]), "m", "mm")
+    np.testing.assert_array_equal(converted_vals, np.array([1000, 42000]))
+    assert out_unit == "millimeter"
+    # Converts to base unit by default
+    assert convert_this(42_000, "mm") == (42, "m")
+    # Fails when dimensionality error
     with raises(DimensionalityError):
         # "C" means "Coulomb" in Pint's unit registry
         pint_converter(0, "C", "K")  # Can't convert Coulomb to kelvin
+    # Fails when unknown units
+    with raises(UndefinedUnitError):
+        pint_converter(1, "m", "zonk")
+    with raises(UndefinedUnitError):
+        pint_converter(1, "gork", "m")
+    with raises(UndefinedUnitError):
+        pint_converter(1, "quxx")
 
 
 class CustomUnitConverter(DefaultUnitConverter):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, value, from_unit, to_unit):
+    def __call__(self, value, from_unit, to_unit="__base_unit__"):
         # Let's say we think that "C" should mean "degrees Celsius" and not "Coulomb".
         custom_unit_symbols = {"C": "degC"}
+        # Translate supplied unit symbols into pint unit symbols (if translation is defined)
         f = custom_unit_symbols.get(from_unit, from_unit)
         t = custom_unit_symbols.get(to_unit, to_unit)
         return super().__call__(value, f, t)
-
-    # TODO override base_unit()
 
 
 @fixture
@@ -53,10 +77,10 @@ def cuc():
 
 def test_custom_converter__works(cuc):
     # Pint units still work
-    assert cuc(1, "m", "mm") == 1000
-    assert cuc(0, "degC", "K") == 273.15
+    assert cuc(1, "m", "mm") == (1000, "millimeter")
+    assert cuc(0, "degC", "K") == (273.15, "kelvin")
     # Units overridden in subclass work as intended
-    assert cuc(0, "C", "K") == 273.15
+    assert cuc(0, "C", "K") == (273.15, "kelvin")
 
 
 @fixture

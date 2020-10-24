@@ -54,15 +54,3 @@ class PintUnitConverter:
             converted_quantity = self.ureg.Quantity(value, from_unit).to(to_unit)
 
         return converted_quantity.magnitude, str(converted_quantity.units)
-
-    def base_unit(self, unit: Union[str, pint.Unit]) -> str:
-        """Returns the base unit of the supplied unit.
-
-        For example, base_unit('cm') returns 'meter'.
-
-        Args:
-            unit: Unit for which to find base unit.
-
-        Returns: Base unit of supplied unit.
-        """
-        return str(self.ureg.get_base_units(unit)[1])  # 0th element is magnitude
