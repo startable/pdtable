@@ -65,61 +65,6 @@ class InvalidTableCombineError(Exception):
     pass
 
 
-def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> ComplementaryTableInfo:
-    """
-    Called from __finalize__ when operations have been performed via the pandas.DataFrame API.
-
-    Implementation policy is that this will fail except for situations where
-    the metadata combination is safe.
-    For other cases, the operations should be implemented via the Table facade
-    """
-
-    if method is None:
-        # slicing
-        src = [other]
-    elif method == "merge":
-        src = [other.left, other.right]
-    elif method == "concat":
-        src = other.objs
-    elif method == "copy":
-        src = [other]
-    else:
-        raise UnknownOperationError(
-            f"Unknown method while combining metadata: {method}. Keyword args: {kwargs}"
-        )
-
-    if len(src) == 0:
-        raise UnknownOperationError(f"No operands for operation {method}")
-
-    data = [get_table_info(s) for s in src if is_table_dataframe(s)]
-
-    # 1: Create table metadata as combination of all
-    meta = TableMetadata(
-        name=data[0].metadata.name, operation=f"Pandas {method}", parents=[d.metadata for d in data]
-    )
-
-    # 2: Check that units match for columns that appear in more than one table
-    out_cols: Set[str] = set(obj.columns)
-    columns: Dict[str, ColumnMetadata] = {}
-    for d in data:
-        for name, c in d.columns.items():
-            if name not in out_cols:
-                continue
-            col = columns.get(name, None)
-            if not col:
-                # not seen before in input
-                col = c.copy()
-                columns[name] = col
-            else:
-                if not col.unit == c.unit:
-                    raise InvalidTableCombineError(
-                        "Column {name} appears with incompatible units.", col.unit, c.unit
-                    )
-                col.update_from(c)
-
-    return ComplementaryTableInfo(table_metadata=meta, columns=columns)
-
-
 class TableDataFrame(pd.DataFrame):
     """
     A pandas.DataFrame subclass with associated table metadata.
@@ -153,26 +98,6 @@ class TableDataFrame(pd.DataFrame):
     @property
     def _constructor(self):
         return TableDataFrame
-
-    def __finalize__(self, other, method=None, **kwargs):
-        """
-        Overrides pandas.core.generic.NDFrame.__finalize__()
-
-        This method is responsible for populating TableDataFrame metadata
-        when creating a new Table object.
-
-        If left out, no metadata would be retained across table
-        operations. This might be a viable solution?
-        Alternatively, we could return a raw frame object on some operations
-        """
-
-        try:
-            data = _combine_tables(self, other, method, **kwargs)
-            object.__setattr__(self, _TABLE_INFO_FIELD_NAME, data)
-        except UnknownOperationError as e:
-            warnings.warn(f"Falling back to dataframe: {e}")
-            return pd.DataFrame(self)
-        return self
 
     @staticmethod
     def from_table_info(df: pd.DataFrame, table_info: ComplementaryTableInfo) -> "TableDataFrame":
