@@ -1,10 +1,12 @@
 """Demo unit conversion"""
 from typing import Tuple, Union, Iterable
 
+import numpy as np
+
 
 def convert_this(
-    value, from_unit: str, to_unit: str = "...I guess you want base units"
-) -> Tuple[Union[float, Iterable[float]], str]:
+    value: Union[float, np.ndarray], from_unit: str, to_unit: str = "...I guess you want base units"
+) -> Tuple[Union[float, np.ndarray], str]:
     """
     A simple unit converter that hasn't read a lot of books.
 
