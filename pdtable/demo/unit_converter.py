@@ -26,6 +26,9 @@ def convert_this(
         Number or array converted from old to new unit.
 
     """
+    if to_unit == from_unit:
+        # Null conversion. 
+        return value, to_unit
 
     # Here are the base units of the non-base units that I know
     base_units = {"mm": "m", "C": "K", "g": "kg"}
