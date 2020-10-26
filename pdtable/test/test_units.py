@@ -17,6 +17,8 @@ def test_demo_converter__converts_values():
     # Converts single value
     assert convert_this(1, "m", "mm") == (1000, "mm")
     assert convert_this(0, "C", "K") == (273.15, "K")
+    # Supports aliases
+    assert convert_this(1000, "mm", "mètre") == (1, "m")
     # Converts array
     converted_vals, out_unit = convert_this(np.array([1, 42]), "m", "mm")
     np.testing.assert_array_equal(converted_vals, np.array([1000, 42000]))

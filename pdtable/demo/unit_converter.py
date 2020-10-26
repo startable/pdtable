@@ -27,13 +27,19 @@ def convert_this(
 
     """
     if to_unit == from_unit:
-        # Null conversion. 
+        # Null conversion.
         return value, to_unit
 
     # Here are the base units of the non-base units that I know
     base_units = {"mm": "m", "C": "K", "g": "kg"}
     # Moreover, base units are, of course, their own base units
     base_units.update({bu: bu for bu in base_units.values()})
+
+    # Here are a few aliases, for support of British, American, and, not least, Canadian English
+    # and why not Canadian French while we're at it.
+    unit_aliases = {"meter": "m", "metre": "m", "mètre": "m"}
+    from_unit = unit_aliases.get(from_unit, from_unit)
+    to_unit = unit_aliases.get(to_unit, to_unit)
 
     if to_unit == "...I guess you want base units":
         if from_unit in base_units:
