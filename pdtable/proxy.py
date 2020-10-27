@@ -64,15 +64,15 @@ class Column:
     def values(self, values):
         self._values.update(pd.Series(values))
 
-    def convert_units(self, to: Optional[str], converter: UnitConverter):
-        """Converts units in place.
+    def convert_units(self, to: Union[str, None], converter: UnitConverter):
+        """Converts this column's units in place.
 
         Args:
             to:
                 Can be any of:
                 - '__base__': converts to the current unit's base unit
                 - '__origin__': converts to the origin unit
-                - other str: the new unit
+                - other str: converts to this explicitly specified unit
                 - None: no conversion
             converter:
                 The converter.
