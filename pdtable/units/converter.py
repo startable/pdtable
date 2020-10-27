@@ -1,7 +1,7 @@
 """Default unit converter"""
 
 try:
-    from ._pint import PintUnitConverter as DefaultUnitConverter
+    from .pint import PintUnitConverter as DefaultUnitConverter
 
     # Singleton, for convenience.
     pint_converter = DefaultUnitConverter()
