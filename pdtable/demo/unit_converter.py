@@ -1,7 +1,12 @@
 """Demo unit conversion"""
+from typing import Tuple, Union, Iterable
+
+import numpy as np
 
 
-def convert_this(value, from_unit: str, to_unit: str) -> float:
+def convert_this(
+    value: Union[float, np.ndarray], from_unit: str, to_unit: str = "...I guess you want base units"
+) -> Tuple[Union[float, np.ndarray], str]:
     """
     A simple unit converter that hasn't read a lot of books.
 
@@ -23,16 +28,37 @@ def convert_this(value, from_unit: str, to_unit: str) -> float:
         Number or array converted from old to new unit.
 
     """
+    if to_unit == from_unit:
+        # Null conversion.
+        return value, to_unit
+
+    # Here are the base units of the non-base units that I know
+    base_units = {"mm": "m", "C": "K", "g": "kg"}
+    # Moreover, base units are, of course, their own base units
+    base_units.update({bu: bu for bu in base_units.values()})
+
+    # Here are a few aliases, for support of British, American, and, not least, Canadian English
+    # and why not Canadian French while we're at it.
+    unit_aliases = {"meter": "m", "metre": "m", "mètre": "m"}
+    from_unit = unit_aliases.get(from_unit, from_unit)
+    to_unit = unit_aliases.get(to_unit, to_unit)
+
+    if to_unit == "...I guess you want base units":
+        if from_unit in base_units:
+            to_unit = base_units[from_unit]
+        else:
+            raise KeyError(f"No base unit defined for this unit.", from_unit)
+
     requested_conversion = (from_unit, to_unit)
     available_conversions = {
         ("m", "mm"): lambda x: x * 1000,
         ("mm", "m"): lambda x: x / 1000,
-        ("C", "K"): lambda x: x + 273.16,
-        ("K", "C"): lambda x: x - 273.16,
+        ("C", "K"): lambda x: x + 273.15,
+        ("K", "C"): lambda x: x - 273.15,
         ("kg", "g"): lambda x: x * 1000,
         ("g", "kg"): lambda x: x / 1000,
     }
     if requested_conversion not in available_conversions:
         raise KeyError(f"I don't know how to convert from '{from_unit}' to '{to_unit}'")
 
-    return available_conversions[requested_conversion](value)
+    return available_conversions[requested_conversion](value), to_unit

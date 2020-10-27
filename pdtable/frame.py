@@ -82,7 +82,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Complemen
     elif method == "concat":
         src = other.objs
     elif method == "copy":
-        src = [other]
+        src = [other]  # TODO should it be obj?  Test it
     else:
         raise UnknownOperationError(
             f"Unknown method while combining metadata: {method}. Keyword args: {kwargs}"
