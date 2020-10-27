@@ -3,6 +3,7 @@
 __version__ = "0.0.1"
 
 CSV_SEP = ";"  # User can overwrite this default
+DEFAULT_DESTINATION = "all"
 
 from .proxy import Table
 from .frame import TableDataFrame

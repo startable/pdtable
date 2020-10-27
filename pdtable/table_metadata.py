@@ -51,6 +51,9 @@ class TableMetadata:
     origin: Optional[
         str
     ] = ""  # Should be replaced with a TableOrigin object to allow file-edit access
+    col_specs: Optional[
+        dict
+    ] = None
 
     def __str__(self):
         dst = (
