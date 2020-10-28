@@ -67,6 +67,20 @@ class TableBundle:
         self._tables_named = defaultdict(list)
         # List of tables indexed by the the order in which they are appear in the block generator
         self._tables_in_order = []
+
+        if isinstance(block_gen,list):
+            # TODO : update type hints
+            for table in block_gen:
+                assert isinstance(table,Table)
+                name = table.name
+                if as_dataframe and hasattr(table, "df"):
+                    self._tables_named[name].append(table.df)
+                    self._tables_in_order.append(table.df)
+                else:
+                    self._tables_named[name].append(table)
+                    self._tables_in_order.append(table)
+            return
+
         for block_type, block in block_gen:
             if block_type != BlockType.TABLE:
                 continue

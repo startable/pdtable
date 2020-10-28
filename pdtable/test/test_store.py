@@ -238,3 +238,14 @@ def test_TableBundle_all():
     assert len(lst) == 2
     for tab in lst:
         assert tab.name == "infs"
+
+
+def test_TableBundle__from_list():
+    """ Verify TableBunle(list(Table))
+    """
+    ref_bundle = TableBundle(parse_blocks(cell_rows))
+    tables = [tab for tab in ref_bundle]
+    assert len(tables) == 2
+
+    list_bundle = TableBundle(tables)
+    assert len(list_bundle) == 2
