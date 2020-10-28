@@ -290,15 +290,25 @@ class Table:
         return False
 
     def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter) -> "Table":
-        """Applies unit conversion to columns, modifying table in-place
+        """Returns a new table with units converted as specified.
+
+        Returns a new table with converted units. The desired new unit are specified by
+        column.
+
+        How to do a conversion from unit X to unit Y is determined by the supplied unit
+        converter.
+
+        The converter is also responsible for deciding what unit is considered the
+        "base unit" of unit X.  Depending on your application and favourite unit system, the base
+        unit of 'mm' could be 'm', 'foot', 'furlong', or some other unit of dimension length.
 
         Args:
             to:
-                Specifies what units to convert which columns to. Can be:
+                Specifies to what units to convert which columns. Can be:
                 - 'base': Converts all columns to their respective base units. Columns with
                   inconvertible unit indicators are skipped.
-                - 'origin': Converts all columns to their respective origin units. Columns with
-                  inconvertible unit indicators are skipped.
+                - 'origin': (not yet implemented!) Converts all columns to their respective origin
+                  units. Columns with inconvertible unit indicators are skipped.
                 - A dictionary of {column_name: target_unit}. Superfluous column names are ignored.
                 - A callable with one argument: column name. Must return the target unit, or None
                   if no unit conversion is to be done.
@@ -331,7 +341,7 @@ class Table:
                         would return "millimeter".
 
         Returns:
-            None
+            A new Table with converted units.
 
         """
 
