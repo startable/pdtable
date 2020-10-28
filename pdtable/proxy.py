@@ -289,7 +289,7 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter):
+    def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter) -> "Table":
         """Applies unit conversion to columns, modifying table in-place
 
         Args:
@@ -334,8 +334,11 @@ class Table:
             None
 
         """
+
+        new_table = Table(self.df.copy())
+
         if to == "origin":
-            for col in self.column_proxies:
+            for col in new_table.column_proxies:
                 if col.unit in INCONVERTIBLE_UNIT_INDICATORS:
                     # Skip this column
                     continue
@@ -343,7 +346,7 @@ class Table:
 
         elif to == "base":
             # Convert all columns to their respective base units
-            for col in self.column_proxies:
+            for col in new_table.column_proxies:
                 if col.unit in INCONVERTIBLE_UNIT_INDICATORS:
                     # Skip this column
                     continue
@@ -354,24 +357,26 @@ class Table:
                 raise ValueError(
                     "Unequal number of columns and of 'to' units", len(self.column_proxies), len(to)
                 )
-            for col, to_unit in zip(self.column_proxies, to):
+            for col, to_unit in zip(new_table.column_proxies, to):
                 if to_unit is not None:
                     col.convert_units(to_unit, converter)
 
         elif isinstance(to, Dict):
-            for column in self.column_proxies:
+            for column in new_table.column_proxies:
                 to_unit = to.get(column.name)
                 if to_unit is not None:
                     column.convert_units(to[column.name], converter)
 
         elif isinstance(to, Callable):
-            for column in self.column_proxies:
+            for column in new_table.column_proxies:
                 to_unit = to(column.name)
                 if to_unit is not None:
                     column.convert_units(to_unit, converter)
 
         else:
             raise TypeError("Column unit dispatcher of unexpected type.", type(to), to)
+
+        return new_table
 
 
 def _equal_or_same(a, b):
