@@ -19,9 +19,12 @@ def test_demo_converter__converts_values():
     assert convert_this(0, "C", "K") == (273.15, "K")
     # Supports aliases
     assert convert_this(1000, "mm", "mètre") == (1, "m")
+    # Returns NaN when given NaN
+    new_val, _ = convert_this(np.nan, "m", "mm")
+    assert np.isnan(new_val)
     # Converts array
-    converted_vals, out_unit = convert_this(np.array([1, 42]), "m", "mm")
-    np.testing.assert_array_equal(converted_vals, np.array([1000, 42000]))
+    converted_vals, out_unit = convert_this(np.array([1, 42, np.nan]), "m", "mm")
+    np.testing.assert_array_equal(converted_vals, np.array([1000, 42000, np.nan]))
     assert out_unit == "mm"
     # Converts to base unit by default
     assert convert_this(42_000, "mm") == (42, "m")
@@ -41,6 +44,9 @@ def test_default_converter__works():
     # Converts single value
     assert pint_converter(1, "m", "mm") == (1000, "millimeter")
     assert pint_converter(0, "degC", "K") == (273.15, "kelvin")
+    # Returns NaN when given NaN
+    new_val, _ = pint_converter(np.nan, "m", "mm")
+    assert np.isnan(new_val)
     # Converts array
     converted_vals, out_unit = pint_converter(np.array([1, 42]), "m", "mm")
     np.testing.assert_array_equal(converted_vals, np.array([1000, 42000]))
@@ -94,10 +100,10 @@ def table_cells():
             r"""
     **foo;
     all;
-    diameter;mean_temp;depth;remark;tod;
+    diameter;mean_temp;depth;remark;measurement_date;
     mm;C;mm;text;datetime;
-    42000;0;666;pretty cold;2020-10-09;
-    1000;20;666;room temp;2020-10-09;
+    42000;20;666;pretty cold;2020-10-09;
+    1000;-;666;room temp;2020-10-09;
     """
         )
         .strip()
@@ -112,15 +118,15 @@ def test_convert_units__to_base_units(table_cells, cuc):
     # Converted to base units
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
     assert t["diameter"].unit == "meter"
-    np.testing.assert_array_equal(t["mean_temp"].values, np.array([273.15, 293.15]))
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([293.15, np.nan]))
     assert t["mean_temp"].unit == "kelvin"
     np.testing.assert_array_equal(t["depth"].values, np.array([0.666, 0.666]))
     assert t["depth"].unit == "meter"
     # Columns with inconvertible units were skipped
     np.testing.assert_array_equal(t["remark"].values, np.array(["pretty cold", "room temp"]))
     assert t["remark"].unit == "text"
-    assert all(x == pd.to_datetime("2020-10-09") for x in t["tod"].values)
-    assert t["tod"].unit == "datetime"
+    assert all(x == pd.to_datetime("2020-10-09") for x in t["measurement_date"].values)
+    assert t["measurement_date"].unit == "datetime"
 
 
 def test_convert_units__list(table_cells, cuc):
@@ -130,7 +136,7 @@ def test_convert_units__list(table_cells, cuc):
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
     assert t["diameter"].unit == "m"
-    np.testing.assert_array_equal(t["mean_temp"].values, np.array([273.15, 293.15]))
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([293.15, np.nan]))
     assert t["mean_temp"].unit == "K"
 
     # Column for which no conversion was requested stays unchanged
@@ -145,7 +151,7 @@ def test_convert_units__dict(table_cells, cuc):
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
     assert t["diameter"].unit == "m"
-    np.testing.assert_array_equal(t["mean_temp"].values, np.array([273.15, 293.15]))
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([293.15, np.nan]))
     assert t["mean_temp"].unit == "K"
 
     # Column for which no conversion was requested stays unchanged
@@ -163,7 +169,7 @@ def test_convert_units__callable(table_cells, cuc):
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
     assert t["diameter"].unit == "m"
-    np.testing.assert_array_equal(t["mean_temp"].values, np.array([273.15, 293.15]))
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([293.15, np.nan]))
     assert t["mean_temp"].unit == "K"
 
     # Column for which no conversion was requested stays unchanged

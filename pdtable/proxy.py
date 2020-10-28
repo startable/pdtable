@@ -316,17 +316,16 @@ class Table:
             converter:
                 A callable that converts values from one unit to another. The converter must
                 fulfill the following specification:
-                - Must take three positional arguments:
+                - Takes three positional arguments:
                     0. value to be converted
                     1. from_unit
-                    2. Optional: to_unit.
-                - Must accept units of type returned by the ColumnUnitDispatcher.
-                - If the caller does not specify the optional argument to_unit, the converter
-                  should assume that the target unit is from_unit's base unit. If this assumption
-                  is not implemented in the converter, then calls to convert_units(to='base') will
-                  fail.
-                Must return a tuple of two elements:
-                    0.  The value with unit conversion applied
+                    2. Optional: to_unit. If the caller does not specify to_unit, the converter
+                       should assume that the target unit is from_unit's base unit. If this
+                       assumption is not implemented in the converter, then calls to
+                       convert_units(to='base') will fail.
+                - Accepts units of type returned by the ColumnUnitDispatcher.
+                - Returns a tuple of two elements:
+                    0.  The value with unit conversion applied. Should be NaN if input value is NaN.
                     1.  The converter's string representation of the target unit. This may differ
                         from to_unit. For example, a pint-based converter called with to_unit="mm"
                         would return "millimeter".
