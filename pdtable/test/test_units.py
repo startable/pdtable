@@ -175,17 +175,17 @@ def test_convert_units__callable(table_cells, cuc):
 
 
 def test_convert_units__using_default_converter(table_cells, cuc):
-    t = make_table(table_cells)
+    t_old_units = make_table(table_cells)
 
     assert pdtable.units.default_converter is None
     with raises(MissingUnitConverterError):
         # No default unit converter was set
-        t.convert_units(to={"diameter": "m", "mean_temp": "K"})
+        t_old_units.convert_units(to={"diameter": "m", "mean_temp": "K"})
 
     # Now set a default converter
     pdtable.units.default_converter = cuc
     # Do conversion; no explicitly specified unit converter; uses default
-    t.convert_units(to={"diameter": "m", "mean_temp": "K"})
+    t = t_old_units.convert_units(to={"diameter": "m", "mean_temp": "K"})
 
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
