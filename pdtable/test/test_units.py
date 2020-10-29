@@ -7,7 +7,7 @@ import pytest
 from pint import DimensionalityError, UndefinedUnitError
 from pytest import fixture, raises
 
-from pdtable.units.converter import pint_converter, DefaultUnitConverter
+from pdtable.units.converter import pint_converter, PintUnitConverter
 from ..demo.unit_converter import convert_this
 from ..io.parsers.blocks import make_table
 from ..proxy import UnitConversionNotDefinedError
@@ -66,7 +66,7 @@ def test_default_converter__works():
         pint_converter(1, "quxx")
 
 
-class CustomUnitConverter(DefaultUnitConverter):
+class CustomUnitConverter(PintUnitConverter):
     def __init__(self):
         super().__init__()
 
