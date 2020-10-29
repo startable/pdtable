@@ -32,8 +32,11 @@ def normalized_table_generator(
                 )
 
             if to_units is not None:
-                table.convert_units(to=convert_units_to[table.name], converter=unit_converter)
-        yield block_type, block
+                table = table.convert_units(to=to_units, converter=unit_converter)
+            yield block_type, table
+
+        else:
+            yield block_type, block
 
 
 def read_bundle_from_csv(
