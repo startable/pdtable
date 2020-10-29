@@ -69,16 +69,28 @@ class TableBundle:
         self._tables_in_order = []
 
         if isinstance(block_gen,list):
-            # TODO : update type hints
-            for table in block_gen:
-                assert isinstance(table,Table)
-                name = table.name
-                if as_dataframe and hasattr(table, "df"):
-                    self._tables_named[name].append(table.df)
-                    self._tables_in_order.append(table.df)
-                else:
-                    self._tables_named[name].append(table)
-                    self._tables_in_order.append(table)
+            # TODO : update type hints, refactor this
+            for block in block_gen:
+                if isinstance(block,Table):
+                    table = block
+                    name = table.name
+                    if as_dataframe and hasattr(table, "df"):
+                        self._tables_named[name].append(table.df)
+                        self._tables_in_order.append(table.df)
+                    else:
+                        self._tables_named[name].append(table)
+                        self._tables_in_order.append(table)
+                if isinstance(block,TableBundle):
+                    # TODO: add specific test
+                    for table in block:
+                        name = table.name
+                        if as_dataframe and hasattr(table, "df"):
+                            self._tables_named[name].append(table.df)
+                            self._tables_in_order.append(table.df)
+                        else:
+                            self._tables_named[name].append(table)
+                            self._tables_in_order.append(table)
+
             return
 
         for block_type, block in block_gen:
