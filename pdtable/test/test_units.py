@@ -7,10 +7,11 @@ import pytest
 from pint import DimensionalityError, UndefinedUnitError
 from pytest import fixture, raises
 
+import pdtable
 from pdtable.units.converter import pint_converter, PintUnitConverter
 from ..demo.unit_converter import convert_this
 from ..io.parsers.blocks import make_table
-from ..proxy import UnitConversionNotDefinedError
+from ..proxy import UnitConversionNotDefinedError, MissingUnitConverterError
 
 
 def test_demo_converter__converts_values():
@@ -165,6 +166,30 @@ def test_convert_units__callable(table_cells, cuc):
 
     t = make_table(table_cells)
     t.convert_units(to=to_units_fun, converter=cuc)
+
+    # Conversion done on columns as requested
+    np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
+    assert t["diameter"].unit == "m"
+    np.testing.assert_array_equal(t["mean_temp"].values, np.array([293.15, np.nan]))
+    assert t["mean_temp"].unit == "K"
+
+    # Column for which no conversion was requested stays unchanged
+    np.testing.assert_array_equal(t["depth"].values, np.array([666, 666]))
+    assert t["depth"].unit == "mm"
+
+
+def test_convert_units__using_default_converter(table_cells, cuc):
+    t = make_table(table_cells)
+
+    assert pdtable.units.default_converter is None
+    with raises(MissingUnitConverterError):
+        # No default unit converter was set
+        t.convert_units(to={"diameter": "m", "mean_temp": "K"})
+
+    # Now set a default converter
+    pdtable.units.default_converter = cuc
+    # Do conversion; no explicitly specified unit converter; uses default
+    t.convert_units(to={"diameter": "m", "mean_temp": "K"})
 
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))

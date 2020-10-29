@@ -11,6 +11,7 @@ from .frame import (
     add_column,
 )
 from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
+import pdtable  # for access to pdtable.units.default_converter
 
 INCONVERTIBLE_UNIT_INDICATORS = ["text", "datetime", "onoff"]
 UnitConverter = Callable[[float, str, str], float]
@@ -111,6 +112,12 @@ class Column:
 
     def __repr__(self):
         return f"Column(name='{self.name}', unit='{self.unit}', values={self.values})"
+
+
+class MissingUnitConverterError(ValueError):
+    """Raised when a unit conversion cannot be done because no converter was made available."""
+
+    pass
 
 
 class Table:
@@ -289,7 +296,7 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter):
+    def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter = None):
         """Applies unit conversion to columns, modifying table in-place
 
         Args:
@@ -334,6 +341,16 @@ class Table:
             None
 
         """
+        default_converter = pdtable.units.default_converter
+        if converter is None:
+            if default_converter is None:
+                raise MissingUnitConverterError(
+                    "No converter or default converter was specified.",
+                    converter,
+                    default_converter,
+                )
+            converter = default_converter
+
         if to == "origin":
             for col in self.column_proxies:
                 if col.unit in INCONVERTIBLE_UNIT_INDICATORS:
