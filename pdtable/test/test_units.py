@@ -113,8 +113,7 @@ def table_cells():
 
 
 def test_convert_units__to_base_units(table_cells, cuc):
-    t = make_table(table_cells)
-    t.convert_units(to="base", converter=cuc)
+    t = make_table(table_cells).convert_units(to="base", converter=cuc)
 
     # Converted to base units
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
@@ -131,8 +130,7 @@ def test_convert_units__to_base_units(table_cells, cuc):
 
 
 def test_convert_units__list(table_cells, cuc):
-    t = make_table(table_cells)
-    t.convert_units(to=["m", "K", None, None, None], converter=cuc)
+    t = make_table(table_cells).convert_units(to=["m", "K", None, None, None], converter=cuc)
 
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
@@ -146,8 +144,7 @@ def test_convert_units__list(table_cells, cuc):
 
 
 def test_convert_units__dict(table_cells, cuc):
-    t = make_table(table_cells)
-    t.convert_units(to={"diameter": "m", "mean_temp": "K"}, converter=cuc)
+    t = make_table(table_cells).convert_units(to={"diameter": "m", "mean_temp": "K"}, converter=cuc)
 
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
@@ -164,8 +161,7 @@ def test_convert_units__callable(table_cells, cuc):
     def to_units_fun(table_name: str) -> Optional[str]:
         return {"diameter": "m", "mean_temp": "K"}.get(table_name)
 
-    t = make_table(table_cells)
-    t.convert_units(to=to_units_fun, converter=cuc)
+    t = make_table(table_cells).convert_units(to=to_units_fun, converter=cuc)
 
     # Conversion done on columns as requested
     np.testing.assert_array_equal(t["diameter"].values, np.array([42, 1]))
@@ -210,6 +206,3 @@ def test_convert_units__fails_on_inconvertible_unit(table_cells, cuc):
     with pytest.raises(UnitConversionNotDefinedError):
         # Attempt to convert units of a text
         t.convert_units(to=[None, None, None, None, "m"], converter=cuc)
-
-
-# TODO deal with NaN values in columns

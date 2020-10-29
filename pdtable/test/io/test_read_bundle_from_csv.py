@@ -2,6 +2,8 @@ import io
 from pathlib import Path
 from textwrap import dedent
 
+from pytest import fixture
+
 from pdtable import Table, TableDataFrame
 from pdtable import TableBundle, read_csv, read_excel
 from pdtable.demo.unit_converter import convert_this
@@ -12,11 +14,11 @@ def input_dir() -> Path:
     return Path(__file__).parent / "input"
 
 
-def test_read_bundle_from_csv():
+@fixture
+def csv_data():
     # fmt off
-    stream = io.StringIO(
-        dedent(
-            """\
+    return dedent(
+        """\
         **farm_types1;;;
         your_farm my_farm farms_galore;;;
         species;  num;  flt;    log;
@@ -34,17 +36,26 @@ def test_read_bundle_from_csv():
         text;       -;   kg;  onoff;
         unicorn;    2;    3;      1;
         """
-        )
     )
     # fmt on
-    unit_dispatcher = {"farm_types1": {"flt": "g"}}
 
-    bundle = read_bundle_from_csv(
-        stream, convert_units_to=unit_dispatcher, unit_converter=convert_this
-    )
 
+def test_read_bundle_from_csv(csv_data):
+    bundle = read_bundle_from_csv(io.StringIO(csv_data))
     # Correct number of tables read
     assert len(bundle) == 2
+    # Correct values read
+    assert bundle["farm_types1"]["flt"].unit == "kg"
+    assert bundle["farm_types1"]["flt"].values[4] == 200
+    assert bundle["unrelated_table"]["flt"].unit == "kg"
+    assert bundle["unrelated_table"]["flt"].values[0] == 3
+
+
+def test_read_bundle_from_csv__converts_units(csv_data):
+    unit_dispatcher = {"farm_types1": {"flt": "g"}}
+    bundle = read_bundle_from_csv(
+        io.StringIO(csv_data), convert_units_to=unit_dispatcher, unit_converter=convert_this
+    )
     # Units converted where dispatched
     assert bundle["farm_types1"]["flt"].unit == "g"
     assert bundle["farm_types1"]["flt"].values[4] == 200000
@@ -53,8 +64,8 @@ def test_read_bundle_from_csv():
     assert bundle["unrelated_table"]["flt"].values[0] == 3
 
 
-def test_TableBundlebundle_from_file():
-    """ Verify that TableBundle can be generated from top level AIP methods: read_csv, read_excel
+def test_TableBundle_from_file():
+    """ Verify that TableBundle can be generated from top level API methods: read_csv, read_excel
     """
     input_file = input_dir() / "bundle.csv"
     bundle = TableBundle(read_csv(input_file), as_dataframe=True)
