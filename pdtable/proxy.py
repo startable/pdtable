@@ -11,6 +11,7 @@ from .frame import (
     add_column,
 )
 from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
+import pdtable  # for access to pdtable.units.default_converter
 
 INCONVERTIBLE_UNIT_INDICATORS = ["text", "datetime", "onoff"]
 UnitConverter = Callable[[float, str, str], float]
@@ -111,6 +112,12 @@ class Column:
 
     def __repr__(self):
         return f"Column(name='{self.name}', unit='{self.unit}', values={self.values})"
+
+
+class MissingUnitConverterError(ValueError):
+    """Raised when a unit conversion cannot be done because no converter was made available."""
+
+    pass
 
 
 class Table:
@@ -289,8 +296,8 @@ class Table:
             # is just a number, and no such distinction should be made between data types.
         return False
 
-    def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter) -> "Table":
-        """Returns a new table with units converted as specified.
+    def convert_units(self, to: ColumnUnitDispatcher, converter: UnitConverter = None) -> "Table":
+        """Applies unit conversion to columns, modifying table in-place
 
         Returns a new table with converted units. The desired new unit are specified by
         column.
@@ -301,7 +308,7 @@ class Table:
         The converter is also responsible for deciding what unit is considered the
         "base unit" of unit X.  Depending on your application and favourite unit system, the base
         unit of 'mm' could be 'm', 'foot', 'furlong', or some other unit of dimension length.
-
+        
         Args:
             to:
                 Specifies to what units to convert which columns. Can be:
@@ -344,6 +351,15 @@ class Table:
             A new Table with converted units.
 
         """
+        default_converter = pdtable.units.default_converter
+        if converter is None:
+            if default_converter is None:
+                raise MissingUnitConverterError(
+                    "No converter or default converter was specified.",
+                    converter,
+                    default_converter,
+                )
+            converter = default_converter
 
         new_table = Table(self.df.copy())
 

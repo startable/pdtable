@@ -1,10 +1,10 @@
 """Default unit converter"""
 
 try:
-    from .pint import PintUnitConverter as DefaultUnitConverter
+    from .pint import PintUnitConverter
 
     # Singleton, for convenience.
-    pint_converter = DefaultUnitConverter()
+    pint_converter = PintUnitConverter()
 
 except ImportError as err:
     raise ImportError(
