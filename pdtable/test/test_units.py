@@ -8,7 +8,7 @@ from pint import DimensionalityError, UndefinedUnitError
 from pytest import fixture, raises
 
 import pdtable
-from pdtable.units.converter import pint_converter, PintUnitConverter
+from pdtable.units import PintUnitConverter
 from ..demo.unit_converter import convert_this
 from ..io.parsers.blocks import make_table
 from ..proxy import UnitConversionNotDefinedError, MissingUnitConverterError
@@ -42,6 +42,7 @@ def test_demo_converter__works():
 
 
 def test_pint_converter__works():
+    pint_converter = PintUnitConverter()
     # Converts single value
     assert pint_converter(1, "m", "mm") == (1000, "millimeter")
     assert pint_converter(0, "degC", "K") == (273.15, "kelvin")
