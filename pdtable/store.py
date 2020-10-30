@@ -169,3 +169,12 @@ class TableBundle:
         """Returns all tables with this name."""
         lst = self._tables_named.get(name)
         return lst if lst is not None else []
+
+    def copy(self) -> TableBundle:
+        # TODO test &c.
+        # backward compatibility
+        dst = []
+        for table in self._tables_in_order:
+            dst.append(table.copy())
+        return TableBundle(dst)
+
