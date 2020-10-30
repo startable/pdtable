@@ -270,7 +270,7 @@ class Table:
         """Metadata comparison key, for use in __eq__"""
         return self.name, self.metadata.destinations, self.column_names, self.units
 
-    def copy(self) -> Table:
+    def copy(self):
         # TODO test
         # backward compatibility
         return Table(self.df,name=self.name,origin=self.origin,destinations=self.destinations)

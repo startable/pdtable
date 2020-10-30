@@ -170,7 +170,7 @@ class TableBundle:
         lst = self._tables_named.get(name)
         return lst if lst is not None else []
 
-    def copy(self) -> TableBundle:
+    def copy(self):
         # TODO test &c.
         # backward compatibility
         dst = []
