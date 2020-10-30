@@ -80,7 +80,7 @@ class TableBundle:
                     else:
                         self._tables_named[name].append(table)
                         self._tables_in_order.append(table)
-                if isinstance(block,TableBundle):
+                elif isinstance(block,TableBundle):
                     # TODO: add specific test
                     for table in block:
                         name = table.name
@@ -90,6 +90,9 @@ class TableBundle:
                         else:
                             self._tables_named[name].append(table)
                             self._tables_in_order.append(table)
+                else:
+                    # TODO : raise meaningfull err
+                    assert 0
 
             return
 
