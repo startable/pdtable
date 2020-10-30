@@ -1,4 +1,4 @@
 pushd %~dp0\..
 python setup.py sdist
-twine upload dist/*
+REM twine upload dist/*
 popd

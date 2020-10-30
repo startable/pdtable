@@ -1,6 +1,6 @@
 # flake8: noqa
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 CSV_SEP = ";"  # User can overwrite this default
 
@@ -12,4 +12,4 @@ from .store import TableBundle, BlockType, BlockIterator
 from .io import ParseFixer
 from .io import read_csv, write_csv
 from .io import read_excel, write_excel
-from .units.converter import pint_converter, PintUnitConverter
+from .units.pint import PintUnitConverter

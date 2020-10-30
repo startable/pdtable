@@ -1,8 +1,6 @@
-"""A pint-based unit converter."""
+"""A courtesy pint-based unit converter."""
 
-from typing import Union, Optional, Tuple
-
-import pint
+from typing import Union, Tuple
 
 
 class PintUnitConverter:
@@ -15,14 +13,22 @@ class PintUnitConverter:
     """
 
     def __init__(self):
+
+        try:
+            import pint
+        except ImportError as err:
+            raise ImportError(
+                "Unable to import 'pint'. "
+                "Please install 'pint' to use this pint-based unit converter."
+            ) from err
         # Initialize unit registry once, keep it around for multiple calls
         self.ureg = pint.UnitRegistry()
 
     def __call__(
         self,
         value: float,
-        from_unit: Union[str, pint.Unit],
-        to_unit: Union[str, pint.Unit] = "__base_unit__",
+        from_unit: Union[str],
+        to_unit: Union[str] = "__base_unit__",
     ) -> Tuple[float, str]:
         """Converts value from one unit to another unit.
 
