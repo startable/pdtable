@@ -273,7 +273,8 @@ class Table:
     def copy(self):
         # TODO test
         # backward compatibility
-        return Table(self.df,name=self.name,origin=self.origin,destinations=self.destinations)
+        # return Table(self.df,name=self.name,origin=self.origin,destinations=self.destinations)
+        return Table(self.df,name=self.name,destinations=self.destinations)
 
 
     def equals(self, other):
