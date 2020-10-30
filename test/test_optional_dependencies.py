@@ -41,5 +41,4 @@ def test_pint_absent():
         import pdtable
         with raises(ImportError):
             # Fails on first use of pint_converter
-            p = pdtable.PintUnitConverter()
-            # assert p(1, "m", "mm") == (1000, "mm")
+            pdtable.pint_converter(1, "m", "mm")

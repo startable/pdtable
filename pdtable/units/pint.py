@@ -1,4 +1,9 @@
-"""A courtesy pint-based unit converter."""
+"""A courtesy pint-based unit converter.
+
+Here we define
+- a callable-class wrapper around Pint
+- a singleton instance of this class, for convenient use and reuse
+"""
 
 from typing import Union, Tuple
 
@@ -13,16 +18,7 @@ class PintUnitConverter:
     """
 
     def __init__(self):
-
-        try:
-            import pint
-        except ImportError as err:
-            raise ImportError(
-                "Unable to import 'pint'. "
-                "Please install 'pint' to use this pint-based unit converter."
-            ) from err
-        # Initialize unit registry once, keep it around for multiple calls
-        self.ureg = pint.UnitRegistry()
+        self.ureg = None  # Placeholder for pint unit registry
 
     def __call__(
         self,
@@ -49,6 +45,18 @@ class PintUnitConverter:
             representation of from_unit's base unit.
 
         """
+        try:
+            import pint
+        except ImportError as err:
+            raise ImportError(
+                "Unable to import 'pint'. "
+                "Please install 'pint' to use this pint-based unit converter."
+            ) from err
+
+        # Initialize unit registry once, keep it around for multiple calls
+        if self.ureg is None:
+            self.ureg = pint.UnitRegistry()
+
         if str(to_unit) == str(from_unit):
             # Null conversion
             return value, str(from_unit)
@@ -60,3 +68,7 @@ class PintUnitConverter:
             converted_quantity = self.ureg.Quantity(value, from_unit).to(to_unit)
 
         return converted_quantity.magnitude, str(converted_quantity.units)
+
+
+# Singleton
+pint_converter = PintUnitConverter()
