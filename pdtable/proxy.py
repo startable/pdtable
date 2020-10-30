@@ -200,7 +200,10 @@ class Table:
 
     @property
     def col_specs(self) -> dict:
-        return self.metadata.col_specs
+        # TODO refactor, this is for backward compatibility w. startable
+        if self.metadata.col_specs is not None:
+            return self.metadata.col_specs
+        return {}
 
     @property
     def destinations(self) -> Set[str]:
