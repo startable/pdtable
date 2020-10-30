@@ -199,6 +199,10 @@ class Table:
         return self.metadata.name
 
     @property
+    def col_specs(self) -> dict:
+        return self.metadata.col_specs
+
+    @property
     def destinations(self) -> Set[str]:
         return self.metadata.destinations
 
