@@ -14,7 +14,7 @@ from ..io.parsers.blocks import make_table
 from ..proxy import UnitConversionNotDefinedError, MissingUnitConverterError
 
 
-def test_demo_converter__converts_values():
+def test_demo_converter__works():
     # Converts single value
     assert convert_this(1, "m", "mm") == (1000, "mm")
     assert convert_this(0, "C", "K") == (273.15, "K")
@@ -41,7 +41,7 @@ def test_demo_converter__converts_values():
         convert_this(1, "quxx")
 
 
-def test_default_converter__works():
+def test_pint_converter__works():
     # Converts single value
     assert pint_converter(1, "m", "mm") == (1000, "millimeter")
     assert pint_converter(0, "degC", "K") == (273.15, "kelvin")
