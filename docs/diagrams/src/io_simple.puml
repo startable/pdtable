@@ -10,7 +10,7 @@ left to right direction
 
 rectangle files as "File / stream" #WhiteSmoke {
     file csv as "<b>StarTable CSV"
-    file xl as "<b>StarTable\n<b>Excel workbook\n(file only)"
+    file xl as "<b>StarTable\n<b>Excel workbook"
 }
 
 rectangle memory as "Memory" #WhiteSmoke {
