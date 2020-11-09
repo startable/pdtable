@@ -108,7 +108,6 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     else:
         col_names_raw = cells[2]
     column_names = preprocess_column_names(col_names_raw, fixer)
-    fixer.TableColumNames = column_names  # TODO typo... no effect... intended behaviour?
 
     n_col = len(column_names)
     if transposed:
@@ -351,7 +350,6 @@ def preprocess_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
             column_names.append(cname)
         else:
             fixer.column_name = col
-            fixer.TableColumNames = column_names  # so far
             if len(cname) == 0:
                 cname = fixer.fix_missing_column_name(input_columns=column_names)
             elif cname in names:
