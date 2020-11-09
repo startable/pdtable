@@ -56,7 +56,9 @@ def test_read_csv(csv_data):
 
     assert len(tables) == 3
     assert tables[0].df["place"][1] == "work"
-    assert tables[2].df["melting_point"][0] == 273
+    t2: Table = tables[2]
+    assert t2.column_names == ["diameter", "melting_point"]
+    assert t2.df["melting_point"][0] == 273
     assert len(template_rows) == 1
 
 
@@ -69,7 +71,9 @@ def test_read_csv__sep_is_comma(csv_data):
     assert len(met) == 1
     assert len(tables) == 3
     assert tables[0].df["place"][1] == "work"
-    assert tables[2].df["melting_point"][0] == 273
+    t2: Table = tables[2]
+    assert t2.column_names == ["diameter", "melting_point"]
+    assert t2.df["melting_point"][0] == 273
     assert len(template_rows) == 1
 
 
