@@ -83,14 +83,18 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
     Parses cell grid to a JSON-like data structure of nested "objects" (dict), "arrays" (list),
     and values, including values with types that map 1:1 to JSON-native types, as well as some
-    value types that don't directly map JSON types.
+    value types that don't directly map to JSON types.
 
     This JSON data "precursor" can then be sent for further processing:
     - Parsing to pdtable-style Table block object
     - Conversion to a "pure" JSON data object in which all values are of JSON-native types.
     """
 
-    table_name = cells[0][0][2:]
+    table_name: str = cells[0][0][2:]
+    transposed = table_name.endswith("*")
+    if transposed:
+        # Chop off the transpose decorator from the name
+        table_name = table_name[:-1]
 
     fixer = default_fixer(**kwargs)
     fixer.table_name = table_name
@@ -99,28 +103,37 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
 
     # handle multiple columns w. same name
-    col_names_raw = cells[2]
+    if transposed:
+        col_names_raw = [line[0] for line in cells[2:]]
+    else:
+        col_names_raw = cells[2]
     column_names = preprocess_column_names(col_names_raw, fixer)
     fixer.TableColumNames = column_names  # TODO typo... no effect... intended behaviour?
 
     n_col = len(column_names)
-    units = cells[3][:n_col]
-    units = [el.strip() for el in units]
+    if transposed:
+        units = [line[1] for line in cells[2:2+n_col]]
+    else:
+        units = cells[3][:n_col]
+    units = [unit.strip() for unit in units]
 
-    column_data = [ll[:n_col] for ll in cells[4:]]
-    column_data = [list(col) for col in column_data]
+    if transposed:
+        data_rows = zip(*(line[2:] for line in cells[2:2+n_col]))
+    else:
+        data_rows = [line[:n_col] for line in cells[4:]]
+    data_rows = [list(row) for row in data_rows]
 
     # ensure all data columns are populated
-    for irow, row in enumerate(column_data):
+    for i_row, row in enumerate(data_rows):
         if len(row) < n_col:
             fix_row = fixer.fix_missing_rows_in_column_data(
-                row=irow, row_data=row, num_columns=n_col
+                row=i_row, row_data=row, num_columns=n_col
             )
-            column_data[irow] = fix_row
+            data_rows[i_row] = fix_row
 
     # build dictionary of columns iteratively to allow meaningful error messages
     columns = {}
-    for name, unit, values in zip(column_names, units, zip(*column_data)):
+    for name, unit, values in zip(column_names, units, zip(*data_rows)):
         try:
             fixer.column_name = name
             columns[name] = parse_column(unit, values, fixer)
