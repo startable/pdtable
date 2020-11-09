@@ -37,6 +37,11 @@ def csv_data() -> str:
         pig;4;89;
         cow;4;200;
         unicorn;4;NaN;
+        
+        **this_one_is_transposed*
+        all
+        diameter; cm; 1.23
+        melting_point; K; 273
         """
     )
 
@@ -48,7 +53,10 @@ def test_read_csv(csv_data):
     met = [b for t, b in bl if t == BlockType.METADATA]
 
     assert len(met) == 1
+
+    assert len(tables) == 3
     assert tables[0].df["place"][1] == "work"
+    assert tables[2].df["melting_point"][0] == 273
     assert len(template_rows) == 1
 
 
@@ -59,7 +67,9 @@ def test_read_csv__sep_is_comma(csv_data):
     met = [b for t, b in bl if t == BlockType.METADATA]
 
     assert len(met) == 1
+    assert len(tables) == 3
     assert tables[0].df["place"][1] == "work"
+    assert tables[2].df["melting_point"][0] == 273
     assert len(template_rows) == 1
 
 
