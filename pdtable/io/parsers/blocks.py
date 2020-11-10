@@ -26,7 +26,7 @@ For each of these:
 """
 import itertools
 import re
-from typing import Sequence, Optional, Tuple, Any, Iterable
+from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union
 
 import pandas as pd
 
@@ -79,6 +79,17 @@ def default_fixer(**kwargs):
     return fixer
 
 
+def parse_column_names(column_names_raw: Sequence[Union[str, None]]) -> List[str]:
+    """Parses column names from the sequence read from file
+
+    Rejects everything after first blank cell, since there can be comments there.
+    Strips column names. 
+    """
+    return [
+        c.strip() for c in itertools.takewhile(lambda x: not _is_cell_blank(x), column_names_raw)
+    ]
+
+
 def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
 
@@ -104,12 +115,12 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
 
     if transposed:
-        # Col names are in lines' first cell. No blanks expected; would have terminated the block.
-        col_names_raw = [line[0] for line in cells[2:]]
+        # Column names are in lines' first cell
+        column_names = parse_column_names([line[0] for line in cells[2:]])
     else:
-        # Read from column name row until first blank. After that there could be comments; ignore.
-        col_names_raw = itertools.takewhile(lambda x: not _is_cell_blank(x), cells[2])
-    column_names = _fix_duplicate_column_names(col_names_raw, fixer)
+        # Column names are on line 2 (zero-based)
+        column_names = parse_column_names(cells[2])
+    column_names = _fix_duplicate_column_names(column_names, fixer)
 
     n_col = len(column_names)
     if transposed:
