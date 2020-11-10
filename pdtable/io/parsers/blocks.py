@@ -104,11 +104,12 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
 
     if transposed:
+        # Col names are in lines' first cell. No blanks expected; would have terminated the block.
         col_names_raw = [line[0] for line in cells[2:]]
     else:
-        col_names_raw = cells[2]
-    # handle multiple columns w. same name
-    column_names = preprocess_column_names(col_names_raw, fixer)
+        # Read from column name row until first blank. After that there could be comments; ignore.
+        col_names_raw = itertools.takewhile(lambda x: not _is_cell_blank(x), cells[2])
+    column_names = _fix_duplicate_column_names(col_names_raw, fixer)
 
     n_col = len(column_names)
     if transposed:
@@ -349,24 +350,17 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
             yield block_type, block
 
 
-def preprocess_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
-    """
-       handle known issues in column_names
-    """
-    cnames_all = itertools.takewhile(lambda x: not _is_cell_blank(x), col_names_raw)
-
-    # handle multiple columns w. same name
+def _fix_duplicate_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
+    """Finds duplicate column names and sends them to ParseFixer for fixing."""
     column_names = []
     names = {}
-    for col, cname in enumerate(cnames_all):
+    for col, cname in enumerate(col_names_raw):
         if cname not in names and len(cname) > 0:
             names[cname] = 0
             column_names.append(cname)
         else:
             fixer.column_name = col
-            if len(cname) == 0:
-                cname = fixer.fix_missing_column_name(input_columns=column_names)
-            elif cname in names:
+            if cname in names:
                 cname = fixer.fix_duplicate_column_name(cname, input_columns=column_names)
             assert cname not in names
             names[cname] = 0

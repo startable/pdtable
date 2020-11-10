@@ -85,18 +85,6 @@ class ParseFixer:
 
         return "{column_name}-fixed"
 
-    def fix_missing_column_name(self, input_columns: List[str]) -> str:
-        """
-            The column_name: self.TableColumn is empty
-            This method should provide a unique replacement name
-        """
-        if self.verbose:
-            print(
-                f"ParseFixer: fix missing column ({self.column_name}) {input_columns} "
-                f"in table: {self.table_name}"
-            )
-        return self.fix_duplicate_column_name("missing", input_columns)
-
     def fix_missing_rows_in_column_data(
         self, row: int, row_data: List[str], num_columns: int
     ) -> List[str]:
