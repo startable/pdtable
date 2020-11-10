@@ -24,6 +24,7 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
+import itertools
 import re
 from typing import Sequence, Optional, Tuple, Any, Iterable
 
@@ -352,15 +353,10 @@ def preprocess_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
     """
        handle known issues in column_names
     """
-    n_names_col = len(col_names_raw)
-    for el in reversed(col_names_raw):
-        if el is not None and len(el) > 0:
-            break
-        n_names_col -= 1
+    cnames_all = itertools.takewhile(lambda x: not _is_cell_blank(x), col_names_raw)
 
     # handle multiple columns w. same name
     column_names = []
-    cnames_all = [el.strip() for el in col_names_raw[:n_names_col]]
     names = {}
     for col, cname in enumerate(cnames_all):
         if cname not in names and len(cname) > 0:
