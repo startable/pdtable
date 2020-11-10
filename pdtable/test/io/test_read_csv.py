@@ -122,3 +122,21 @@ def test_read_csv__reads_transposed_tables_with_arbitrary_trailing_csv_delimiter
     assert len(t0.df) == 1
     for t in tables:
         assert t.equals(t0)
+
+
+def test_read_csv__successfully_ignores_comments_on_column_name_row():
+    csv_data_transposed_tables = dedent(
+        """\
+        **places;
+        all
+        place;distance;ETA;is_hot;;;; --> this is a perfectly legal comment <-- ;
+        text;km;datetime;onoff
+        home;0.0;2020-08-04 08:00:00;1
+        work;1.0;2020-08-04 09:00:00;0
+        beach;2.0;2020-08-04 17:00:00;1
+        """
+    )
+    bl = list(read_csv(io.StringIO(csv_data_transposed_tables)))
+    tables: List[Table] = [b for t, b in bl if t == BlockType.TABLE]
+    t0: Table = tables[0]
+    assert t0.column_names == ["place", "distance", "ETA", "is_hot"]
