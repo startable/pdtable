@@ -4,10 +4,8 @@ This module must be located completely outside the pdtable package. Otherwise it
 to control what gets imported when and in which order, since pdtable/__init__.py gets executed
 before the contents of everything else in the pdtable/ dir, including the tests in pdtable/test.
 """
-from pathlib import Path
-from textwrap import dedent
-from unittest import mock
 import sys
+from unittest import mock
 
 from pytest import raises
 

@@ -29,13 +29,13 @@ from typing import Sequence, Optional, Tuple, Any, Iterable
 
 import pandas as pd
 
-from .fixer import ParseFixer
-from .columns import parse_column
-from ... import frame
-from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
-from ...auxiliary import MetadataBlock, Directive
-from pdtable import Table
 from pdtable import BlockType, BlockIterator
+from pdtable import Table
+from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
+from .columns import parse_column
+from .fixer import ParseFixer
+from ... import frame
+from ...auxiliary import MetadataBlock, Directive
 from ...table_metadata import TableOriginCSV, TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
@@ -83,14 +83,18 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
     Parses cell grid to a JSON-like data structure of nested "objects" (dict), "arrays" (list),
     and values, including values with types that map 1:1 to JSON-native types, as well as some
-    value types that don't directly map JSON types.
+    value types that don't directly map to JSON types.
 
     This JSON data "precursor" can then be sent for further processing:
     - Parsing to pdtable-style Table block object
     - Conversion to a "pure" JSON data object in which all values are of JSON-native types.
     """
 
-    table_name = cells[0][0][2:]
+    table_name: str = cells[0][0][2:]
+    transposed = table_name.endswith("*")
+    if transposed:
+        # Chop off the transpose decorator from the name
+        table_name = table_name[:-1]
 
     fixer = default_fixer(**kwargs)
     fixer.table_name = table_name
@@ -98,29 +102,61 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     # internally hold destinations as json-compatible dict
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
 
+    if transposed:
+        col_names_raw = [line[0] for line in cells[2:]]
+    else:
+        col_names_raw = cells[2]
     # handle multiple columns w. same name
-    col_names_raw = cells[2]
     column_names = preprocess_column_names(col_names_raw, fixer)
-    fixer.TableColumNames = column_names  # TODO typo... no effect... intended behaviour?
 
     n_col = len(column_names)
-    units = cells[3][:n_col]
-    units = [el.strip() for el in units]
+    if transposed:
+        units = [line[1] for line in cells[2 : 2 + n_col]]
+    else:
+        units = cells[3][:n_col]
+    units = [unit.strip() for unit in units]
 
-    column_data = [ll[:n_col] for ll in cells[4:]]
-    column_data = [list(col) for col in column_data]
+    if transposed:
+        data_lines = [line[2:] for line in cells[2 : 2 + n_col]]
+        len_longest_line = max(len(line) for line in data_lines)
+
+        # Find last non-blank data row
+        n_row = 0
+        for i_row in range(len_longest_line):
+            # Does this row have non-blank cells?
+            for line in data_lines:
+                if len(line) >= i_row + 1 and not _is_cell_blank(line[i_row]):
+                    # Found a non-blank cell. This row is legit. Go check next row.
+                    n_row = i_row + 1
+                    break
+            else:
+                # No non-blank cells found on this row. This row is blank. Go no further.
+                break
+
+        # Collate data rows
+        data_rows = zip(
+            *(
+                line[:n_row]  # trim empty cells off of long lines
+                if len(line) >= n_row
+                else line + [None] * (n_row - len(line))  # pad short lines with empty cells
+                for line in data_lines
+            )
+        )
+    else:
+        data_rows = [line[:n_col] for line in cells[4:]]
+    data_rows = [list(row) for row in data_rows]
 
     # ensure all data columns are populated
-    for irow, row in enumerate(column_data):
+    for i_row, row in enumerate(data_rows):
         if len(row) < n_col:
             fix_row = fixer.fix_missing_rows_in_column_data(
-                row=irow, row_data=row, num_columns=n_col
+                row=i_row, row_data=row, num_columns=n_col
             )
-            column_data[irow] = fix_row
+            data_rows[i_row] = fix_row
 
     # build dictionary of columns iteratively to allow meaningful error messages
     columns = {}
-    for name, unit, values in zip(column_names, units, zip(*column_data)):
+    for name, unit, values in zip(column_names, units, zip(*data_rows)):
         try:
             fixer.column_name = name
             columns[name] = parse_column(unit, values, fixer)
@@ -248,12 +284,6 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
     fixer.reset_fixes()
     fixer.origin = origin
 
-    def is_blank(cell):
-        """
-        True if first cell is empty
-        """
-        return cell is None or (isinstance(cell, str) and not cell.strip())
-
     cell_grid = []
 
     state = BlockType.METADATA
@@ -261,7 +291,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
     this_block_1st_row = 0
     for row_number_0based, row in enumerate(cell_rows):
         #  print(f"parse_blocks: {state} {row[0] if len(row) > 0 else ' (empty) '}")
-        if row is None or len(row) == 0 or is_blank(row[0]):
+        if row is None or len(row) == 0 or _is_cell_blank(row[0]):
             if state != BlockType.BLANK:
                 next_state = BlockType.BLANK
             else:
@@ -306,7 +336,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
                 cell_grid.append(row)
             elif len(row) > 0:
                 #  emit non-empty lines, comments &c. as BLANK
-                if len(row) == 1 and is_blank(row[0]):
+                if len(row) == 1 and _is_cell_blank(row[0]):
                     continue
                 cell_grid.append(row)
 
@@ -338,7 +368,6 @@ def preprocess_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
             column_names.append(cname)
         else:
             fixer.column_name = col
-            fixer.TableColumNames = column_names  # so far
             if len(cname) == 0:
                 cname = fixer.fix_missing_column_name(input_columns=column_names)
             elif cname in names:
@@ -347,3 +376,8 @@ def preprocess_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
             names[cname] = 0
             column_names.append(cname)
     return column_names
+
+
+def _is_cell_blank(cell):
+    """Is this cell blank i.e. contains nothing or only whitespace"""
+    return cell is None or (isinstance(cell, str) and not cell.strip())

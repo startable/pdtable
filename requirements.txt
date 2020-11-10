@@ -1,5 +1,9 @@
 pandas
+numpy
 
 # OPTIONAL
 openpyxl
 pint
+
+# BUILD & TEST
+pytest
