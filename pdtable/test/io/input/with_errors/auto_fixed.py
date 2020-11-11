@@ -34,19 +34,6 @@ autoFixed = {
         goose;2.0;9.0;-;9.1;6.5
         1234;-;-;-;7.11;7.6
     """,
-    "cols2.csv": """
-        **farm_cols2;
-        your_farm my_farm farms_galore
-        species;num;missing_fixed_000;dt;flt
-        text;-;kg;datetime;kg
-        chicken;2.0;3.0;2020-07-01 00:00:00;3.21
-        pig;4.0;39.0;2020-07-02 00:00:00;39.1
-        goat;4.0;-;-;1.1
-        zybra;4.0;-;-;2.1
-        cow;-;200.0;-;200.2
-        goose;2.0;9.0;-;9.1
-        1234;-;-;-;7.11
-    """,
     "ex0.csv": """
         **farm_animals0;
         your_farm my_farm farms_galore

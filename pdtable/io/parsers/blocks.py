@@ -24,8 +24,9 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
+import itertools
 import re
-from typing import Sequence, Optional, Tuple, Any, Iterable
+from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union
 
 import pandas as pd
 
@@ -78,6 +79,17 @@ def default_fixer(**kwargs):
     return fixer
 
 
+def parse_column_names(column_names_raw: Sequence[Union[str, None]]) -> List[str]:
+    """Parses column names from the sequence read from file
+
+    Rejects everything after first blank cell, since there can be comments there.
+    Strips column names. 
+    """
+    return [
+        c.strip() for c in itertools.takewhile(lambda x: not _is_cell_blank(x), column_names_raw)
+    ]
+
+
 def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
 
@@ -103,11 +115,12 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
 
     if transposed:
-        col_names_raw = [line[0] for line in cells[2:]]
+        # Column names are in lines' first cell
+        column_names = parse_column_names([line[0] for line in cells[2:]])
     else:
-        col_names_raw = cells[2]
-    # handle multiple columns w. same name
-    column_names = preprocess_column_names(col_names_raw, fixer)
+        # Column names are on line 2 (zero-based)
+        column_names = parse_column_names(cells[2])
+    column_names = _fix_duplicate_column_names(column_names, fixer)
 
     n_col = len(column_names)
     if transposed:
@@ -348,29 +361,17 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
             yield block_type, block
 
 
-def preprocess_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
-    """
-       handle known issues in column_names
-    """
-    n_names_col = len(col_names_raw)
-    for el in reversed(col_names_raw):
-        if el is not None and len(el) > 0:
-            break
-        n_names_col -= 1
-
-    # handle multiple columns w. same name
+def _fix_duplicate_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
+    """Finds duplicate column names and sends them to ParseFixer for fixing."""
     column_names = []
-    cnames_all = [el.strip() for el in col_names_raw[:n_names_col]]
     names = {}
-    for col, cname in enumerate(cnames_all):
+    for col, cname in enumerate(col_names_raw):
         if cname not in names and len(cname) > 0:
             names[cname] = 0
             column_names.append(cname)
         else:
             fixer.column_name = col
-            if len(cname) == 0:
-                cname = fixer.fix_missing_column_name(input_columns=column_names)
-            elif cname in names:
+            if cname in names:
                 cname = fixer.fix_duplicate_column_name(cname, input_columns=column_names)
             assert cname not in names
             names[cname] = 0
