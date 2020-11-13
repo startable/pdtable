@@ -6,6 +6,17 @@ The `pdtable` Python package offers interfaces to read, write, and manipulate St
 
 For a full demo, see the [pdtable_demo notebook](examples/pdtable_demo.ipynb) or, if you a Jupyter notebook doesn't do it for you, the notebook's [paired script](examples/pdtable_demo.py).
 
+## Installation
+
+pdtable is available from pypi.org
+```commandline
+pip install pdtable
+```
+and from conda-forge
+```commandline
+conda install pdtable -c conda-forge
+```
+
 ## Data and metadata: storage and access
 
 Table blocks are stored as `TableDataFrame` objects, which inherit from `pandas.DataFrame` but include additional, hidden metadata. This hidden metadata contains all the information from Table blocks that does not fit in a classic Pandas dataframe object: table destinations, column units, table origin, etc.
@@ -16,7 +27,7 @@ The StarTable-specific metadata hidden in a `TableDataFrame`'s metadata *can* in
 
 ## I/O
 
-Readers and writers are available for CSV files, CSV text streams, and Excel workbooks. Parsing is efficient and, by default, lenient, though this is readily customized.
+Readers and writers are available for CSV and Excel, both as files and as streams. Parsing is efficient and, by default, lenient, though this is readily customized.
 
 Reading can also be filtered early, such that only certain block types or tables with certain names get fully parsed. This can reduce reading time substantially when reading e.g. only a few tables from an otherwise large file or stream.
 

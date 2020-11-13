@@ -8,7 +8,7 @@ dependencies:
 # OPTIONAL
   - openpyxl
   - pint
-# TEST
+# BUILD+TEST
   - pytest
   - coverage
   - pytest-cov
@@ -16,6 +16,7 @@ dependencies:
   - flake8
   - flake8-black
   - flake8-comprehensions
+  - sphinx
 # DEV
   - twine
   - jupyter

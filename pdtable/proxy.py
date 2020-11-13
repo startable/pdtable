@@ -331,8 +331,9 @@ class Table:
                 - None: keep the column's current unit; do no conversion.
 
             converter:
-                A callable that converts values from one unit to another. The converter must
-                fulfill the following specification:
+                A callable that converts values from one unit to another.
+                If None (default), attempts to fall back on pdtable.units.default_converter.
+                The converter must fulfill the following specification:
                 - Takes three positional arguments:
                     0. value to be converted
                     1. from_unit
