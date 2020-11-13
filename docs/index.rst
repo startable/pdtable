@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pdtable's documentation!
-===================================
+pdtable: manipulate StarTable data with Python and pandas
+=========================================================
 
 .. toctree::
    :maxdepth: 2
@@ -24,7 +24,7 @@ pdtable is available from pypi:
 
 and from conda-forge:
 
-.. code-block:: cmd
+.. code-block:: shell
 
    conda install pdtable -c conda-forge
 
