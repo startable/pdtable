@@ -22,7 +22,11 @@ def test_read_excel():
     t1.add_column("number", [1, 6, 42], "-")
     t1.add_column("spelling", ["one", "six", "forty-two"], "text")
 
-    expected_tables = [t0, t1]
+    t2 = Table(name="this_one_is_transposed")
+    t2.add_column("diameter", [1.23], "cm")
+    t2.add_column("melting_point", [273], "K")
+
+    expected_tables = [t0, t1, t2]
 
     # Read tables from file
     blocks = read_excel(Path(__file__).parent / "input" / "foo.xlsx")

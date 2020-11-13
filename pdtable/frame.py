@@ -47,6 +47,7 @@ It should be possible to maintain column metadata together with the column data 
 `ExtensionArray`. This option was discarded early due to performance concerns, but might be viable
 and would the be preferable to the chosen approach.
 """
+from warnings import warn
 
 import pandas as pd
 import warnings
@@ -65,33 +66,39 @@ class InvalidTableCombineError(Exception):
     pass
 
 
-def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> ComplementaryTableInfo:
+def _combine_tables(
+    obj: "TableDataFrame", other, method, **kwargs
+) -> Optional[ComplementaryTableInfo]:
     """
-    Called from __finalize__ when operations have been performed via the pandas.DataFrame API.
+    Called from dataframe.__finalize__ when dataframe operations have been performed
+    on the dataframe backing a table.
 
-    Implementation policy is that this will fail except for situations where
+    Implementation policy is that this will warn except for situations where
     the metadata combination is safe.
     For other cases, the operations should be implemented via the Table facade
+    if metadata is required, or by dropping to bare dataframes otherwise.
     """
 
-    if method is None:
-        # slicing
+    if method is None or method in frozenset({"reindex", "take", "copy"}):
+        # method: None - copy, slicing (pandas <1.1)
         src = [other]
     elif method == "merge":
         src = [other.left, other.right]
     elif method == "concat":
         src = other.objs
-    elif method == "copy":
-        src = [other]  # TODO should it be obj?  Test it
     else:
-        raise UnknownOperationError(
-            f"Unknown method while combining metadata: {method}. Keyword args: {kwargs}"
+        # Unknown method - try to handle this as well as possible, but rather warn and drop units than break things.
+        src = [other]
+        warnings.warn(
+            f'While combining pdTable metadata an unknown __finalize__ method "{method}" was encountered. '
+            f"Will try to propagate metadata with generic methods, but please check outcome of this "
+            f"and notify pdTable maintainers."
         )
 
-    if len(src) == 0:
-        raise UnknownOperationError(f"No operands for operation {method}")
+    data = [d for d in (getattr(s, _TABLE_INFO_FIELD_NAME, None) for s in src) if d is not None]
 
-    data = [get_table_info(s) for s in src if is_table_dataframe(s)]
+    if not data:
+        return None
 
     # 1: Create table metadata as combination of all
     meta = TableMetadata(
@@ -100,7 +107,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Complemen
 
     # 2: Check that units match for columns that appear in more than one table
     out_cols: Set[str] = set(obj.columns)
-    columns: Dict[str, ColumnMetadata] = {}
+    columns: Dict[str, ColumnMetadata] = dict()
     for d in data:
         for name, c in d.columns.items():
             if name not in out_cols:
@@ -113,7 +120,7 @@ def _combine_tables(obj: "TableDataFrame", other, method, **kwargs) -> Complemen
             else:
                 if not col.unit == c.unit:
                     raise InvalidTableCombineError(
-                        "Column {name} appears with incompatible units.", col.unit, c.unit
+                        f'Column {name} appears with incompatible units "{col.unit}" and "{c.unit}".'
                     )
                 col.update_from(c)
 
@@ -158,20 +165,18 @@ class TableDataFrame(pd.DataFrame):
         """
         Overrides pandas.core.generic.NDFrame.__finalize__()
 
-        This method is responsible for populating TableDataFrame metadata
-        when creating a new Table object.
-
-        If left out, no metadata would be retained across table
-        operations. This might be a viable solution?
-        Alternatively, we could return a raw frame object on some operations
+        This method is responsible for populating TableDataFrame metadata when creating a new Table object through
+        pandas operations. This may includes combining unit information and table origin for operations involving
+        more than one table.
         """
-
-        try:
-            data = _combine_tables(self, other, method, **kwargs)
-            object.__setattr__(self, _TABLE_INFO_FIELD_NAME, data)
-        except UnknownOperationError as e:
-            warnings.warn(f"Falling back to dataframe: {e}")
+        table_info = _combine_tables(self, other, method, **kwargs)
+        if table_info is None:
+            warn(
+                f"Unable to establish table metadata (units, origin, etc.). Will fall back to pd.DataFrame."
+            )
             return pd.DataFrame(self)
+        object.__setattr__(self, _TABLE_INFO_FIELD_NAME, table_info)
+        table_info._check_dataframe(self)
         return self
 
     @staticmethod

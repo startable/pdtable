@@ -42,24 +42,6 @@ def test_columns_duplicate():
     assert tab.df["flt"][0] == 3.0
 
 
-def test_columns_missing():
-    """
-       Verify that default ParseFixer corrects missing column name
-
-    """
-    tab = None
-    with open(input_dir() / "cols2.csv", "r") as fh:
-        g = read_csv(fh, fixer=custom_test_fixer)
-        for tp, tt in g:
-            if True:
-                if tp == BlockType.TABLE:
-                    tab = tt
-                    break
-    assert tab is not None
-    assert tab.df["missing_fixed_000"] is not None
-    assert tab.df["flt"][6] == 7.11
-
-
 def test_custom_fixer():
     """ Test custom ParseFixer
         Verify that read_csv uses custom ParseFixer

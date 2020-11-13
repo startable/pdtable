@@ -23,6 +23,13 @@ def dft(data_ab):
     return frame.make_table_dataframe(data_ab, name="foo", destinations={"bar", "baz"})
 
 
+@pytest.fixture
+def dft_m(data_ab):
+    dft = frame.make_table_dataframe(data_ab, name="foo", destinations={"bar", "baz"})
+    Column(dft, "cola").unit = "m"
+    return dft
+
+
 def test_make_pdtable(data_ab):
     df = frame.make_table_dataframe(data_ab, name="foo")
 
@@ -185,3 +192,40 @@ def test_column_format():
 
     assert str(ColumnFormat(2)) == ".2f"
     assert repr(ColumnFormat(2)) == "ColumnFormat: '.2f'"
+
+
+def test_drop_column(dft_m):
+    # triggers method "reindex" in DataFrame.__finalize__ on pandas 1.1
+    dft2 = dft_m.drop(columns=["colb"])
+    assert dft2.shape[1] == 1
+
+    t = Table(dft2)
+    assert t["cola"].unit == "m"
+
+
+def test_select_rows_by_value(dft_m):
+    # triggers method "take" in DataFrame.__finalize__ on pandas 1.1
+    dft2 = dft_m[dft_m.cola == 2]
+    assert len(dft2) == 1
+
+    t = Table(dft2)
+    assert t["cola"].unit == "m"
+
+
+def test_groupby(dft_m):
+    gg = [(cola, g.loc[:, "colb"].to_numpy()) for cola, g in dft_m.groupby("cola")]
+    assert gg[0][0] == 0
+
+    # Causes warning on pandas 1.1, fix underway in https://github.com/pandas-dev/pandas/pull/37461
+    gg = [
+        (cola, list(g.loc[:, ("cola", "colb")].itertuples())) for cola, g in dft_m.groupby("cola")
+    ]
+    assert gg[0][0] == 0
+
+
+def test_assign(dft_m):
+    # triggers method "copy" in DataFrame.__finalize__ on pandas 1.1
+    dft2 = dft_m.assign(col_new=3)
+    t = Table(dft2)
+    assert t["col_new"].unit == "-"
+    assert t["cola"].unit == "m"
