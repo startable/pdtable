@@ -12,6 +12,7 @@ pdtable: manipulate StarTable data with Python and pandas
 
    usage/installation
    usage/quickstart
+   usage/unit_conversion
 
 Installation 
 ============
