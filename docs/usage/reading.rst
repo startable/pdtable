@@ -11,10 +11,13 @@ They generate tuples of (``block_type``, ``block``) where
   indicates which type of StarTable block ``block`` is. Possible values:
   ``DIRECTIVE``, ``TABLE``, ``TEMPLATE_ROW``, ``METADATA``, and ``BLANK``.
 
+Read example data
+-----------------
+
 Let’s make some CSV StarTable data, put it in a text stream, and read
 that stream. (Reading from a CSV file is no different.)
 
-.. code:: ipython3
+.. code:: python
 
     from io import StringIO
     from pdtable import read_csv
@@ -57,42 +60,31 @@ that stream. (Reading from a CSV file is no different.)
 The reader generates tuples of ``(BlockType, block)``. Note that
 blank/comment lines are read but not parsed.
 
-.. code:: ipython3
-
-    for bt, b in block_list:
-        print(bt, type(b))
-
-
-.. parsed-literal::
-
-    BlockType.METADATA <class 'pdtable.auxiliary.MetadataBlock'>
-    BlockType.DIRECTIVE <class 'pdtable.auxiliary.Directive'>
-    BlockType.TABLE <class 'pdtable.proxy.Table'>
-    BlockType.TABLE <class 'pdtable.proxy.Table'>
+>>> for bt, b in block_list:
+...     print(bt, type(b))
+...
+BlockType.METADATA <class 'pdtable.auxiliary.MetadataBlock'>
+BlockType.DIRECTIVE <class 'pdtable.auxiliary.Directive'>
+BlockType.TABLE <class 'pdtable.proxy.Table'>
+BlockType.TABLE <class 'pdtable.proxy.Table'>
     
 
 Here’s one of the tables.
 
-.. code:: ipython3
-
-    t = block_list[2][1]
-    assert t.name == "places"
-    print(t)
-
-
-.. parsed-literal::
-
-    \*\*places
-    all
-      place [text]  distance [km]      ETA [datetime]  is_hot [onoff]
-    0         home            0.0 2020-08-04 08:00:00            True
-    1         work            1.0 2020-08-04 09:00:00           False
-    2        beach            2.0 2020-08-04 17:00:00            True
-    
+>>> t = block_list[2][1]
+>>> assert t.name == "places"
+>>> print(t)
+**places
+all
+    place [text]  distance [km]      ETA [datetime]  is_hot [onoff]
+0         home            0.0 2020-08-04 08:00:00            True
+1         work            1.0 2020-08-04 09:00:00           False
+2        beach            2.0 2020-08-04 17:00:00            True
+ 
 
 We can pick the tables (and leave out blocks of other types) like this:
 
-.. code:: ipython3
+.. code:: python
 
     from pdtable import BlockType
     
@@ -102,15 +94,15 @@ We can pick the tables (and leave out blocks of other types) like this:
 Filtered reading
 ----------------
 
-Blocks can be filtered prior to parsing, by passing to a callable as
+Blocks can be filtered prior to parsing, by passing a callable as
 ``filter`` argument to the reader functions. This can reduce reading
 time substantially when reading only a few tables from an otherwise
 large file or stream.
 
 The callable must accept two arguments: block type, and block name. Only
 those blocks for which the filter callable returns ``True`` are fully
-parsed. Other blocks are parsed only superficially i.e. only the block’s
-top-left cell, which is just enough to recognize block type and name to
+parsed. Other blocks are parsed only superficially, meaning that only the block’s
+top-left cell is parsed, which is just enough to recognize block's type and name to
 pass to the filter callable, thus avoiding the much more expensive task
 of parsing the entire block, e.g. the values in all columns and rows of
 a large table.
@@ -118,7 +110,7 @@ a large table.
 Let’s design a filter that only accepts tables whose name contains the
 word ``'animal'``.
 
-.. code:: ipython3
+.. code:: python
 
     def is_table_about_animals(block_type: BlockType, block_name: str) -> bool:
         return block_type == BlockType.TABLE and "animal" in block_name
@@ -126,26 +118,17 @@ word ``'animal'``.
 Now let’s see what happens when we use this filter when re-reading the
 same CSV text stream as before.
 
-.. code:: ipython3
-
-    csv_data.seek(0)
-    block_list = list(read_csv(csv_data, filter=is_table_about_animals))
-    
-    assert len(block_list) == 1
-    block_list[0][1]
-
-
-
-
-.. parsed-literal::
-
-    \*\*farm_animals
-    my_farm, your_farm, other_farm
-      species [text]  n_legs [-]  avg_weight [kg]
-    0        chicken         2.0              2.0
-    1            pig         4.0             89.0
-    2            cow         4.0            200.0
-    3        unicorn         4.0              NaN
+>>> csv_data.seek(0)
+>>> block_list = list(read_csv(csv_data, filter=is_table_about_animals)) 
+>>> assert len(block_list) == 1
+>>> block_list[0][1]
+**farm_animals
+my_farm, your_farm, other_farm
+    species [text]  n_legs [-]  avg_weight [kg]
+0        chicken         2.0              2.0
+1            pig         4.0             89.0
+2            cow         4.0            200.0
+3        unicorn         4.0              NaN
 
 
 
@@ -159,29 +142,29 @@ StarTable Directive blocks are intended to be interpreted and handled at
 read time, and then discarded. The client code (i.e. you) is responsible
 for doing this. Handling directives is done outside of the ``pdtable``
 framework. This would typically done by a function that consumes a
-``BlockGenerator`` (the output of the reader functions), processes the
+``BlockIterator`` (the output of the reader functions), processes the
 directive blocks encountered therein, and in turn yields a processed
-``BlockGenerator``, as in:
+``BlockIterator``, as in:
 
 ::
 
-   def handle_some_directive(bg: BlockGenerator, \*args, \*\*kwargs) -> BlockGenerator:
+   def handle_some_directive(bi: BlockIterator, *args, **kwargs) -> BlockIterator:
        ...
 
 Usage would then be:
 
 ::
 
-   block_gen = handle_some_directive(read_csv('foo.csv'), args...)
+   block_it = handle_some_directive(read_csv('foo.csv'), args...)
 
-Let’s imagine a directive named ``'include'``, which the client
+Let’s imagine a directive named ``include``, which the client
 application is meant to interpret as: include the contents of the listed
 StarTable CSV files along with the contents of the file you’re reading
 right now. Such a directive could look like:
 
 ::
 
-   \*\*\*include
+   ***include
    bar.csv
    baz.csv
 
@@ -192,25 +175,23 @@ easily imagine a ``rename_tables`` directive requiring certain table
 names to be amended upon reading.
 
 But let’s stick to the “include” example for now. The application wants
-to interpret the ``include`` directive above as: read two additional
-files and throw all the read blocks together. Perhaps even recursively,
+to interpret the ``include`` directive above as: read all the blocks from the two additional CSV
+files listed and throw them in the pile. Perhaps even recursively,
 i.e. similarly handle any ``include`` directives encountered in
 ``bar.csv`` and ``baz.csv`` and so on. A handler for this could be
-designed to be used as
+designed to be used as::
 
-::
-
-   block_gen = handle_includes(read_csv('foo.csv'), input_dir='./some_dir/', recursive=True)
+   block_it = handle_includes(read_csv('foo.csv'), input_dir='./some_dir/', recursive=True)
 
 and look like this:
 
-.. code:: ipython3
+.. code:: python
 
     import functools
     from pdtable import BlockIterator, Directive
     
     
-    def handle_includes(bg: BlockIterator, input_dir, recursive: bool = False) -> BlockIterator:
+    def handle_includes(bi: BlockIterator, input_dir, recursive: bool = False) -> BlockIterator:
         """Handles 'include' directives, optionally recursively.
     
         Handles 'include' directives.
@@ -221,8 +202,8 @@ and look like this:
         recursion ensues upon reading either file1.csv or file2.csv with 'recursive' set to True.
     
         Args:
-            bg:
-                A block generator returned by read_csv
+            bi:
+                A block iterator returned by read_csv
     
             input_dir:
                 Path of directory in which include files are located.
@@ -232,7 +213,7 @@ and look like this:
                 read as a consequence of an 'include' directive, will be handled. Default is False.
     
         Yields:
-            A block generator yielding blocks from...
+            A block iterator yielding blocks from...
             * if recursive, the entire tree of files in 'include' directives.
             * if not recursive, the top-level file and those files listed in its 'include' directive (if
               any).
@@ -245,7 +226,7 @@ and look like this:
             else lambda x: x
         )
     
-        for block_type, block in bg:
+        for block_type, block in bi:
             if block_type == BlockType.DIRECTIVE:
                 directive: Directive = block
                 if directive.name == "include":
