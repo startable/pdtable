@@ -328,11 +328,11 @@ that stream. (Could just as well have been a CSV file.)
         author: ;XYODA     ;
         purpose:;Save the galaxy
     
-        \*\*\*gunk
+        ***gunk
         grok
         jiggyjag
     
-        \*\*places;
+        **places;
         all
         place;distance;ETA;is_hot
         text;km;datetime;onoff
@@ -340,7 +340,7 @@ that stream. (Could just as well have been a CSV file.)
         work;1.0;2020-08-04 09:00:00;0
         beach;2.0;2020-08-04 17:00:00;1
     
-        \*\*farm_animals;;;
+        **farm_animals;;;
         your_farm my_farm other_farm;;;
         species;n_legs;avg_weight;
         text;-;kg;
