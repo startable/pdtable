@@ -12,21 +12,11 @@ pdtable: manipulate StarTable data with Python and pandas
 
    usage/installation
    usage/quickstart
+   usage/reading
+   usage/writing
+   usage/unit_conversion
+   usage/json
 
-Installation 
-============
-
-pdtable is available from pypi:
-
-.. code-block:: shell
-
-   pip install pdtable
-
-and from conda-forge:
-
-.. code-block:: shell
-
-   conda install pdtable -c conda-forge
 
 Indices and tables
 ==================
