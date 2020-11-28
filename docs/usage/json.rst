@@ -13,6 +13,8 @@ blocks.
 The pdtable.io API including JSON support can be illustrated as a more
 detailed version of the diagram shown earlier:
 
+.. _fig-io-detailed:
+
 .. figure:: ../diagrams/img/io_detailed/io_detailed.svg
    :alt: pdtable.io API
 

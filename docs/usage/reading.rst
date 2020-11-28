@@ -11,8 +11,8 @@ They generate tuples of (``block_type``, ``block``) where
   indicates which type of StarTable block ``block`` is. Possible values:
   ``DIRECTIVE``, ``TABLE``, ``TEMPLATE_ROW``, ``METADATA``, and ``BLANK``.
 
-Read example data
------------------
+Reading example
+---------------
 
 Let’s make some CSV StarTable data, put it in a text stream, and read
 that stream. (Reading from a CSV file is no different.)

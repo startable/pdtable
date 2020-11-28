@@ -30,7 +30,7 @@ as:
 .. figure:: ../diagrams/img/io_simple/io_simple.svg
    :alt: Simplified I/O API
 
-We will return to a more detailed diagram also illustrating JSON support.
+For a more detailed diagram of the pdtable.io API, see :ref:`fig-io-detailed`.
 
 This page shows code that demonstrates usage. See the ``pdtable``
 docstring for a discussion of the implementation.
