@@ -17,6 +17,7 @@ dependencies:
   - flake8-black
   - flake8-comprehensions
   - sphinx
+  - recommonmark
 # DEV
   - twine
   - jupyter
