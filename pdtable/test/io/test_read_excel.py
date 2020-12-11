@@ -1,7 +1,8 @@
+import tempfile
 from pathlib import Path
 from pytest import raises
 
-from ... import Table
+from ... import Table, write_excel
 from ...io import read_excel
 from ...store import BlockType
 
@@ -45,13 +46,16 @@ def test_read_excel():
         ]
         assert len(expected_tables) == len(tables_read_stream)
 
+    # read from tempfile (#77)
+    with tempfile.TemporaryFile() as f:
+        write_excel(t0, f)
+        f.seek(0)
+        assert t0.equals(list(read_excel(f))[0][1])
+
     # raises exception if not binary stream
     with raises(Exception):
         with open(Path(__file__).parent / "input" / "foo.xlsx", "r") as fh:  # text stream!
-            blocks = read_excel(fh)
-            tables_read_stream = [
-                block for (block_type, block) in blocks if block_type == BlockType.TABLE
-            ]
+            read_excel(fh)
 
 
 def test_read_excel__applies_filter():
