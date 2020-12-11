@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+None yet. 
+
+## [0.0.4] - 2020-12-11
+
 ### Added
 
-- The reader functions now output helpful error messages when parsing stops due to errors in the input table blocks.
+- Major ergonomics improvement: The reader functions now output helpful error messages when parsing stops due to errors in the input table blocks.
 
 ### Changed
 
