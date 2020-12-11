@@ -1,5 +1,6 @@
 import sys
 from typing import List, Any
+
 import numpy as np
 import pandas as pd
 
@@ -24,7 +25,7 @@ class ParseFixer:
         self._errors = 0
         self._warnings = 0
         self._stop_on_errors = 1
-
+        self.messages = []
         # Context info
         self.origin = None
         self.table_name = None
@@ -71,11 +72,11 @@ class ParseFixer:
             This method should provide a unique replacement name
 
         """
+        msg = f"Duplicate column '{column_name}' at position {self.column_name} " \
+              f"in table '{self.table_name}'."
+        self.messages.append(msg)
         if self.verbose:
-            print(
-                f"ParseFixer: fix duplicate column ({self.column_name}) {column_name} "
-                f"in table: {self.table_name}"
-            )
+            print(msg)
 
         self._errors += 1
         for sq in range(1000):
@@ -93,8 +94,10 @@ class ParseFixer:
             This method should return the entire row of length num_columns
             by providing the missing default values
         """
+        msg = f"Missing data in row {row} of table '{self.table_name}'"
+        self.messages.append(msg)
         if self.verbose:
-            print(f"ParseFixer: fix missing data in row ({row}) in table: {self.table_name}")
+            print(msg)
         row_data.extend(["NaN" for cc in range(num_columns - len(row_data))])
         self._errors += 1
         return row_data
@@ -109,8 +112,10 @@ class ParseFixer:
         # TODO value can be something else than a string if it comes from e.g. Excel/openpyxl
         # TODO should not try to fix things that are illegal by design e.g. illegal empty cells
         defaults = {"onoff": False, "datetime": pd.NaT, "float": np.NaN, "-": np.NaN}
+        msg = f"Illegal value '{value}' for unit '{vtype} ' in table '{self.table_name}'."
+        self.messages.append(msg)
         if self.verbose:
-            print(f'ParseFixer: illegal {vtype} value "{value}" in table {self.table_name}')
+            print(msg)
         default_val = defaults.get(vtype)
         self._warnings += 1
         if default_val is not None:
@@ -122,11 +127,12 @@ class ParseFixer:
         """ Inform user on stdout, stderr of any warnings / errors
         """
         if self.fixes > 0 and self.stop_on_errors:
-            txt = f"Error(s): stop after {self.fixes} errors in input table '{self.table_name}'"
+            txt = f"Stopped parsing after {self.fixes} errors in table '{self.table_name}' " \
+                  f"with messages:\n"
+            txt += '\n'.join(self.messages)
             raise ValueError(txt)
 
         if hasattr(self, "_called_from_test"):
-            # TODO intended behaviour when _called_from_test = something else than True?
             return
 
         if self._warnings > 0:
