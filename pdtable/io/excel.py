@@ -8,7 +8,6 @@ requiring them (read_excel() or write_excel()) are called for the first time.
 
 """
 import os
-import io
 from os import PathLike
 from typing import Union, Callable, Iterable, BinaryIO
 
@@ -58,7 +57,7 @@ def read_excel(
 
 def write_excel(
     tables: Union[Table, Iterable[Table], TableBundle],
-    path: Union[str, os.PathLike],
+    path: Union[str, os.PathLike, BinaryIO],
     na_rep: str = "-",
 ):
     """Writes one or more tables to an Excel workbook.
