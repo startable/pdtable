@@ -53,9 +53,6 @@ def read_excel(
             "Please install openpyxl for Excel I/O support."
         ) from err
 
-    if not isinstance(source, (str, PathLike)):
-        assert isinstance(source, io.BufferedIOBase)
-
     yield from parse_blocks(read_cell_rows(source), **kwargs)
 
 
