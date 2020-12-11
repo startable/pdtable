@@ -70,8 +70,6 @@ def default_fixer(**kwargs):
         if type(fixer) is type:
             # It's a class, not an instance. Make an instance here.
             fixer = kwargs["fixer"]()
-        else:
-            assert isinstance(fixer, ParseFixer)
     else:
         fixer = ParseFixer()
     assert fixer is not None

@@ -1,9 +1,11 @@
 import json
 import os
 from pathlib import Path
+from textwrap import dedent
 
 import pandas as pd
 import pytest
+from pytest import raises
 
 from pdtable import ParseFixer, BlockType
 from pdtable import read_csv
@@ -14,13 +16,26 @@ from pdtable.io.parsers.blocks import make_table
 
 class custom_test_fixer(ParseFixer):
     def __init__(self):
-        ParseFixer.__init__(self)
+        super().__init__()
         self.stop_on_errors = False
         self._called_from_test = True
 
 
 def input_dir() -> Path:
     return Path(__file__).parent / "input/with_errors"
+
+
+def test_displays_all_error_messages():
+    """By default, ParseFixer stops on errors and outputs a message
+    listing all encountered errors."""
+    expected_error_msg = dedent(
+        """\
+        Stopped parsing after 2 errors in table 'farm_cols1' with messages:
+        Duplicate column 'flt' at position 4 in table 'farm_cols1'.
+        Duplicate column 'flt' at position 5 in table 'farm_cols1'."""
+    )
+    with raises(ValueError, match=expected_error_msg):
+        blocks = list(read_csv(input_dir() / "cols1.csv"))
 
 
 def test_columns_duplicate():
