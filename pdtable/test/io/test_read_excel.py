@@ -52,11 +52,6 @@ def test_read_excel():
         f.seek(0)
         assert t0.equals(list(read_excel(f))[0][1])
 
-    # raises exception if not binary stream
-    with raises(Exception):
-        with open(Path(__file__).parent / "input" / "foo.xlsx", "r") as fh:  # text stream!
-            read_excel(fh)
-
 
 def test_read_excel__applies_filter():
 
