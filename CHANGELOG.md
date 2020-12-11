@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `write_excel()` parameter `path` renamed to `to`, reflecting the fact that it can write not only to file but also to binary stream; and by the same token, harmonizing its API with `read_csv()`. 
+
+### Fixed
+
+- 77: Harmful assert in `read_excel()` prevented reading from certain kinds of streams; now removed.
+
 
 ## [0.0.3] - 2020-11-13
 
