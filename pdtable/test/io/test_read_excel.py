@@ -1,6 +1,5 @@
 import tempfile
 from pathlib import Path
-from pytest import raises
 
 from ... import Table, write_excel
 from ...io import read_excel
@@ -21,7 +20,7 @@ def test_read_excel():
 
     t1 = Table(name="spelling_numbers")
     t1.add_column("number", [1, 6, 42], "-")
-    t1.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t1.add_column("spelling", ["one", "six, as formula", "forty-two"], "text")
 
     t2 = Table(name="this_one_is_transposed")
     t2.add_column("diameter", [1.23], "cm")
