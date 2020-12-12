@@ -34,11 +34,16 @@ class Column:
     """
 
     def __init__(self, df: TableDataFrame, name: str, table_info: ComplementaryTableInfo = None):
+        # TODO Instead of passing the entire df, consider only passing the relevant df
+        #  column Series and ColumnMetadata
         self._name = name
         self._values = df[name]
         if not table_info:
             table_info = get_table_info(df)
         self._meta = table_info.columns[name]
+
+    def __iter__(self):
+        yield from self._values
 
     @property
     def name(self):

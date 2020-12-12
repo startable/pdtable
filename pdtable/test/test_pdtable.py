@@ -70,6 +70,12 @@ def test_column(dft):
     # assert dft.cola[2] == 7
 
 
+def test_column__iter(dft):
+    """Can iterate over a Column's values"""
+    c = Column(dft, "cola")
+    assert [x for x in c] == [0, 1, 2, 3]
+
+
 def test_add_column(dft):
     frame.add_column(dft, "colc", [f"c{v}" for v in range(20, 24)], "text")
     assert dft.colc[0] == "c20"
