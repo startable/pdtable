@@ -19,7 +19,7 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
     """Reads from an Excel workbook, yielding one row of cells at a time."""
     import openpyxl
 
-    wb = openpyxl.load_workbook(path)
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True, keep_links=False)
     for ws in wb.worksheets:
         yield from ws.iter_rows(values_only=True)
 
