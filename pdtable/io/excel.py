@@ -19,7 +19,6 @@ from ..store import BlockIterator
 
 def read_excel(
     source: Union[str, PathLike, BinaryIO],
-    origin=None,
     fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
@@ -39,7 +38,7 @@ def read_excel(
     Yields:
         Tuples of the form (block type, block content)
     """
-
+    origin = None
     kwargs = {"origin": origin, "fixer": fixer, "to": to, "filter": filter}
 
     try:
