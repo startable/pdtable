@@ -20,13 +20,25 @@ class TableOrigin(ABC):
 
     @abstractmethod
     def __str__(self):
+        """A sufficient string representation of the origin."""
         ...
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self})"
 
     def as_html(self) -> str:
         return str(self)
 
 
+class AnonymousTableOrigin(TableOrigin):
+    """For tables created directly from literal data, not read from a source."""
+
+    def __str__(self):
+        return "anonymous origin"
+
+
 class CSVTableOrigin(TableOrigin):
+    """For tables read from CSV data."""
     def __init__(self, file_name: str = "", row: int = 0):
         self._file_name = file_name
         self._row = row
@@ -34,8 +46,16 @@ class CSVTableOrigin(TableOrigin):
     def __str__(self) -> str:
         return f"'{self._file_name}' row {self._row}"
 
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
+
+class ExcelTableOrigin(TableOrigin):
+    """For tables read from an Excel workbook."""
+    def __init__(self, file_name: str = "", sheet_name: str = "", row: int = 0):
+        self._file_name = file_name
+        self._sheet_name = sheet_name
+        self._row = row
+
+    def __str__(self) -> str:
+        return f"'{self._file_name}' sheet '{self._sheet_name}' row {self._row}"
 
 
 @dataclass
