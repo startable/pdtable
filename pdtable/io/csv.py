@@ -17,7 +17,6 @@ from .parsers.blocks import parse_blocks
 def read_csv(
     source: Union[str, PathLike, TextIO],
     sep: str = None,
-    origin: str = None,
     fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
@@ -57,9 +56,6 @@ def read_csv(
         sep:
             Optional; CSV field delimiter. Default is ';'.
 
-        origin:
-            Optional; Table location
-
         fixer:
             Customized ParseFixer instance to be used instead of default fixer.
             fixer corrects simple errors in source stream.
@@ -80,6 +76,8 @@ def read_csv(
         TemplateBlock}
 
     """
+    origin = None
+
     if sep is None:
         sep = pdtable.CSV_SEP
 

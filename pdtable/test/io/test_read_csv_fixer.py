@@ -124,7 +124,7 @@ def test_FAT():
             continue
 
         with open(input_dir() / fn, "r") as fh:
-            g = read_csv(fh, origin=f'"{fn}"', to="jsondata", fixer=custom_test_fixer)
+            g = read_csv(fh, to="jsondata", fixer=custom_test_fixer)
             count = 0
             for tp, tt in g:
                 if tp == BlockType.TABLE:
