@@ -46,6 +46,10 @@ class CSVTableOrigin(TableOrigin):
     def __str__(self) -> str:
         return f"'{self._file_name}' row {self._row}"
 
+    def at(self, row: int):
+        """Returns a copy of this origin, but with specified row"""
+        return CSVTableOrigin(self._file_name, row)
+
 
 class ExcelTableOrigin(TableOrigin):
     """For tables read from an Excel workbook."""
@@ -56,6 +60,12 @@ class ExcelTableOrigin(TableOrigin):
 
     def __str__(self) -> str:
         return f"'{self._file_name}' sheet '{self._sheet_name}' row {self._row}"
+
+    def at(self, sheet_name: str, row: int):
+        """Returns a copy of this origin, but with specified sheet name and row"""
+        #FIXME this won't work: parser doesn't know what sheet_name it's on.
+        #      Also the row number restarts at 1 on each new sheet; parser is unaware of this.
+        return ExcelTableOrigin(self._file_name, sheet_name, row)
 
 
 @dataclass
