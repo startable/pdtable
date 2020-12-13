@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Set, List, Optional, Dict, Union
 
@@ -9,7 +10,7 @@ class InvalidNamingError(Exception):
     pass
 
 
-class TableOrigin:
+class TableOrigin(ABC):
     """
     A TableOrigin instance uniquely defines the source of a Table instance.
 
@@ -17,20 +18,24 @@ class TableOrigin:
     If possible, as_html() should be defined to include backlink to original input.
     """
 
+    @abstractmethod
+    def __str__(self):
+        ...
+
     def as_html(self) -> str:
         return str(self)
 
 
-class TableOriginCSV(TableOrigin):
+class CSVTableOrigin(TableOrigin):
     def __init__(self, file_name: str = "", row: int = 0):
         self._file_name = file_name
         self._row = row
 
     def __str__(self) -> str:
-        return f'"{self._file_name}" row {self._row}'
+        return f"'{self._file_name}' row {self._row}"
 
     def __repr__(self) -> str:
-        return f"TableOriginCSV({self})"
+        return f"{type(self).__name__}({self})"
 
 
 @dataclass

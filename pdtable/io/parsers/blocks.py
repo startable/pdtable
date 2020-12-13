@@ -37,7 +37,7 @@ from .columns import parse_column
 from .fixer import ParseFixer
 from ... import frame
 from ...auxiliary import MetadataBlock, Directive
-from ...table_metadata import TableOriginCSV, TableMetadata
+from ...table_metadata import CSVTableOrigin, TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
@@ -187,7 +187,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     }
 
 
-def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwargs) -> Table:
+def make_table(cells: CellGrid, origin: Optional[CSVTableOrigin] = None, **kwargs) -> Table:
     """Parses cell grid into a pdtable-style Table block object."""
     json_precursor = make_table_json_precursor(cells, origin=origin, **kwargs)
     return Table(
@@ -335,11 +335,11 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
         if next_state is not None:
             # Current block has ended. Emit it.
             if len(cell_grid) > 0:
-                kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
+                kwargs["origin"] = CSVTableOrigin(origin, this_block_1st_row)
                 block_type, block = make_block(state, cell_grid, **kwargs)
                 if block_type is not None:
                     yield block_type, block
-            # TODO augment TableOriginCSV with one tailored for Excel
+            # TODO augment CSVTableOrigin with one tailored for Excel
             cell_grid = []
             state = next_state
             next_state = None
@@ -353,7 +353,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
 
     if cell_grid:
         # Block ended with EOF. Emit it.
-        kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
+        kwargs["origin"] = CSVTableOrigin(origin, this_block_1st_row)
         block_type, block = make_block(state, cell_grid, **kwargs)
         if block_type is not None:
             yield block_type, block

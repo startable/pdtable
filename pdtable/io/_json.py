@@ -5,7 +5,7 @@ from typing import Union, Dict, List
 
 import numpy as np
 
-from pdtable.table_metadata import TableOriginCSV
+from pdtable.table_metadata import CSVTableOrigin
 
 # Typing alias:
 # JSON-like data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values
@@ -21,7 +21,7 @@ JsonDataPrecursor = Union[
     bool,
     None,
     datetime.datetime,
-    TableOriginCSV,
+    CSVTableOrigin,
 ]
 
 _json_encodable_value_maps = {
@@ -60,7 +60,7 @@ def to_json_serializable(obj: JsonDataPrecursor) -> JsonData:
         else:
             return [to_json_serializable(val) for val in obj.tolist()]
 
-    if isinstance(obj, TableOriginCSV):
+    if isinstance(obj, CSVTableOrigin):
         return str(obj._file_name)
 
     if isinstance(obj, datetime.datetime):
