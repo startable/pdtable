@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-None yet. 
+### Added
+
+- For convenience, `Column` proxy is is now iterable. For example, `list(table["some_col"])` now works, whereas previously you had to access the backing `TableDataFrame` as `list(table.df["some_col"])`. Saving 3 chars FTW. 
+
+### Fixed
+
+- \#82: `read_excel()` fails on formulas 
 
 ## [0.0.4] - 2020-12-11
 
