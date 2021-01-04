@@ -61,12 +61,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         python setup.py sdist
+        # the package is pure python, but let's build wheels anyway
         python setup.py bdist_wheel
 
     - name: Upload to PyPI
       run: |
         python -m pip install twine
-        python -m twine upload --repository testpypi dist/* -u __token__ -p "$TOKEN"
+        python -m twine upload dist/* -u __token__ -p "$TOKEN"
       env:
         TOKEN: ${{ secrets.PYPI_TOKEN }}
       
