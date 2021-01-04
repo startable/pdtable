@@ -14,6 +14,7 @@ No unreleased changes yet.
 ### Added
 
 - For convenience, `Column` proxy is is now iterable. For example, `list(table["some_col"])` now works, whereas previously you had to access the backing `TableDataFrame` as `list(table.df["some_col"])`. Saving 3 chars FTW. 
+- CI pipeline now auto releases to PyPI on pushed tags starting with a "v". 
 
 ### Fixed
 
