@@ -32,7 +32,7 @@ def find_version(*file_paths):
 
 
 setup(
-    name="tst_pdtable",
+    name="pdtable",
     version=find_version("pdtable", "__init__.py"),
     description="Reads and writes data stored in StarTable format; and stores table data in"
     "memory as a Pandas data frame for easy manipulation.",
