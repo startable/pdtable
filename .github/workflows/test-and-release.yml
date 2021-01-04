@@ -6,6 +6,7 @@ name: run-tests
 on:
   push:
     branches: [ master, ci/**]
+    tags: [ v* ]
   pull_request:
     branches: [ master ]
   schedule:
@@ -13,7 +14,7 @@ on:
   workflow_dispatch: 
 
 jobs:
-  build:
+  test:
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -41,3 +42,33 @@ jobs:
     - name: Test with pytest
       run: |
         pytest --cov
+
+  release:
+
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
+    needs: [test]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
+    - name: Build package
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        python setup.py sdist
+        # the package is pure python, but let's build wheels anyway
+        python setup.py bdist_wheel
+
+    - name: Upload to PyPI
+      run: |
+        python -m pip install twine
+        python -m twine upload dist/* -u __token__ -p "$TOKEN"
+      env:
+        TOKEN: ${{ secrets.PYPI_TOKEN }}
+      
+ 
