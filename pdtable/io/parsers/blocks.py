@@ -166,7 +166,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
             data_rows[i_row] = fix_row
 
     # build dictionary of columns iteratively to allow meaningful error messages
-    columns = {}
+    columns = dict(zip(column_names, [[]]*len(column_names)))
     for name, unit, values in zip(column_names, units, zip(*data_rows)):
         try:
             fixer.column_name = name
