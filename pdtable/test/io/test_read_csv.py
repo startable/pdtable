@@ -2,10 +2,11 @@ import io
 from textwrap import dedent
 from typing import List
 from pathlib import Path
+import pandas as pd
 
 from pytest import fixture, raises
 
-from pdtable import read_csv, BlockType, Table
+from pdtable import read_csv, write_csv, BlockType, Table
 
 
 @fixture
@@ -37,7 +38,7 @@ def csv_data() -> str:
         pig;4;89;
         cow;4;200;
         unicorn;4;NaN;
-        
+
         **this_one_is_transposed*;
         all;
         diameter; cm; 1.23;
@@ -140,3 +141,19 @@ def test_read_csv__successfully_ignores_comments_on_column_name_row():
     tables: List[Table] = [b for t, b in bl if t == BlockType.TABLE]
     t0: Table = tables[0]
     assert t0.column_names == ["place", "distance", "ETA", "is_hot"]
+
+
+def test_read_csv__empty_table(tmpdir):
+    # create empty dataframe with columns
+    df = pd.DataFrame({"c": [], "d": []})
+
+    # write to startable format in tmpdir
+    temp_csv = Path(tmpdir) / 'empty_example.csv'
+    write_csv(Table(df, name='empty_example', destinations=['ex'], units=['kg', 'km']), temp_csv)
+
+    # read it back in
+    blocks = list(read_csv(temp_csv, filter=lambda block_type, _: block_type == BlockType.TABLE))
+
+    # fails as the column names are not read in
+    assert blocks[0][1].df.shape == df.shape
+    assert all(blocks[0][1].df.columns == df.columns)
