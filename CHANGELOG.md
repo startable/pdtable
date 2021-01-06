@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [0.0.6] - 2021-01-06
+
+### Fixed
+
+- [#87](https://github.com/startable/pdtable/issues/87) Parser fails on tables with zero rows. (Edge case not explicitly ruled out in the StarTable specification.)
+
 ## [0.0.5] - 2021-01-04
 
 ### Added
