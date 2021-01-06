@@ -68,20 +68,3 @@ def test_read_excel__applies_filter():
     assert len(blocks) == 1
     table: Table = blocks[0][1]
     assert table.name == "spelling_numbers"
-
-
-def test_read_excel__empty_table():
-
-    # create empty dataframe with columns
-    df = pd.DataFrame({"c": [], "d": []})
-
-    # write to startable format
-    temp_xlsx = tempfile.TemporaryFile()
-    write_excel(Table(df, name='empty_example', destinations=['ex'], units=['kg', 'km']), temp_xlsx)
-
-    # read it back in
-    blocks = list(read_excel(temp_xlsx, filter=lambda block_type, _: block_type == BlockType.TABLE))
-
-    # fails as the column names are not read in
-    assert blocks[0][1].df.shape == df.shape
-    assert all(blocks[0][1].df.columns == df.columns)

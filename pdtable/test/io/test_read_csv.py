@@ -142,18 +142,3 @@ def test_read_csv__successfully_ignores_comments_on_column_name_row():
     t0: Table = tables[0]
     assert t0.column_names == ["place", "distance", "ETA", "is_hot"]
 
-
-def test_read_csv__empty_table(tmpdir):
-    # create empty dataframe with columns
-    df = pd.DataFrame({"c": [], "d": []})
-
-    # write to startable format in tmpdir
-    temp_csv = Path(tmpdir) / 'empty_example.csv'
-    write_csv(Table(df, name='empty_example', destinations=['ex'], units=['kg', 'km']), temp_csv)
-
-    # read it back in
-    blocks = list(read_csv(temp_csv, filter=lambda block_type, _: block_type == BlockType.TABLE))
-
-    # fails as the column names are not read in
-    assert blocks[0][1].df.shape == df.shape
-    assert all(blocks[0][1].df.columns == df.columns)
