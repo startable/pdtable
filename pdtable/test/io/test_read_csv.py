@@ -14,9 +14,11 @@ def csv_data() -> str:
         """\
         author: ;XYODA     ;
         purpose:;Save the galaxy;
+
         ***gunk
         grok
         jiggyjag
+
         **places;
         all
         place;distance;ETA;is_hot;
@@ -24,7 +26,9 @@ def csv_data() -> str:
         home;0.0;2020-08-04 08:00:00;1
         work;1.0;2020-08-04 09:00:00;0
         beach;2.0;2020-08-04 17:00:00;1
+
         ::;details about various places;
+
         **farm_animals
         your_farm my_farm other_farm;;
         species;n_legs;avg_weight;
@@ -94,14 +98,17 @@ def test_read_csv__reads_transposed_tables_with_arbitrary_trailing_csv_delimiter
         all
         diameter; cm; 1.23
         melting_point; K; 273
+
         **transposed*;
         all;
         diameter; cm; 1.23;;;;;;;
         melting_point; K; 273;
+
         **transposed*;
         all;
         diameter; cm; 1.23
         melting_point; K; 273;;;;;;;;;;;;;;;;;;;
+
         **transposed*;;;;;;
         all;;;;;;
         diameter; cm; 1.23;;;;
