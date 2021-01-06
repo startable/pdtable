@@ -223,3 +223,44 @@ def test_preserve_column_order():
     pdtab_from_json = json_data_to_table(js_obj_from_json)
 
     assert pandas_pdtab.equals(pdtab_from_json)
+
+
+def test_json_empty_pdtable():
+    """ tests reading in an empty table (ie no rows) to a jsondata object
+    """
+    cell_rows = [
+        line.split(";")
+        for line in dedent(
+            """\
+        **farm_types1;;;
+        your_farm my_farm farms_galore;;;
+        species;  num;  flt;    log;
+        text;       -;   kg;  onoff;
+        """
+        )
+        .strip()
+        .split("\n")
+    ]
+    # parse the table to a jsondata
+    g = parse_blocks(cell_rows, **{"origin": '"types1.csv" row 1', "to": "jsondata"}, fixer=custom_test_fixer)
+    table_json_data = None
+    for tp, tab in g:
+        table_json_data = tab
+
+    exp_table_json_data = {
+      "name": "farm_types1",
+      "columns": {
+         "species": {"unit": "text",
+                     "values": []},
+         "num": {"unit": "-",
+                 "values": []},
+         "flt": {"unit": "kg",
+                 "values": []},
+         "log": {"unit": "onoff",
+                 "values": []}
+      },
+      "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None}
+    }
+
+    assert table_json_data == exp_table_json_data
+
