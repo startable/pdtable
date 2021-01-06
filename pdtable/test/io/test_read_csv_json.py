@@ -10,7 +10,7 @@ from pdtable import BlockType, ParseFixer
 from pdtable.io import json_data_to_table, table_to_json_data
 from pdtable.io._json import to_json_serializable
 from pdtable.io.parsers import parse_blocks
-from pdtable.io.parsers.blocks import make_table
+from pdtable.io.parsers.blocks import make_table, make_table_json_data
 
 
 class custom_test_fixer(ParseFixer):
@@ -223,3 +223,39 @@ def test_preserve_column_order():
     pdtab_from_json = json_data_to_table(js_obj_from_json)
 
     assert pandas_pdtab.equals(pdtab_from_json)
+
+
+def test_make_table_json_data__empty_table():
+    """ tests reading in an empty table (ie no rows) to a jsondata object
+    and creating a table via that json using json_data_to_table
+    """
+    lines_target = [
+        ["**farm_types1"],
+        ["your_farm my_farm farms_galore"],
+        ["species", "num", "flt", "log"],
+        ["text", "-", "kg", "onoff"]
+    ]
+    # parse the table to a jsondata
+    table_json_data = make_table_json_data(lines_target, 'farm_types1.csv', fixer=custom_test_fixer)
+
+    exp_table_json_data = {
+      "name": "farm_types1",
+      "columns": {
+         "species": {"unit": "text",
+                     "values": []},
+         "num": {"unit": "-",
+                 "values": []},
+         "flt": {"unit": "kg",
+                 "values": []},
+         "log": {"unit": "onoff",
+                 "values": []}
+      },
+      "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None}
+    }
+    # correct json representation created
+    assert table_json_data == exp_table_json_data
+
+    # and json with empty values can be created into table
+    table_from_json = json_data_to_table(table_json_data, fixer=custom_test_fixer)
+    table_from_lines = make_table(lines_target, fixer=custom_test_fixer)
+    assert table_from_lines.equals(table_from_json)

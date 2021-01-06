@@ -37,7 +37,7 @@ def csv_data() -> str:
         pig;4;89;
         cow;4;200;
         unicorn;4;NaN;
-        
+
         **this_one_is_transposed*;
         all;
         diameter; cm; 1.23;
