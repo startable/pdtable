@@ -153,6 +153,25 @@ def test_make_table__no_trailing_sep():
     assert t.dash[0] == 10
 
 
+def test_make_table__empty_values():
+    lines = [
+        ["**foo"],
+        ["all"],
+        ["place", "distance"],
+        ["text", "km"],
+    ]
+
+    t = make_table(lines)
+
+    assert t.name == "foo"
+    assert set(t.metadata.destinations) == {"all"}
+    assert t.column_names == ["place", "distance"]
+    assert t.units == ["text", "km"]
+
+    df = pd.DataFrame({"place": [], "distance": []})
+    pd.testing.assert_frame_equal(t.df, df)
+
+
 def test_parse_blocks():
     cell_rows = [
         line.split(";")
