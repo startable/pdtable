@@ -102,7 +102,10 @@ class TableBundle:
                 self._tables_in_order.append(table)
 
     def __getattr__(self, name: str) -> TableType:
-        return self.unique(name)
+        try:
+            return self.unique(name)
+        except KeyError as e:
+            raise AttributeError(name) from e
 
     def __getitem__(self, idx: Union[str, int]) -> TableType:
         """Get table by numerical index or by name.
@@ -115,6 +118,9 @@ class TableBundle:
             return self._tables_in_order[idx]
 
         raise TypeError(f"getitem of type: {type(idx)}")
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._tables_named
 
     def __iter__(self) -> Iterator[str]:
         """Iterator over tables"""
