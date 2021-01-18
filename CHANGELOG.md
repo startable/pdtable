@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Fix issue with invalid attribute access to `TableBundle` raising `KeyError` rather than `AttributeError`.
-- Enable `in`-operator for TableBundle.
+No unreleased changes yet. 
+
+## [0.0.7] - 2021-01-18
+
+### Fixed
+- Invalid attribute access to `TableBundle` (e.g. `bundle["nonexistent_table"]`) raised a dubious `KeyError`; now raises a more appropriate `AttributeError`.
+
+### Added
+- Enable `in`-operator for TableBundle. Example: `assert "some_table_name" in bundle`
 
 ## [0.0.6] - 2021-01-06
 
