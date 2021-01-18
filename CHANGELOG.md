@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased changes yet.
+- Fix issue with invalid attribute access to `TableBundle` raising `KeyError` rather than `AttributeError`.
+- Enable `in`-operator for TableBundle.
 
 ## [0.0.6] - 2021-01-06
 
