@@ -249,3 +249,4 @@ def test_TableBundle_attribute_error():
 def test_TableBundle_in_operator():
     bundle = TableBundle(parse_blocks(cell_rows))
     assert "foo" in bundle
+    assert "qux" not in bundle
