@@ -9,7 +9,7 @@ requiring them (read_excel() or write_excel()) are called for the first time.
 """
 import os
 from os import PathLike
-from typing import Union, Callable, Iterable, BinaryIO
+from typing import Union, Callable, Iterable, BinaryIO, Dict
 
 from .parsers.blocks import parse_blocks
 from .parsers.fixer import ParseFixer
@@ -56,7 +56,7 @@ def read_excel(
 
 
 def write_excel(
-    tables: Union[Table, Iterable[Table], TableBundle],
+    tables: Union[Table, Iterable[Table], Dict[Table], Dict[Iterable[Table]]],
     to: Union[str, os.PathLike, BinaryIO],
     na_rep: str = "-",
 ):
@@ -70,7 +70,10 @@ def write_excel(
 
     Args:
         tables:
-            Table(s) to write. Can be a single Table or an iterable of Tables.
+            Table(s) to write.
+            * If a single Table or an iterable of Tables, writes to one sheet with default name.
+            * If a dict of {sheet_name: Table} or {sheet_name: Iterable[Table]}, writes tables to
+              sheets with specified names.
         to:
             File path or binary stream to which to write.
             If a file path, then this file gets created/overwritten and then closed after writing.

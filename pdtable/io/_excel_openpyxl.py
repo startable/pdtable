@@ -1,6 +1,6 @@
 """Machinery to read/write Tables in an Excel workbook using openpyxl as engine."""
-from typing import Union, Iterable, Sequence, Any, Dict
 from os import PathLike
+from typing import Union, Iterable, Sequence, Any, Dict
 
 import openpyxl
 
@@ -27,10 +27,8 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         yield from ws.iter_rows(values_only=True)
 
 
-def write_excel_openpyxl(
-    tables: Union[Table, Iterable[Table], Dict[Table], Dict[Iterable[Table]]], path, na_rep
-):
-    """Writes tables to an Excel workbook at the specified path."""
+def write_excel_openpyxl(tables, path, na_rep):
+    """Write tables to an Excel workbook at the specified path."""
 
     if not isinstance(tables, Dict):
         # For convenience, pack it in a dict
@@ -42,7 +40,7 @@ def write_excel_openpyxl(
     for sheet_name in tables:
 
         tabs = tables[sheet_name]
-        if not isinstance(tabs, Iterable):
+        if isinstance(tabs, Table):
             # For convenience, pack single table in an iterable
             tabs = [tabs]
 
