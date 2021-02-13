@@ -100,7 +100,7 @@ def read_csv(
 
 
 def write_csv(
-    tables: Union[Table, Iterable[Table], TableBundle],
+    tables: Union[Table, Iterable[Table]],
     to: Union[str, os.PathLike, TextIO],
     sep: str = None,
     na_rep: str = "-",
