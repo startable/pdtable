@@ -122,7 +122,7 @@ class TableBundle:
     def __contains__(self, key: str) -> bool:
         return key in self._tables_named
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[Table]:
         """Iterator over tables"""
         return iter(self._tables_in_order)
 
