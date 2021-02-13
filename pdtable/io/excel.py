@@ -56,7 +56,7 @@ def read_excel(
 
 
 def write_excel(
-    tables: Union[Table, Iterable[Table], Dict[Table], Dict[Iterable[Table]]],
+    tables: Union[Table, Iterable[Table], Dict[str, Table], Dict[str, Iterable[Table]]],
     to: Union[str, os.PathLike, BinaryIO],
     na_rep: str = "-",
 ):
