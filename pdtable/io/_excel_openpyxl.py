@@ -1,5 +1,5 @@
 """Machinery to read/write Tables in an Excel workbook using openpyxl as engine."""
-from typing import Union, Iterable, Sequence, Any
+from typing import Union, Iterable, Sequence, Any, Dict
 from os import PathLike
 
 import openpyxl
@@ -15,6 +15,9 @@ from pdtable import Table
 from pdtable.io._represent import _represent_row_elements
 
 
+DEFAULT_SHEET_NAME = "Sheet1"
+
+
 def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
     """Reads from an Excel workbook, yielding one row of cells at a time."""
     import openpyxl
@@ -24,15 +27,29 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         yield from ws.iter_rows(values_only=True)
 
 
-def write_excel_openpyxl(tables, path, na_rep):
+def write_excel_openpyxl(
+    tables: Union[Table, Iterable[Table], Dict[Table], Dict[Iterable[Table]]], path, na_rep
+):
     """Writes tables to an Excel workbook at the specified path."""
-    if isinstance(tables, Table):
-        # For convenience, pack single table in an iterable
-        tables = [tables]
+
+    if not isinstance(tables, Dict):
+        # For convenience, pack it in a dict
+        tables = {DEFAULT_SHEET_NAME: tables}
+
     wb = openpyxl.Workbook()
-    ws = wb.active
-    for t in tables:
-        _append_table_to_openpyxl_worksheet(t, ws, na_rep)
+    wb.remove(wb.active)  # Remove the one sheet that openpyxl creates by default
+
+    for sheet_name in tables:
+
+        tabs = tables[sheet_name]
+        if not isinstance(tabs, Iterable):
+            # For convenience, pack single table in an iterable
+            tabs = [tabs]
+
+        ws = wb.create_sheet(title=sheet_name)
+        for t in tabs:
+            _append_table_to_openpyxl_worksheet(t, ws, na_rep)
+
     wb.save(path)
 
 
