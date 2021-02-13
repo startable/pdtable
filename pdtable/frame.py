@@ -199,7 +199,7 @@ def make_table_dataframe(
     **kwargs,
 ) -> TableDataFrame:
     """
-    Create TableDataFrame object from a pandas.DataFream and table metadata elements.
+    Create TableDataFrame object from a pandas.DataFrame and table metadata elements.
 
     Unknown keyword arguments (e.g. `name = ...`) are used to create a `TableMetadata` object.
     Alternatively, a `TableMetadata` object can be provided directly.
