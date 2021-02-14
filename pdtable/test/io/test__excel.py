@@ -60,9 +60,11 @@ def test_write_excel(tmp_path):
     )
     t.add_column("is_hot", [True, False, True, False], "onoff")
 
+    # This one is transposed
     t2 = Table(name="bar")
     t2.add_column("digit", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t2.metadata.transposed = True
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
