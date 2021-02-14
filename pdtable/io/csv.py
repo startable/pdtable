@@ -2,12 +2,13 @@
 import os
 import io
 from contextlib import nullcontext
+from itertools import chain
 from os import PathLike
 
 from typing import TextIO, Union, Callable, Iterable
 
 import pdtable  # Required to read dynamically-set pdtable.CSV_SEP
-from ._represent import _represent_row_elements
+from ._represent import _represent_row_elements, _represent_col_elements
 from .. import BlockType, Table, TableBundle
 from ..store import BlockIterator
 from .parsers.fixer import ParseFixer
@@ -147,22 +148,43 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str, na_rep: str) -> None:
     format_strings = [f"{{:{f.specifier}}}" if f else None for f in display_formats]
 
     # Build entire string at once
-    the_whole_thing = (
-        f"**{table.name}{sep}\n"
-        + " ".join(str(x) for x in table.metadata.destinations)
-        + "\n"
-        + sep.join(str(x) for x in table.column_names)
-        + "\n"
-        + sep.join(str(x) for x in units)
-        + "\n"
-        + "\n".join(
+    if table.metadata.transposed:
+        formatted_col_vals = (
+            (
+                fs.format(x) if fs else str(x)
+                for x in _represent_col_elements(col.values, col.unit, na_rep)
+            )
+            for col, fs in zip(table, format_strings)
+        )
+        the_whole_thing = (
+            f"**{table.name}*{sep}\n"
+            + " ".join(str(x) for x in table.metadata.destinations)
+            + "\n"
+            + "\n".join(
+                str(col.name) + sep + str(col.unit) + sep + sep.join(vals)
+                for col, vals in zip(table, formatted_col_vals)  # FIXME shouldnt' be looping over formatted_col_vals here, its' already a string
+            )
+            + "\n\n"
+        )
+    else:
+        # if True:
+        formatted_rows = (
             sep.join(
                 fs.format(x) if fs else str(x)
                 for x, fs in zip(_represent_row_elements(row, units, na_rep), format_strings)
             )
             for row in table.df.itertuples(index=False, name=None)
         )
-        + "\n\n"
-    )
+        the_whole_thing = (
+            f"**{table.name}{sep}\n"
+            + " ".join(str(x) for x in table.metadata.destinations)
+            + "\n"
+            + sep.join(str(x) for x in table.column_names)
+            + "\n"
+            + sep.join(str(x) for x in units)
+            + "\n"
+            + "\n".join(formatted_rows)
+            + "\n\n"
+        )
 
     stream.write(the_whole_thing)
