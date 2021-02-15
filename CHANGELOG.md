@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased changes yet. 
+### Added
+- [#92](https://github.com/startable/pdtable/issues/92) `write_excel()` can write to multiple sheets in a workbook. 
 
 ## [0.0.7] - 2021-01-18
 
