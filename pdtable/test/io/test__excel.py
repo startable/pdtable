@@ -60,9 +60,11 @@ def test_write_excel(tmp_path):
     )
     t.add_column("is_hot", [True, False, True, False], "onoff")
 
+    # This one is transposed
     t2 = Table(name="bar")
     t2.add_column("digit", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t2.metadata.transposed = True
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
@@ -89,8 +91,15 @@ def test_write_excel(tmp_path):
     assert ws.cell(8, 3).value == "-"
     assert [ws.cell(r, 4).value for r in range(5, 9)] == [1, 0, 1, 0]
 
-    # Second table is there as well (not going into details here)
-    assert ws["A10"].value == "**bar"
+    # Second table is there as well
+    assert ws["A10"].value == "**bar*"
+    assert ws["A11"].value == "all"
+    # column headers (transposed)
+    assert [ws.cell(r, 1).value for r in range(12, 14)] == ["digit", "spelling"]
+    assert [ws.cell(r, 2).value for r in range(12, 14)] == ["-", "text"]
+    # column values (transposed)
+    assert [ws.cell(12, c).value for c in range(3, 6)] == [1, 6, 42]
+    assert [ws.cell(13, c).value for c in range(3, 6)] == ["one", "six", "forty-two"]
 
     # Teardown
     out_path.unlink()

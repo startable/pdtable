@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import pandas as pd
 import numpy as np
 
@@ -94,6 +96,25 @@ def test_table(dft):
     t["colc"] = range(20, 24)
     assert "colc" in t.column_names
     assert t["colc"].unit == "-"
+
+
+def test_table__str(dft):
+    """String representation of a Table"""
+    string_rep = str(Table(dft))
+    lines = string_rep.split("\n")
+    expected_lines = dedent("""\
+        **foo
+        baz bar
+         cola [-] colb [text]
+                0          v0
+                1          v1
+                2          v2
+                3          v3""").split("\n")
+
+    assert lines[0] == expected_lines[0]
+    # destinations are stored as a set; order not necessarily preserved
+    assert lines[1] in ["bar baz", "baz bar"]
+    assert lines[2:] == expected_lines[2:]
 
 
 def test_df_operations(data_ab, data_cd):

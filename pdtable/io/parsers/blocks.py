@@ -88,7 +88,7 @@ def parse_column_names(column_names_raw: Sequence[Union[str, None]]) -> List[str
     ]
 
 
-def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
+def make_table_json_precursor(cells: CellGrid, **kwargs) -> Tuple[JsonDataPrecursor, bool]:
     """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
 
     Parses cell grid to a JSON-like data structure of nested "objects" (dict), "arrays" (list),
@@ -98,6 +98,8 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     This JSON data "precursor" can then be sent for further processing:
     - Parsing to pdtable-style Table block object
     - Conversion to a "pure" JSON data object in which all values are of JSON-native types.
+
+    Also returns a bool "transposed" flag.
     """
 
     table_name: str = cells[0][0][2:]
@@ -184,12 +186,12 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
         "units": units,
         "destinations": destinations,
         "origin": kwargs.get("origin"),
-    }
+    }, transposed
 
 
 def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwargs) -> Table:
     """Parses cell grid into a pdtable-style Table block object."""
-    json_precursor = make_table_json_precursor(cells, origin=origin, **kwargs)
+    json_precursor, transposed = make_table_json_precursor(cells, origin=origin, **kwargs)
     return Table(
         frame.make_table_dataframe(
             pd.DataFrame(json_precursor["columns"]),
@@ -198,6 +200,7 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwarg
                 name=json_precursor["name"],
                 destinations=set(json_precursor["destinations"].keys()),
                 origin=json_precursor["origin"],
+                transposed=transposed,
             ),
         )
     )
@@ -205,7 +208,7 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwarg
 
 def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     """Parses cell grid into a JSON-ready data structure."""
-    impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
+    impure_json, transposed = make_table_json_precursor(cells, origin=origin, **kwargs)
     # attach unit directly to individual column
     units = impure_json["units"]
     del impure_json["units"]  # replaced by "unit" field in columns

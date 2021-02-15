@@ -51,6 +51,7 @@ class TableMetadata:
     origin: Optional[
         str
     ] = ""  # Should be replaced with a TableOrigin object to allow file-edit access
+    transposed: bool = False
 
     def __str__(self):
         dst = (
