@@ -1,6 +1,6 @@
 """Machinery to read/write Tables in an Excel workbook using openpyxl as engine."""
-from typing import Union, Iterable, Sequence, Any
 from os import PathLike
+from typing import Union, Iterable, Sequence, Any
 
 import openpyxl
 
@@ -12,7 +12,7 @@ except ImportError:
 
 
 from pdtable import Table
-from pdtable.io._represent import _represent_row_elements
+from pdtable.io._represent import _represent_row_elements, _represent_col_elements
 
 
 def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
@@ -40,11 +40,21 @@ def _append_table_to_openpyxl_worksheet(
     table: Table, ws: OpenpyxlWorksheet, na_rep: str = "-"
 ) -> None:
     units = table.units
-    ws.append([f"**{table.name}"])
-    ws.append([" ".join(str(x) for x in table.metadata.destinations)])
-    ws.append(table.column_names)
-    ws.append(units)
-    for row in table.df.itertuples(index=False, name=None):
-        # TODO: apply format string specified in ColumnMetadata
-        ws.append(_represent_row_elements(row, units, na_rep))
+    if table.metadata.transposed:
+        ws.append([f"**{table.name}*"])
+        ws.append([" ".join(str(x) for x in table.metadata.destinations)])
+        for col in table:
+            ws.append(
+                [str(col.name), str(col.unit)]
+                + list(_represent_col_elements(col.values, col.unit, na_rep)),
+            )
+    else:
+        ws.append([f"**{table.name}"])
+        ws.append([" ".join(str(x) for x in table.metadata.destinations)])
+        ws.append(table.column_names)
+        ws.append(units)
+        for row in table.df.itertuples(index=False, name=None):
+            # TODO: apply format string specified in ColumnMetadata
+            ws.append(_represent_row_elements(row, units, na_rep))
+
     ws.append([])  # blank row marking table end
