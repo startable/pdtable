@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import pandas as pd
 import numpy as np
 
@@ -94,6 +96,20 @@ def test_table(dft):
     t["colc"] = range(20, 24)
     assert "colc" in t.column_names
     assert t["colc"].unit == "-"
+
+
+def test_table__str(dft):
+    """String representation of a Table"""
+    t = Table(dft)
+    print(t)
+    assert str(t) == dedent("""\
+        **foo
+        baz bar
+         cola [-] colb [text]
+                0          v0
+                1          v1
+                2          v2
+                3          v3""")
 
 
 def test_df_operations(data_ab, data_cd):

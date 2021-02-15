@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#85](https://github.com/startable/pdtable/issues/85) CSV and Excel writers can write transposed tables.
 
+### Changed
+- [#42](https://github.com/startable/pdtable/issues/42) Table rendered as string or html should not show dummy index 
+
 ## [0.0.7] - 2021-01-18
 
 ### Fixed
