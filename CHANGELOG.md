@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#92](https://github.com/startable/pdtable/issues/92) `write_excel()` can write to multiple sheets in a workbook. 
 - [#85](https://github.com/startable/pdtable/issues/85) CSV and Excel writers can write transposed tables.
 
 ### Changed
