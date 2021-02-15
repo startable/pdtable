@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+No unreleased changes yet. 
+
+## [0.0.8] - 2021-02-15
+
 ### Added
 - [#92](https://github.com/startable/pdtable/issues/92) `write_excel()` can write to multiple sheets in a workbook. 
 - [#85](https://github.com/startable/pdtable/issues/85) CSV and Excel writers can write transposed tables.
 
 ### Changed
-- [#42](https://github.com/startable/pdtable/issues/42) Table rendered as string or html should not show dummy index 
+- [#42](https://github.com/startable/pdtable/issues/42) Don't show dummy index when Table rendered as string.
 
 ## [0.0.7] - 2021-01-18
 
