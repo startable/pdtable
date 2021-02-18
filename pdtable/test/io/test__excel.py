@@ -162,7 +162,7 @@ def test_write_excel_with_formatting(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2], out_path, format_wb=True)
+    write_excel([t, t2], out_path, prettify=True)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
