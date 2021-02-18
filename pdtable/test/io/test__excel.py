@@ -30,7 +30,7 @@ def test__append_table_to_openpyxl_worksheet():
     ws = wb.active
 
     # Act
-    _append_table_to_openpyxl_worksheet(t, ws)
+    _append_table_to_openpyxl_worksheet(t, ws, num_blank_rows_between_tables=1)
 
     # Assert worksheet looks as expected:
     # table header by row
@@ -267,3 +267,39 @@ def test_write_excel_with_formatting(tmp_path):
 
     # Teardown
     out_path.unlink()
+
+
+def test_write_excel_with_formatting_and_2_blank_rows_between_tables(tmp_path):
+    # Make a couple of tables
+    t = Table(name="foo")
+    t["place"] = ["home", "work", "beach", "wonderland"]
+    t.add_column("distance", list(range(3)) + [float("nan")], "km")
+    t.add_column(
+        "ETA",
+        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
+        "datetime",
+    )
+    t.add_column("is_hot", [True, False, True, False], "onoff")
+
+    # This one is transposed
+    t2 = Table(name="bar")
+    t2.add_column("digit", [1, 6, 42], "-")
+    t2.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t2.metadata.transposed = True
+
+    # This one is also transposed
+    t3 = Table(name="bas")
+    t3.add_column("digit", [1, 6, 42], "-")
+    t3.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t3.metadata.transposed = True
+
+    # Write tables to workbook, save, and re-load
+    out_path = tmp_path / "foo.xlsx"
+    write_excel([t, t2, t3], out_path, prettify=True, num_blank_rows_between_tables=2)
+    wb = openpyxl.load_workbook(out_path)
+    ws = wb.active
+
+    # Tables are started as expected
+    assert ws["A1"].value == "**foo"
+    assert ws["A11"].value == "**bar*"
+    assert ws["A17"].value == "**bas*"

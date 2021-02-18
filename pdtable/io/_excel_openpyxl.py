@@ -28,7 +28,7 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         yield from ws.iter_rows(values_only=True)
 
 
-def write_excel_openpyxl(tables, path, na_rep, prettify):
+def write_excel_openpyxl(tables, path, na_rep, prettify, num_blank_rows_between_tables):
     """Write tables to an Excel workbook at the specified path."""
 
     if not isinstance(tables, Dict):
@@ -50,16 +50,16 @@ def write_excel_openpyxl(tables, path, na_rep, prettify):
         for t in tabs:
             # Keep track of table dimensions for formatting as tuples (num rows, num cols, transposed)
             table_dimensions.append((len(t.df), len(t.df.columns), t.metadata.transposed))
-            _append_table_to_openpyxl_worksheet(t, ws, na_rep)
+            _append_table_to_openpyxl_worksheet(t, ws, num_blank_rows_between_tables, na_rep)
 
         if prettify:
-            _format_tables_in_worksheet(ws, table_dimensions)
+            _format_tables_in_worksheet(ws, table_dimensions, num_blank_rows_between_tables)
 
     wb.save(path)
 
 
 def _append_table_to_openpyxl_worksheet(
-    table: Table, ws: OpenpyxlWorksheet, na_rep: str = "-"
+    table: Table, ws: OpenpyxlWorksheet, num_blank_rows_between_tables: int, na_rep: str = "-"
 ) -> None:
     units = table.units
     if table.metadata.transposed:
@@ -79,11 +79,12 @@ def _append_table_to_openpyxl_worksheet(
             # TODO: apply format string specified in ColumnMetadata
             ws.append(_represent_row_elements(row, units, na_rep))
 
-    ws.append([])  # blank row marking table end
+    for _ in range(num_blank_rows_between_tables):
+        ws.append([])  # blank row marking table end
 
 
 def _format_tables_in_worksheet(
-        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]]
+        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], num_blank_rows_between_tables: int
 ) -> None:
     # Define styles to be used
     # TODO: These should perhaps live somewhere else?
@@ -93,7 +94,6 @@ def _format_tables_in_worksheet(
     header_fill = PatternFill(start_color='D9D9D9', fill_type='solid')
     variable_fill = PatternFill(start_color='F2F2F2', fill_type='solid')
 
-    num_blank_rows_between_tables = 1
     num_header_rows = 2
     num_name_unit_rows = 2
 
