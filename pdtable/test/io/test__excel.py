@@ -160,9 +160,15 @@ def test_write_excel_with_formatting(tmp_path):
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
     t2.metadata.transposed = True
 
+    # This one is also transposed
+    t3 = Table(name="bas")
+    t3.add_column("digit", [1, 6, 42], "-")
+    t3.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t3.metadata.transposed = True
+
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2], out_path, prettify=True)
+    write_excel([t, t2, t3], out_path, prettify=True)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -245,6 +251,19 @@ def test_write_excel_with_formatting(tmp_path):
     assert [ws.cell(13, c).value for c in range(3, 6)] == ["one", "six", "forty-two"]
     assert [ws.cell(13, c).fill.fill_type for c in range(3, 6)] == [None] * 3
     assert [ws.cell(13, c).font.bold for c in range(3, 6)] == [False] * 3
+
+    # Third table is there as well
+    assert ws["A15"].value == "**bas*"
+    assert ws["A15"].fill.fill_type == "solid"
+    assert ws["A15"].fill.start_color.value == "00D9D9D9"
+    assert ws["A15"].font.color.value == "001F4E78"
+    assert ws["A15"].font.bold is True
+
+    assert ws["A16"].value == "all"
+    assert ws["A16"].fill.fill_type == "solid"
+    assert ws["A16"].fill.start_color.value == "00D9D9D9"
+    assert ws["A16"].font.color.value == "00808080"
+    assert ws["A16"].font.bold is True
 
     # Teardown
     out_path.unlink()

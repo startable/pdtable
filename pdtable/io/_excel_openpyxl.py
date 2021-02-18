@@ -1,6 +1,6 @@
 """Machinery to read/write Tables in an Excel workbook using openpyxl as engine."""
 from os import PathLike
-from typing import Union, Iterable, Sequence, Any, Dict
+from typing import Union, Iterable, Sequence, Any, Dict, List, Tuple
 
 import openpyxl
 
@@ -45,12 +45,15 @@ def write_excel_openpyxl(tables, path, na_rep, prettify):
             # For convenience, pack single table in an iterable
             tabs = [tabs]
 
+        table_dimensions = []
         ws = wb.create_sheet(title=sheet_name)
         for t in tabs:
+            # Keep track of table dimensions for formatting as tuples (num rows, num cols, transposed)
+            table_dimensions.append((len(t.df), len(t.df.columns), t.metadata.transposed))
             _append_table_to_openpyxl_worksheet(t, ws, na_rep)
 
         if prettify:
-            _format_tables_in_worksheet(ws)
+            _format_tables_in_worksheet(ws, table_dimensions)
 
     wb.save(path)
 
@@ -79,7 +82,9 @@ def _append_table_to_openpyxl_worksheet(
     ws.append([])  # blank row marking table end
 
 
-def _format_tables_in_worksheet(ws: OpenpyxlWorksheet) -> None:
+def _format_tables_in_worksheet(
+        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]]
+) -> None:
     # Define styles to be used
     # TODO: These should perhaps live somewhere else?
     header_font = Font(bold=True, color='1F4E78')
@@ -88,40 +93,43 @@ def _format_tables_in_worksheet(ws: OpenpyxlWorksheet) -> None:
     header_fill = PatternFill(start_color='D9D9D9', fill_type='solid')
     variable_fill = PatternFill(start_color='F2F2F2', fill_type='solid')
 
-    # Identify placement of tables in sheet
+    num_blank_rows_between_tables = 1
+    num_header_rows = 2
+    num_name_unit_rows = 2
+
     rows = [row for row in ws.iter_rows()]
-    i_start = [i for i, row in enumerate(ws.iter_rows()) if row[0].value is not None and row[0].value.startswith('**')]
-    i_end = [i - 1 for i in i_start if i > 0] + [len(rows)]
+    i_start = 0
 
     # Loop through tables
-    for i in range(len(i_start)):
-        if rows[i_start[i]][0].value[-1] == '*':   # Transposed table
-            header_row = rows[i_start[i]]
-            destination_row = rows[i_start[i] + 1]
-            table_cols = [col for col in ws.iter_cols(min_row=i_start[i] + 3, max_row=i_end[i])]
-            name_cells = table_cols[0]
-            unit_cells = table_cols[1]
-        else:
-            header_row = rows[i_start[i]]
-            destination_row = rows[i_start[i] + 1]
-            table_rows = rows[i_start[i] + 2:i_end[i]]
-            row_end = len([cell for cell in table_rows[0] if cell.value is not None])
-            if row_end < len(table_rows[0]):    # Cut off rows outside table
-                header_row = header_row[:row_end]
-                destination_row = destination_row[:row_end]
-                table_rows = [row[:row_end] for row in table_rows]
-            name_cells = table_rows[0]
-            unit_cells = table_rows[1]
+    for i, (num_rows, num_cols, transposed) in enumerate(table_dimensions):
+        true_num_cols = num_cols
+        true_num_rows = num_rows + num_name_unit_rows
+        if transposed:  # Reverse understanding of rows and columns, if table is transpoed
+            true_num_cols, true_num_rows = true_num_rows, true_num_cols
+        table_rows = [r[0:true_num_cols] for r in rows[i_start:i_start + true_num_rows + num_header_rows]]
 
-        # Format cells with defined styles
+        if transposed:
+            name_cells = [t[0] for t in table_rows[2:]]
+            unit_cells = [t[1] for t in table_rows[2:]]
+        else:
+            name_cells = table_rows[2]
+            unit_cells = table_rows[3]
+
+        header_row = table_rows[0]
+        destination_row = table_rows[1]
         _format_cells(header_row, font=header_font, fill=header_fill)
         _format_cells(destination_row, font=destination_font, fill=header_fill)
         _format_cells(name_cells, font=name_font, fill=variable_fill)
         _format_cells(unit_cells, fill=variable_fill)
 
+        i_start += true_num_rows + num_header_rows + num_blank_rows_between_tables
+
     # Widen columns
-    num_cols = len(rows[0])
-    for i_column in [get_column_letter(i + 1) for i in range(num_cols + 1)]:
+    max_num_cols = 0
+    for rows, cols, transposed in table_dimensions:
+        true_num_cols = rows if transposed else cols
+        max_num_cols = max(max_num_cols, true_num_cols)
+    for i_column in [get_column_letter(i + 1) for i in range(max_num_cols + 1)]:
         ws.column_dimensions[i_column].width = 20
 
 
