@@ -82,12 +82,9 @@ def _append_table_to_openpyxl_worksheet(
 def _format_tables_in_worksheet(ws: OpenpyxlWorksheet) -> None:
     # Define styles to be used
     # TODO: These should perhaps live somewhere else?
-    font_name = 'Arial'
-    font_size = 10
-    header_font = Font(bold=True, color='1F4E78', name=font_name, size=font_size)
-    destination_font = Font(bold=True, color='808080', name=font_name, size=font_size)
-    name_font = Font(bold=True, name=font_name, size=font_size)
-    values_font = Font(name=font_name, size=font_size)
+    header_font = Font(bold=True, color='1F4E78')
+    destination_font = Font(bold=True, color='808080')
+    name_font = Font(bold=True)
     header_fill = PatternFill(start_color='D9D9D9', fill_type='solid')
     variable_fill = PatternFill(start_color='F2F2F2', fill_type='solid')
 
@@ -104,7 +101,6 @@ def _format_tables_in_worksheet(ws: OpenpyxlWorksheet) -> None:
             table_cols = [col for col in ws.iter_cols(min_row=i_start[i] + 3, max_row=i_end[i])]
             name_cells = table_cols[0]
             unit_cells = table_cols[1]
-            list_of_value_cells = table_cols[2:]
         else:
             header_row = rows[i_start[i]]
             destination_row = rows[i_start[i] + 1]
@@ -116,15 +112,12 @@ def _format_tables_in_worksheet(ws: OpenpyxlWorksheet) -> None:
                 table_rows = [row[:row_end] for row in table_rows]
             name_cells = table_rows[0]
             unit_cells = table_rows[1]
-            list_of_value_cells = table_rows[2:]
 
         # Format cells with defined styles
         _format_cells(header_row, font=header_font, fill=header_fill)
         _format_cells(destination_row, font=destination_font, fill=header_fill)
         _format_cells(name_cells, font=name_font, fill=variable_fill)
-        _format_cells(unit_cells, font=values_font, fill=variable_fill)
-        for value_cells in list_of_value_cells:
-            _format_cells(value_cells, font=values_font)
+        _format_cells(unit_cells, fill=variable_fill)
 
     # Widen columns
     num_cols = len(rows[0])
@@ -132,9 +125,9 @@ def _format_tables_in_worksheet(ws: OpenpyxlWorksheet) -> None:
         ws.column_dimensions[i_column].width = 20
 
 
-def _format_cells(cells, *, font: Font, fill: PatternFill = None) -> None:
+def _format_cells(cells, *, font: Font = None, fill: PatternFill = None) -> None:
     for cell in cells:
-        cell.font = font
-        if fill is None:
-            continue
-        cell.fill = fill
+        if font is not None:
+            cell.font = font
+        if fill is not None:
+            cell.fill = fill
