@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet. 
 
+## [0.0.9] - 2021-02-23
+
+### Added
+- [PR #95](https://github.com/startable/pdtable/pull/95) `write_excel()` with new parameter `style=True` applies hard-coded styles to table blocks in output workbook.  
+
 ## [0.0.8] - 2021-02-15
 
 ### Added
