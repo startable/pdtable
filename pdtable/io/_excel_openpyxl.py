@@ -28,7 +28,7 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         yield from ws.iter_rows(values_only=True)
 
 
-def write_excel_openpyxl(tables, path, na_rep, prettify, num_blank_rows_between_tables):
+def write_excel_openpyxl(tables, path, na_rep, style, num_blank_rows_between_tables):
     """Write tables to an Excel workbook at the specified path."""
 
     if not isinstance(tables, Dict):
@@ -52,7 +52,7 @@ def write_excel_openpyxl(tables, path, na_rep, prettify, num_blank_rows_between_
             table_dimensions.append((len(t.df), len(t.df.columns), t.metadata.transposed))
             _append_table_to_openpyxl_worksheet(t, ws, num_blank_rows_between_tables, na_rep)
 
-        if prettify:
+        if style:
             _format_tables_in_worksheet(ws, table_dimensions, num_blank_rows_between_tables)
 
     wb.save(path)

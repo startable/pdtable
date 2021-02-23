@@ -168,7 +168,7 @@ def test_write_excel_with_formatting(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2, t3], out_path, prettify=True)
+    write_excel([t, t2, t3], out_path, style=True)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -295,7 +295,7 @@ def test_write_excel_with_formatting_and_2_blank_rows_between_tables(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2, t3], out_path, prettify=True, num_blank_rows_between_tables=2)
+    write_excel([t, t2, t3], out_path, style=True, num_blank_rows_between_tables=2)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
