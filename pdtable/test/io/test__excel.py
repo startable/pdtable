@@ -303,3 +303,16 @@ def test_write_excel_with_formatting_and_2_blank_rows_between_tables(tmp_path):
     assert ws["A1"].value == "**foo"
     assert ws["A11"].value == "**bar*"
     assert ws["A17"].value == "**bas*"
+
+
+def test_read_write_excel__round_trip_with_styles(tmp_path):
+    """Round-trip reading and writing and re-reading preserves tables"""
+    from pdtable import TableBundle, read_excel
+    bundle = TableBundle(read_excel("pdtable/test/io/input/foo.xlsx"))
+    out_path = tmp_path / "foo_styled.xlsx"
+    # Doesn't crash on write
+    write_excel(bundle, out_path, style=True)
+    # Re-read bundle is same as first one
+    bundle2 = TableBundle(read_excel(out_path))
+    for t, t2 in zip(bundle, bundle2):
+        assert t.equals(t2)
