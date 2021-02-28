@@ -142,7 +142,7 @@ def test_write_excel__multiple_sheets(tmp_path):
     out_path.unlink()
 
 
-def test_write_excel_with_formatting(tmp_path):
+def test_write_excel__style(tmp_path):
     # Make a couple of tables
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
@@ -269,7 +269,7 @@ def test_write_excel_with_formatting(tmp_path):
     out_path.unlink()
 
 
-def test_write_excel_with_formatting_and_2_blank_rows_between_tables(tmp_path):
+def test_write_excel__sep_lines(tmp_path):
     # Make a couple of tables
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
@@ -295,11 +295,11 @@ def test_write_excel_with_formatting_and_2_blank_rows_between_tables(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2, t3], out_path, style=True, sep_lines=2)
+    write_excel([t, t2, t3], out_path, sep_lines=2)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
-    # Tables are started as expected
+    # Tables start on the expected rows
     assert ws["A1"].value == "**foo"
     assert ws["A11"].value == "**bar*"
     assert ws["A17"].value == "**bas*"
