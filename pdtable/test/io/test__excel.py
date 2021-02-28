@@ -30,7 +30,7 @@ def test__append_table_to_openpyxl_worksheet():
     ws = wb.active
 
     # Act
-    _append_table_to_openpyxl_worksheet(t, ws, num_blank_rows_between_tables=1)
+    _append_table_to_openpyxl_worksheet(t, ws, sep_lines=1)
 
     # Assert worksheet looks as expected:
     # table header by row
@@ -295,7 +295,7 @@ def test_write_excel_with_formatting_and_2_blank_rows_between_tables(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2, t3], out_path, style=True, num_blank_rows_between_tables=2)
+    write_excel([t, t2, t3], out_path, style=True, sep_lines=2)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 

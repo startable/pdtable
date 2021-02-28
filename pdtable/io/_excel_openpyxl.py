@@ -28,7 +28,7 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         yield from ws.iter_rows(values_only=True)
 
 
-def write_excel_openpyxl(tables, path, na_rep, style, num_blank_rows_between_tables):
+def write_excel_openpyxl(tables, path, na_rep, style, sep_lines):
     """Write tables to an Excel workbook at the specified path."""
 
     if not isinstance(tables, Dict):
@@ -50,16 +50,16 @@ def write_excel_openpyxl(tables, path, na_rep, style, num_blank_rows_between_tab
         for t in tabs:
             # Keep track of table dimensions for formatting as tuples (num rows, num cols, transposed)
             table_dimensions.append((len(t.df), len(t.df.columns), t.metadata.transposed))
-            _append_table_to_openpyxl_worksheet(t, ws, num_blank_rows_between_tables, na_rep)
+            _append_table_to_openpyxl_worksheet(t, ws, sep_lines, na_rep)
 
         if style:
-            _format_tables_in_worksheet(ws, table_dimensions, num_blank_rows_between_tables)
+            _format_tables_in_worksheet(ws, table_dimensions, sep_lines)
 
     wb.save(path)
 
 
 def _append_table_to_openpyxl_worksheet(
-    table: Table, ws: OpenpyxlWorksheet, num_blank_rows_between_tables: int, na_rep: str = "-"
+    table: Table, ws: OpenpyxlWorksheet, sep_lines: int, na_rep: str = "-"
 ) -> None:
     units = table.units
     if table.metadata.transposed:
@@ -79,12 +79,12 @@ def _append_table_to_openpyxl_worksheet(
             # TODO: apply format string specified in ColumnMetadata
             ws.append(_represent_row_elements(row, units, na_rep))
 
-    for _ in range(num_blank_rows_between_tables):
+    for _ in range(sep_lines):
         ws.append([])  # blank row marking table end
 
 
 def _format_tables_in_worksheet(
-        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], num_blank_rows_between_tables: int
+        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], sep_lines: int
 ) -> None:
     # Define styles to be used
     # TODO: These should perhaps live somewhere else?
@@ -122,7 +122,7 @@ def _format_tables_in_worksheet(
         _format_cells(name_cells, font=name_font, fill=variable_fill)
         _format_cells(unit_cells, fill=variable_fill)
 
-        i_start += true_num_rows + num_header_rows + num_blank_rows_between_tables
+        i_start += true_num_rows + num_header_rows + sep_lines
 
     # Widen columns
     max_num_cols = 0

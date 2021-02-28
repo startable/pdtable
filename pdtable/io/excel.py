@@ -60,7 +60,7 @@ def write_excel(
     tables: Union[Table, Iterable[Table], Dict[str, Table], Dict[str, Iterable[Table]]],
     to: Union[str, os.PathLike, Path, BinaryIO],
     na_rep: str = "-",
-    num_blank_rows_between_tables: int = 1,
+    sep_lines: int = 1,
     style: bool = False
 ):
     """Writes one or more tables to an Excel workbook.
@@ -86,8 +86,8 @@ def write_excel(
             Optional; String representation of missing values (NaN, None, NaT).
             If overriding the default '-', it is recommended to use another value compliant with
             the StarTable standard.
-        num_blank_rows_between_tables:
-            Optional; Number of blank rows between tables.
+        sep_lines:
+            Optional; Number of blank separator lines between tables.
             Default is 1.
         style:
             Optional; Whether or not to apply standard StarTable style to Excel workbook file.
@@ -103,4 +103,4 @@ def write_excel(
             "Please install openpyxl for Excel I/O support."
         ) from err
 
-    write_excel_func(tables, to, na_rep, style, num_blank_rows_between_tables)
+    write_excel_func(tables, to, na_rep, style, sep_lines)

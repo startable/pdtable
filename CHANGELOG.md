@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet. 
 
+### Changed
+
+- `write_excel()` parameter `num_blank_rows_between_tables` renamed to `sep_lines`.
+
+
 ## [0.0.9] - 2021-02-23
 
 ### Added
