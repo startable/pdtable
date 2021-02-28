@@ -9,16 +9,17 @@ requiring them (read_excel() or write_excel()) are called for the first time.
 """
 import os
 from os import PathLike
+from pathlib import Path
 from typing import Union, Callable, Iterable, BinaryIO, Dict
 
 from .parsers.blocks import parse_blocks
 from .parsers.fixer import ParseFixer
-from .. import BlockType, Table, TableBundle
+from .. import BlockType, Table
 from ..store import BlockIterator
 
 
 def read_excel(
-    source: Union[str, PathLike, BinaryIO],
+    source: Union[str, PathLike, Path, BinaryIO],
     origin=None,
     fixer: ParseFixer = None,
     to: str = "pdtable",
@@ -57,7 +58,7 @@ def read_excel(
 
 def write_excel(
     tables: Union[Table, Iterable[Table], Dict[str, Table], Dict[str, Iterable[Table]]],
-    to: Union[str, os.PathLike, BinaryIO],
+    to: Union[str, os.PathLike, Path, BinaryIO],
     na_rep: str = "-",
     num_blank_rows_between_tables: int = 1,
     style: bool = False
