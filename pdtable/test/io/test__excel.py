@@ -296,7 +296,7 @@ def test_write_excel__custom_style(tmp_path):
                 "color": "#888888",
             },
         },
-        "col_names": {
+        "column_names": {
             "font": {
                 "color": "#444400",
                 "bold": True,
@@ -305,7 +305,7 @@ def test_write_excel__custom_style(tmp_path):
                 "color": "#777777",
             },
         },
-        "col_units": {
+        "column_units": {
             "font": {
                 "color": "#440044",
             },  # --------------------- fill unspecified, leave untouched
