@@ -269,6 +269,91 @@ def test_write_excel__style(tmp_path):
     out_path.unlink()
 
 
+def test_write_excel__custom_style(tmp_path):
+    # Make a table
+    t = Table(name="foo")
+    t["place"] = ["home", "work", "beach", "wonderland"]
+    t.add_column("distance", list(range(3)) + [float("nan")], "km")
+    nc = len(t.column_names)
+    nr = len(t.df)
+
+    # Make a style specification as a JSON-like data structure
+    style_spec = {
+        "table_name": {
+            "font": {
+                "color": "#FF0000",   # hex color code
+                "bold": True,
+            },
+            "fill": {
+                "color": (200, 200, 255),  # RGB color code
+            },
+        },
+        "destinations": {
+            "font": {
+                "color": "#0000FF",
+            },
+            "fill": {
+                "color": "#888888",
+            },
+        },
+        "col_names": {
+            "font": {
+                "color": "#444400",
+                "bold": True,
+            },
+            "fill": {
+                "color": "#777777",
+            },
+        },
+        "col_units": {
+            "font": {
+                "color": "#440044",
+            },  # --------------------- fill unspecified, leave untouched
+        },
+        "values": {
+            "fill": {
+                "color": "#EEEEEE",
+            },  # --------------------- font unspecified, leave untouched
+        },
+    }
+
+    # Write tables to workbook, save, and re-load
+    out_path = tmp_path / "foo_custom_style.xlsx"
+    write_excel([t], out_path, style=style_spec)
+    wb = openpyxl.load_workbook(out_path)
+    ws = wb.active
+
+    # Check table formatting
+    # table name
+    assert ws["A1"].fill.fill_type == "solid"
+    assert ws["A1"].fill.start_color.value == "00C8C8FF"  # correctly converted from RGB
+    assert ws["A1"].font.color.value == "00FF0000"
+    assert ws["A1"].font.bold is True
+
+    # destinations
+    assert ws["A2"].fill.fill_type == "solid"
+    assert ws["A2"].fill.start_color.value == "00888888"
+    assert ws["A2"].font.color.value == "000000FF"
+    assert ws["A2"].font.bold is False
+
+    # column names
+    assert [ws.cell(3, c).fill.fill_type for c in range(1, nc+1)] == ["solid"] * nc
+    assert [ws.cell(3, c).fill.start_color.value for c in range(1, nc+1)] == ["00777777"] * nc
+    assert [ws.cell(3, c).font.color.value for c in range(1, nc+1)] == "00444400"
+    assert [ws.cell(3, c).font.bold for c in range(1, nc+1)] == [True] * nc
+
+    # column units
+    assert [ws.cell(4, c).fill.fill_type for c in range(1, nc+1)] == ["none"] * nc  # left as default
+    assert [ws.cell(4, c).font.color.value for c in range(1, nc+1)] == ["00777778"] * nc
+    assert [ws.cell(4, c).font.bold for c in range(1, nc+1)] == [False] * nc
+
+    # column values
+    assert [[ws.cell(4 + r, c).fill.fill_type for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["solid"] * nc] * nr
+    assert [[ws.cell(4 + r, c).fill.start_color.value for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["solid"] * nc] * nr
+    assert [[ws.cell(4 + r, c).fill.color.value for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["00000000"] * nc] * nr
+    assert [[ws.cell(4 + r, c).fill.font.bold for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [[False] * nc] * nr
+
+
 def test_write_excel__sep_lines(tmp_path):
     # Make a couple of tables
     t = Table(name="foo")
