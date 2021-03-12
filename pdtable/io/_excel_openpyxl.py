@@ -17,6 +17,39 @@ from pdtable.io._represent import _represent_row_elements, _represent_col_elemen
 
 
 DEFAULT_SHEET_NAME = "Sheet1"
+DEFAULT_STYLE_SPEC = {
+        "table_name": {
+            "font": {
+                "color": "1F4E78",   # hex color code
+                "bold": True,
+            },
+            "fill": {
+                "color": "D9D9D9",  # RGB color code
+            },
+        },
+        "destinations": {
+            "font": {
+                "color": "808080",
+            },
+            "fill": {
+                "color": "888888",
+            },
+        },
+        "column_names": {
+            "fill": {
+                "color": "F2F2F2",
+            },
+            "font": {
+                "bold": True,
+            },
+        },
+        "column_units": {
+            "fill": {
+                "color": "F2F2F2",
+            },
+        },
+        "values": {},
+    }
 
 
 def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
@@ -53,7 +86,8 @@ def write_excel_openpyxl(tables, path, na_rep, style, sep_lines):
             _append_table_to_openpyxl_worksheet(t, ws, sep_lines, na_rep)
 
         if style:
-            _format_tables_in_worksheet(ws, table_dimensions, sep_lines)
+            style = DEFAULT_STYLE_SPEC if style is True else style
+            _format_tables_in_worksheet(ws, table_dimensions, style, sep_lines)
 
     wb.save(path)
 
@@ -84,15 +118,15 @@ def _append_table_to_openpyxl_worksheet(
 
 
 def _format_tables_in_worksheet(
-        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], sep_lines: int
+        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], style: Dict, sep_lines: int
 ) -> None:
     # Define styles to be used
-    # TODO: These should perhaps live somewhere else?
-    header_font = Font(bold=True, color='1F4E78')
-    destination_font = Font(bold=True, color='808080')
-    name_font = Font(bold=True)
-    header_fill = PatternFill(start_color='D9D9D9', fill_type='solid')
-    variable_fill = PatternFill(start_color='F2F2F2', fill_type='solid')
+    table_name_font = Font(bold=style['table_name']['font']['bold'], color=style['table_name']['font']['color'])
+    destination_font = Font(bold=style['destinations']['font']['bold'], color=style['destinations']['font']['color'])
+    col_name_font = Font(bold=style['column_names']['font']['bold'], color=style['column_names']['font']['color'])
+    # TODO deal with non-specified style elements!
+    table_name_fill = PatternFill(start_color=style['table_name']['fill']['color'], fill_type='solid')
+    col_name_fill = PatternFill(start_color='F2F2F2', fill_type='solid')
 
     num_header_rows = 2
     num_name_unit_rows = 2
@@ -117,10 +151,10 @@ def _format_tables_in_worksheet(
 
         header_row = table_rows[0]
         destination_row = table_rows[1]
-        _format_cells(header_row, font=header_font, fill=header_fill)
-        _format_cells(destination_row, font=destination_font, fill=header_fill)
-        _format_cells(name_cells, font=name_font, fill=variable_fill)
-        _format_cells(unit_cells, fill=variable_fill)
+        _format_cells(header_row, font=table_name_font, fill=table_name_fill)
+        _format_cells(destination_row, font=destination_font, fill=table_name_fill)
+        _format_cells(name_cells, font=col_name_font, fill=col_name_fill)
+        _format_cells(unit_cells, fill=col_name_fill)
 
         i_start += true_num_rows + num_header_rows + sep_lines
 

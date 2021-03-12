@@ -281,7 +281,7 @@ def test_write_excel__custom_style(tmp_path):
     style_spec = {
         "table_name": {
             "font": {
-                "color": "#FF0000",   # hex color code
+                "color": "FF0000",   # hex color code
                 "bold": True,
             },
             "fill": {
@@ -290,29 +290,29 @@ def test_write_excel__custom_style(tmp_path):
         },
         "destinations": {
             "font": {
-                "color": "#0000FF",
+                "color": "0000FF",
             },
             "fill": {
-                "color": "#888888",
+                "color": "888888",
             },
         },
         "column_names": {
             "font": {
-                "color": "#444400",
+                "color": "444400",
                 "bold": True,
             },
             "fill": {
-                "color": "#777777",
+                "color": "777777",
             },
         },
         "column_units": {
             "font": {
-                "color": "#440044",
+                "color": "440044",
             },  # --------------------- fill unspecified, leave untouched
         },
         "values": {
             "fill": {
-                "color": "#EEEEEE",
+                "color": "EEEEEE",
             },  # --------------------- font unspecified, leave untouched
         },
     }

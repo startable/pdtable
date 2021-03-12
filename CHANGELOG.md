@@ -11,7 +11,9 @@ No unreleased changes yet.
 
 ### Changed
 
-- `write_excel()` parameter `num_blank_rows_between_tables` renamed to `sep_lines`.
+- Optionally specify custom styles in `write_excel()` by passing to parameter `style` a JSON-like 
+structure of dicts.
+- `write_excel()` parameter `num_blank_rows_between_tables` renamed to `sep_lines` for conciseness.
 
 
 ## [0.0.9] - 2021-02-23

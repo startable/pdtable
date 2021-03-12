@@ -61,7 +61,7 @@ def write_excel(
     to: Union[str, os.PathLike, Path, BinaryIO],
     na_rep: str = "-",
     sep_lines: int = 1,
-    style: bool = False
+    style: Union[bool, Dict] = False
 ):
     """Writes one or more tables to an Excel workbook.
 
