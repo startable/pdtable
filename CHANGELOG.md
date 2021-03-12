@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased changes yet. 
-
+### Fixed
+- Replaced the one remaining reference to `numpy.bool` (now deprecated from numpy) with its designated successor, plain ol' built-in `bool`.
 ## [0.0.9] - 2021-02-23
 
 ### Added
