@@ -117,15 +117,35 @@ def _append_table_to_openpyxl_worksheet(
         ws.append([])  # blank row marking table end
 
 
+def deep_get(dictionary, keys, default=None):
+    """Get value from nested dictionaries.
+
+    Example:
+        d = {'meta': {'status': 'OK', 'status_code': 200}}
+        deep_get(d, ['meta', 'status_code'])          # => 200
+        deep_get(d, ['garbage', 'status_code'])       # => None
+        deep_get(d, ['meta', 'garbage'], default='-') # => '-'
+    """
+    if dictionary is None:
+        return default
+    if not keys:
+        return dictionary
+    return deep_get(dictionary.get(keys[0]), keys[1:], default)
+
+
+def _make_style_objects(style: Dict) -> Tuple[Font, PatternFill]:
+    pass
+
+
 def _format_tables_in_worksheet(
-        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], style: Dict, sep_lines: int
+        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], styles: Dict, sep_lines: int
 ) -> None:
     # Define styles to be used
-    table_name_font = Font(bold=style['table_name']['font']['bold'], color=style['table_name']['font']['color'])
-    destination_font = Font(bold=style['destinations']['font']['bold'], color=style['destinations']['font']['color'])
-    col_name_font = Font(bold=style['column_names']['font']['bold'], color=style['column_names']['font']['color'])
+    table_name_font = Font(bold=styles['table_name']['font']['bold'], color=styles['table_name']['font']['color'])
+    destination_font = Font(bold=styles['destinations']['font']['bold'], color=styles['destinations']['font']['color'])
+    col_name_font = Font(bold=styles['column_names']['font']['bold'], color=styles['column_names']['font']['color'])
     # TODO deal with non-specified style elements!
-    table_name_fill = PatternFill(start_color=style['table_name']['fill']['color'], fill_type='solid')
+    table_name_fill = PatternFill(start_color=styles['table_name']['fill']['color'], fill_type='solid')
     col_name_fill = PatternFill(start_color='F2F2F2', fill_type='solid')
 
     num_header_rows = 2

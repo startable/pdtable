@@ -11,7 +11,14 @@ except ImportError:
 
 from pdtable import Table
 from pdtable.io.excel import write_excel
-from pdtable.io._excel_openpyxl import _append_table_to_openpyxl_worksheet
+from pdtable.io._excel_openpyxl import _append_table_to_openpyxl_worksheet, deep_get
+
+
+def test_deep_get():
+    d = {'meta': {'status': 'OK', 'status_code': 200}}
+    assert deep_get(d, ['meta', 'status_code']) == 200
+    assert deep_get(d, ['garbage', 'status_code']) is None
+    assert deep_get(d, ['meta', 'garbage'], default='-') == '-'
 
 
 def test__append_table_to_openpyxl_worksheet():
