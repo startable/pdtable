@@ -65,7 +65,7 @@ def _parse_onoff_column(values: Iterable, fixer: ParseFixer = None):
                 bool_values.append(fix_value)
             else:
                 raise ValueError("Illegal value in onoff column", val) from err
-    return np.array(bool_values, dtype=np.bool)
+    return np.array(bool_values, dtype=bool)
 
 
 def _float_convert(val: str) -> float:

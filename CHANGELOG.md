@@ -15,6 +15,8 @@ No unreleased changes yet.
 structure of dicts.
 - `write_excel()` parameter `num_blank_rows_between_tables` renamed to `sep_lines` for conciseness.
 
+### Fixed
+- Replaced the one remaining reference to `numpy.bool` (now deprecated from numpy) with its designated successor, plain ol' built-in `bool`.
 
 ## [0.0.9] - 2021-02-23
 
