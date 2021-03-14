@@ -30,9 +30,10 @@ DEFAULT_STYLE_SPEC = {
         "destinations": {
             "font": {
                 "color": "808080",
+                "bold": True,
             },
             "fill": {
-                "color": "888888",
+                "color": "D9D9D9",
             },
         },
         "column_names": {
@@ -120,6 +121,8 @@ def _append_table_to_openpyxl_worksheet(
 def deep_get(dictionary, keys, default=None):
     """Get value from nested dictionaries.
 
+    Modified from: https://stackoverflow.com/a/50173148/119775
+
     Example:
         d = {'meta': {'status': 'OK', 'status_code': 200}}
         deep_get(d, ['meta', 'status_code'])          # => 200
@@ -133,20 +136,20 @@ def deep_get(dictionary, keys, default=None):
     return deep_get(dictionary.get(keys[0]), keys[1:], default)
 
 
-def _make_style_objects(style: Dict) -> Tuple[Font, PatternFill]:
-    pass
+def _style_cells(cells, style: Dict) -> None:
+    font = Font(**style.get("font", {}))  # assume Font params are same as JSON schema
+    fill_color = deep_get(style, ["fill", "color"])
+    fill = PatternFill(start_color=fill_color, fill_type="solid") if fill_color else PatternFill()
+    for cell in cells:
+        if font is not None:
+            cell.font = font
+        if fill is not None:
+            cell.fill = fill
 
 
 def _format_tables_in_worksheet(
         ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], styles: Dict, sep_lines: int
 ) -> None:
-    # Define styles to be used
-    table_name_font = Font(bold=styles['table_name']['font']['bold'], color=styles['table_name']['font']['color'])
-    destination_font = Font(bold=styles['destinations']['font']['bold'], color=styles['destinations']['font']['color'])
-    col_name_font = Font(bold=styles['column_names']['font']['bold'], color=styles['column_names']['font']['color'])
-    # TODO deal with non-specified style elements!
-    table_name_fill = PatternFill(start_color=styles['table_name']['fill']['color'], fill_type='solid')
-    col_name_fill = PatternFill(start_color='F2F2F2', fill_type='solid')
 
     num_header_rows = 2
     num_name_unit_rows = 2
@@ -162,19 +165,20 @@ def _format_tables_in_worksheet(
             true_num_cols, true_num_rows = true_num_rows, true_num_cols
         table_rows = [r[0:true_num_cols] for r in rows[i_start:i_start + true_num_rows + num_header_rows]]
 
+        table_name_cells = table_rows[0]
+        destination_cells = table_rows[1]
         if transposed:
-            name_cells = [t[0] for t in table_rows[2:]]
-            unit_cells = [t[1] for t in table_rows[2:]]
+            column_name_cells = [t[0] for t in table_rows[2:]]
+            column_unit_cells = [t[1] for t in table_rows[2:]]
         else:
-            name_cells = table_rows[2]
-            unit_cells = table_rows[3]
+            column_name_cells = table_rows[2]
+            column_unit_cells = table_rows[3]
 
-        header_row = table_rows[0]
-        destination_row = table_rows[1]
-        _format_cells(header_row, font=table_name_font, fill=table_name_fill)
-        _format_cells(destination_row, font=destination_font, fill=table_name_fill)
-        _format_cells(name_cells, font=col_name_font, fill=col_name_fill)
-        _format_cells(unit_cells, fill=col_name_fill)
+        _style_cells(table_name_cells, styles["table_name"])
+        _style_cells(destination_cells, styles["destinations"])
+        _style_cells(column_name_cells, styles["column_names"])
+        _style_cells(column_unit_cells, styles["column_units"])
+        # TODO style the value cells as well
 
         i_start += true_num_rows + num_header_rows + sep_lines
 
@@ -185,11 +189,3 @@ def _format_tables_in_worksheet(
         max_num_cols = max(max_num_cols, true_num_cols)
     for i_column in [get_column_letter(i + 1) for i in range(max_num_cols + 1)]:
         ws.column_dimensions[i_column].width = 20
-
-
-def _format_cells(cells, *, font: Font = None, fill: PatternFill = None) -> None:
-    for cell in cells:
-        if font is not None:
-            cell.font = font
-        if fill is not None:
-            cell.fill = fill
