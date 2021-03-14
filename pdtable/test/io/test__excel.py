@@ -168,7 +168,7 @@ def test_write_excel__style(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2, t3], out_path, style=True)
+    write_excel([t, t2, t3], out_path, styles=True)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -319,7 +319,7 @@ def test_write_excel__custom_style(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo_custom_style.xlsx"
-    write_excel([t], out_path, style=style_spec)
+    write_excel([t], out_path, styles=style_spec)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -396,7 +396,7 @@ def test_read_write_excel__round_trip_with_styles(tmp_path):
     bundle = TableBundle(read_excel("pdtable/test/io/input/foo.xlsx"))
     out_path = tmp_path / "foo_styled.xlsx"
     # Doesn't crash on write
-    write_excel(bundle, out_path, style=True)
+    write_excel(bundle, out_path, styles=True)
     # Re-read bundle is same as first one
     bundle2 = TableBundle(read_excel(out_path))
     for t, t2 in zip(bundle, bundle2):

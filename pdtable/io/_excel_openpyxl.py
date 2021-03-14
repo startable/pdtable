@@ -61,7 +61,7 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         yield from ws.iter_rows(values_only=True)
 
 
-def write_excel_openpyxl(tables, path, na_rep, style, sep_lines):
+def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines):
     """Write tables to an Excel workbook at the specified path."""
 
     if not isinstance(tables, Dict):
@@ -85,9 +85,9 @@ def write_excel_openpyxl(tables, path, na_rep, style, sep_lines):
             table_dimensions.append((len(t.df), len(t.df.columns), t.metadata.transposed))
             _append_table_to_openpyxl_worksheet(t, ws, sep_lines, na_rep)
 
-        if style:
-            style = DEFAULT_STYLE_SPEC if style is True else style
-            _format_tables_in_worksheet(ws, table_dimensions, style, sep_lines)
+        if styles:
+            styles = DEFAULT_STYLE_SPEC if styles is True else styles
+            _format_tables_in_worksheet(ws, table_dimensions, styles, sep_lines)
 
     wb.save(path)
 

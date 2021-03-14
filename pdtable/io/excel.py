@@ -61,7 +61,7 @@ def write_excel(
     to: Union[str, os.PathLike, Path, BinaryIO],
     na_rep: str = "-",
     sep_lines: int = 1,
-    style: Union[bool, Dict] = False
+    styles: Union[bool, Dict] = False
 ):
     """Writes one or more tables to an Excel workbook.
 
@@ -89,8 +89,8 @@ def write_excel(
         sep_lines:
             Optional; Number of blank separator lines between tables.
             Default is 1.
-        style:
-            Optional; Whether or not to apply standard StarTable style to Excel workbook file.
+        styles:
+            Optional; Whether or not to apply standard StarTable styles to Excel workbook file.
             Default is False.
     """
     try:
@@ -103,4 +103,4 @@ def write_excel(
             "Please install openpyxl for Excel I/O support."
         ) from err
 
-    write_excel_func(tables, to, na_rep, style, sep_lines)
+    write_excel_func(tables, to, na_rep, styles, sep_lines)
