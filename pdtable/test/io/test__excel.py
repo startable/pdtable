@@ -379,7 +379,7 @@ def test_write_excel__transposed_table_units_and_values_are_centered_by_default(
     nc = len(t.column_names)
     nr = len(t.df)
 
-    # DEFAULT: CENTERED
+    # DEFAULT ALIGNMENT: CENTER
     # Write tables to workbook with default styles, save, and re-load
     out_path = tmp_path / "foo_custom_style.xlsx"
     write_excel([t], out_path, styles=True)  # <<< Default style
@@ -390,7 +390,7 @@ def test_write_excel__transposed_table_units_and_values_are_centered_by_default(
     assert [ws.cell(2 + c, 2).alignment.horizontal for c in range(1, nc+1)] == ["center"] * nc
     assert [[ws.cell(2 + c, 2 + r).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["center"] * nc] * nr
 
-    # DEFAULT NOT APPLIED when custom alignment is specified
+    # DEFAULT ALIGNMENT NOT APPLIED when custom alignment is specified
     # Write tables to workbook with custom alignment styles, save, and re-load
     out_path = tmp_path / "foo_custom_style.xlsx"
     left = {"alignment": {"horizontal": "left"}}

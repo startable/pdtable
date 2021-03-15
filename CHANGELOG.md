@@ -11,8 +11,9 @@ No unreleased changes yet.
 
 ### Changed
 
-- Optionally specify custom styles in `write_excel()` by passing to parameter `style` a JSON-like 
-structure of dicts.
+- `write_excel()` parameter `style` renamed to `styles`.
+- Optionally specify custom styles in `write_excel()` by passing to parameter `styles` a JSON-like structure of dicts.
+- When `write_excel()` parameter `styles` is truthy, transposed tables' column units and values are horizontally centered by default. This default is overridden by any horizontal alignment specified explicitly in `styles`. 
 - `write_excel()` parameter `num_blank_rows_between_tables` renamed to `sep_lines` for conciseness.
 
 ### Fixed
