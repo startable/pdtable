@@ -322,7 +322,7 @@ def test_write_excel__custom_style(tmp_path):
         },
         "values": {
             "alignment": {
-                "horizontal": "center",
+                "horizontal": "left",
             },
             "fill": {
                 "color": "EEEEEE",
@@ -362,13 +362,45 @@ def test_write_excel__custom_style(tmp_path):
     assert [ws.cell(4, c).fill.fill_type for c in range(1, nc+1)] == [None] * nc  # left as default
     assert [ws.cell(4, c).font.color.value for c in range(1, nc+1)] == ["00440044"] * nc
     assert [ws.cell(4, c).font.bold for c in range(1, nc+1)] == [False] * nc
+    assert [ws.cell(4, c).alignment.horizontal for c in range(1, nc+1)] == [None] * nc
 
     # values
     assert [[ws.cell(4 + r, c).fill.fill_type for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["solid"] * nc] * nr
     assert [[ws.cell(4 + r, c).fill.start_color.value for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["00EEEEEE"] * nc] * nr
-    assert [[ws.cell(4 + r, c).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["center"] * nc] * nr
-    # assert [[ws.cell(4 + r, c).font.color.value for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["00EEEEEE"] * nc] * nr
-    # assert [[ws.cell(4 + r, c).fill.font.bold for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [[False] * nc] * nr
+    assert [[ws.cell(4 + r, c).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["left"] * nc] * nr
+
+
+def test_write_excel__transposed_table_units_and_values_are_centered_by_default(tmp_path):
+    # Make a table
+    t = Table(name="foo")
+    t["place"] = ["home", "work", "beach", "wonderland"]
+    t.add_column("distance", list(range(3)) + [float("nan")], "km")
+    t.metadata.transposed = True
+    nc = len(t.column_names)
+    nr = len(t.df)
+
+    # DEFAULT: CENTERED
+    # Write tables to workbook with default styles, save, and re-load
+    out_path = tmp_path / "foo_custom_style.xlsx"
+    write_excel([t], out_path, styles=True)  # <<< Default style
+    wb = openpyxl.load_workbook(out_path)
+    ws = wb.active
+
+    # column units and values are centered
+    assert [ws.cell(2 + c, 2).alignment.horizontal for c in range(1, nc+1)] == ["center"] * nc
+    assert [[ws.cell(2 + c, 2 + r).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["center"] * nc] * nr
+
+    # DEFAULT NOT APPLIED when custom alignment is specified
+    # Write tables to workbook with custom alignment styles, save, and re-load
+    out_path = tmp_path / "foo_custom_style.xlsx"
+    left = {"alignment": {"horizontal": "left"}}
+    write_excel([t], out_path, styles={"column_units": left, "values": left})  # << Custom alignment
+    wb = openpyxl.load_workbook(out_path)
+    ws = wb.active
+
+    # column units and values are not centered
+    assert [ws.cell(2 + c, 2).alignment.horizontal for c in range(1, nc+1)] == ["left"] * nc
+    assert [[ws.cell(2 + c, 2 + r).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["left"] * nc] * nr
 
 
 def test_write_excel__sep_lines(tmp_path):

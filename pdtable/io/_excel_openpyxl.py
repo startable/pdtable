@@ -204,6 +204,14 @@ def _style_tables_in_worksheet(
         _style_cells(column_unit_cells, styles.get("column_units"))
         _style_cells(chain.from_iterable(value_cells), styles.get("values"))  # flatten 2-D struct
 
+        # Special default case for transposed tables: center values and units
+        if transposed:
+            centered = {"alignment": {"horizontal": "center"}}
+            if not deep_get(styles, ["column_units", "alignment", "horizontal"]):
+                _style_cells(column_unit_cells, centered)
+            if not deep_get(styles, ["values", "alignment", "horizontal"]):
+                _style_cells(chain.from_iterable(value_cells), centered)
+
         i_start += true_num_rows + num_header_rows + sep_lines
 
     # Widen columns
