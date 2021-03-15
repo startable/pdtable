@@ -288,6 +288,8 @@ def test_write_excel__custom_style(tmp_path):
     style_spec = {
         "table_name": {
             "font": {
+                "name": "Times New Roman",
+                "size": 24,
                 "color": "FF0000",   # hex color code
                 "bold": True,
             },
@@ -297,6 +299,7 @@ def test_write_excel__custom_style(tmp_path):
         },
         "destinations": {
             "font": {
+                "italic": True,
                 "color": "0000FF",
             },
             "fill": {
@@ -334,7 +337,9 @@ def test_write_excel__custom_style(tmp_path):
     # table name
     assert ws["A1"].fill.fill_type == "solid"
     assert ws["A1"].fill.start_color.value == "00AAAAAA"
+    assert ws["A1"].font.size == 24
     assert ws["A1"].font.color.value == "00FF0000"
+    assert ws["A1"].font.name == "Times New Roman"
     assert ws["A1"].font.bold is True
 
     # destinations
@@ -342,6 +347,7 @@ def test_write_excel__custom_style(tmp_path):
     assert ws["A2"].fill.start_color.value == "00888888"
     assert ws["A2"].font.color.value == "000000FF"
     assert ws["A2"].font.bold is False
+    assert ws["A2"].font.italic is True
 
     # column names
     assert [ws.cell(3, c).fill.fill_type for c in range(1, nc+1)] == ["solid"] * nc

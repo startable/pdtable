@@ -11,7 +11,7 @@ except ImportError:
     # openpyxl < 2.6
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 from openpyxl.cell.cell import Cell
-from openpyxl.styles import Font, PatternFill
+from openpyxl.styles import Font, PatternFill, Color
 from openpyxl.utils import get_column_letter
 
 from pdtable import Table
@@ -98,6 +98,7 @@ def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines):
 def _append_table_to_openpyxl_worksheet(
     table: Table, ws: OpenpyxlWorksheet, sep_lines: int, na_rep: str = "-"
 ) -> None:
+    """Write table at end of sheet, leaving sep_lines blank lines before."""
     units = table.units
     if table.metadata.transposed:
         ws.append([f"**{table.name}*"])
@@ -142,9 +143,12 @@ def _style_cells(cells: Iterable[Cell], style: Optional[Dict]) -> None:
     if style is None:
         # Do nothing
         return
-    font = Font(**style.get("font", {}))  # assume Font params are same as JSON schema
+    # Font: blindly assume JSON schema matches Font.__init__() parameters (reasonable enough)
+    font_args = style.get("font")
+    font = Font(**style.get("font", {})) if font_args else None
+    # Fill: the only relevant thing is the fill color
     fill_color = deep_get(style, ["fill", "color"])
-    fill = PatternFill(start_color=fill_color, fill_type="solid") if fill_color else PatternFill()
+    fill = PatternFill(start_color=fill_color, fill_type="solid") if fill_color else None
     for cell in cells:
         # Code inspection complains that attributes Cell.font and Cell.style are read-only, but
         # mutating them is, in fact, the correct, documented way of applying styles to cells.
@@ -186,11 +190,12 @@ def _style_tables_in_worksheet(
             column_unit_cells = table_rows[3]
             value_cells = table_rows[4:]
 
+        # Apply all the styles
         _style_cells(table_name_cells, styles.get("table_name"))
         _style_cells(destination_cells, styles.get("destinations"))
         _style_cells(column_name_cells, styles.get("column_names"))
         _style_cells(column_unit_cells, styles.get("column_units"))
-        _style_cells(chain.from_iterable(value_cells), styles.get("values"))
+        _style_cells(chain.from_iterable(value_cells), styles.get("values"))  # flatten 2-D struct
 
         i_start += true_num_rows + num_header_rows + sep_lines
 
