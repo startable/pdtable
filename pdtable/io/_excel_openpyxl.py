@@ -1,6 +1,7 @@
 """Machinery to read/write Tables in an Excel workbook using openpyxl as engine."""
+from itertools import chain
 from os import PathLike
-from typing import Union, Iterable, Sequence, Any, Dict, List, Tuple
+from typing import Union, Iterable, Sequence, Any, Dict, List, Tuple, Optional
 
 import openpyxl
 
@@ -9,6 +10,7 @@ try:
 except ImportError:
     # openpyxl < 2.6
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
+from openpyxl.cell.cell import Cell
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
@@ -88,7 +90,7 @@ def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines):
 
         if styles:
             styles = DEFAULT_STYLE_SPEC if styles is True else styles
-            _format_tables_in_worksheet(ws, table_dimensions, styles, sep_lines)
+            _style_tables_in_worksheet(ws, table_dimensions, styles, sep_lines)
 
     wb.save(path)
 
@@ -136,18 +138,24 @@ def deep_get(dictionary, keys, default=None):
     return deep_get(dictionary.get(keys[0]), keys[1:], default)
 
 
-def _style_cells(cells, style: Dict) -> None:
+def _style_cells(cells: Iterable[Cell], style: Optional[Dict]) -> None:
+    if style is None:
+        # Do nothing
+        return
     font = Font(**style.get("font", {}))  # assume Font params are same as JSON schema
     fill_color = deep_get(style, ["fill", "color"])
     fill = PatternFill(start_color=fill_color, fill_type="solid") if fill_color else PatternFill()
     for cell in cells:
+        # Code inspection complains that attributes Cell.font and Cell.style are read-only, but
+        # mutating them is, in fact, the correct, documented way of applying styles to cells.
+        # Ref: https://openpyxl.readthedocs.io/en/stable/styles.html#cell-styles
         if font is not None:
-            cell.font = font
+            cell.font = font  # noqa
         if fill is not None:
-            cell.fill = fill
+            cell.fill = fill  # noqa
 
 
-def _format_tables_in_worksheet(
+def _style_tables_in_worksheet(
         ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], styles: Dict, sep_lines: int
 ) -> None:
 
@@ -159,9 +167,11 @@ def _format_tables_in_worksheet(
 
     # Loop through tables
     for i, (num_rows, num_cols, transposed) in enumerate(table_dimensions):
+        # Figure out on what rows this table's various parts are located
         true_num_cols = num_cols
         true_num_rows = num_rows + num_name_unit_rows
-        if transposed:  # Reverse understanding of rows and columns, if table is transpoed
+        if transposed:
+            # By definition, swap understanding of rows and columns
             true_num_cols, true_num_rows = true_num_rows, true_num_cols
         table_rows = [r[0:true_num_cols] for r in rows[i_start:i_start + true_num_rows + num_header_rows]]
 
@@ -170,15 +180,17 @@ def _format_tables_in_worksheet(
         if transposed:
             column_name_cells = [t[0] for t in table_rows[2:]]
             column_unit_cells = [t[1] for t in table_rows[2:]]
+            value_cells = [t[2:] for t in table_rows[2:]]
         else:
             column_name_cells = table_rows[2]
             column_unit_cells = table_rows[3]
+            value_cells = table_rows[4:]
 
-        _style_cells(table_name_cells, styles["table_name"])
-        _style_cells(destination_cells, styles["destinations"])
-        _style_cells(column_name_cells, styles["column_names"])
-        _style_cells(column_unit_cells, styles["column_units"])
-        # TODO style the value cells as well
+        _style_cells(table_name_cells, styles.get("table_name"))
+        _style_cells(destination_cells, styles.get("destinations"))
+        _style_cells(column_name_cells, styles.get("column_names"))
+        _style_cells(column_unit_cells, styles.get("column_units"))
+        _style_cells(chain.from_iterable(value_cells), styles.get("values"))
 
         i_start += true_num_rows + num_header_rows + sep_lines
 
