@@ -11,7 +11,7 @@ except ImportError:
     # openpyxl < 2.6
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 from openpyxl.cell.cell import Cell
-from openpyxl.styles import Font, PatternFill, Color
+from openpyxl.styles import Font, PatternFill, Color, Alignment
 from openpyxl.utils import get_column_letter
 
 from pdtable import Table
@@ -145,18 +145,25 @@ def _style_cells(cells: Iterable[Cell], style: Optional[Dict]) -> None:
         return
     # Font: blindly assume JSON schema matches Font.__init__() parameters (reasonable enough)
     font_args = style.get("font")
-    font = Font(**style.get("font", {})) if font_args else None
+    font = Font(**font_args) if font_args else None
     # Fill: the only relevant thing is the fill color
     fill_color = deep_get(style, ["fill", "color"])
     fill = PatternFill(start_color=fill_color, fill_type="solid") if fill_color else None
+    # Alignment: blindly assume JSON schema matches Alignment.__init__() params (reasonable enough)
+    alignment_args = style.get("alignment")
+    alignment = Alignment(**alignment_args) if alignment_args else None
+    # TODO throw clearer exception if non-existent arg passed to Font() or Alignment()
+    # TODO throw clearer exception on invalid arg value for all these things
     for cell in cells:
-        # Code inspection complains that attributes Cell.font and Cell.style are read-only, but
-        # mutating them is, in fact, the correct, documented way of applying styles to cells.
+        # Code inspection complains that Cell attributes are read-only, but mutating them is,
+        # in fact, the correct, documented way of applying styles to cells.
         # Ref: https://openpyxl.readthedocs.io/en/stable/styles.html#cell-styles
         if font is not None:
             cell.font = font  # noqa
         if fill is not None:
             cell.fill = fill  # noqa
+        if alignment is not None:
+            cell.alignment = alignment  # noqa
 
 
 def _style_tables_in_worksheet(

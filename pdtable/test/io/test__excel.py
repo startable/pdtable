@@ -321,6 +321,9 @@ def test_write_excel__custom_style(tmp_path):
             },  # --------------------- fill unspecified, leave untouched
         },
         "values": {
+            "alignment": {
+                "horizontal": "center",
+            },
             "fill": {
                 "color": "EEEEEE",
             },  # --------------------- font unspecified, leave untouched
@@ -363,6 +366,7 @@ def test_write_excel__custom_style(tmp_path):
     # values
     assert [[ws.cell(4 + r, c).fill.fill_type for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["solid"] * nc] * nr
     assert [[ws.cell(4 + r, c).fill.start_color.value for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["00EEEEEE"] * nc] * nr
+    assert [[ws.cell(4 + r, c).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["center"] * nc] * nr
     # assert [[ws.cell(4 + r, c).font.color.value for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["00EEEEEE"] * nc] * nr
     # assert [[ws.cell(4 + r, c).fill.font.bold for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [[False] * nc] * nr
 
