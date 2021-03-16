@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet. 
 
+## [0.0.10] - 2021-03-16
+
 ### Changed
 
 - `write_excel()` parameter `style` renamed to `styles`.
