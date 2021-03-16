@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+No unreleased changes yet. 
+
+### Changed
+
+- `write_excel()` parameter `style` renamed to `styles`.
+- Optionally specify custom styles in `write_excel()` by passing to parameter `styles` a JSON-like structure of dicts.
+- When `write_excel()` parameter `styles` is truthy, transposed tables' column units and values are horizontally centered by default. This default is overridden by any horizontal alignment specified explicitly in `styles`. 
+- `write_excel()` parameter `num_blank_rows_between_tables` renamed to `sep_lines` for conciseness.
+
 ### Fixed
 - Replaced the one remaining reference to `numpy.bool` (now deprecated from numpy) with its designated successor, plain ol' built-in `bool`.
+
 ## [0.0.9] - 2021-02-23
 
 ### Added
