@@ -1,5 +1,6 @@
 import datetime
 
+import pytest
 import pandas as pd
 import openpyxl
 
@@ -368,6 +369,26 @@ def test_write_excel__custom_style(tmp_path):
     assert [[ws.cell(4 + r, c).fill.fill_type for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["solid"] * nc] * nr
     assert [[ws.cell(4 + r, c).fill.start_color.value for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["00EEEEEE"] * nc] * nr
     assert [[ws.cell(4 + r, c).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["left"] * nc] * nr
+
+
+@pytest.mark.parametrize(
+    "err_msg_match,style_spec",
+    [
+        ("Invalid.*table_name", {"table_name": {"font": {"size": "NOT_A_NUMBER!!!"}}}),
+        ("Invalid.*table_name", {"table_name": {"font": {"color": "NOT_A_COLOR!!!"}}}),
+        ("Invalid.*destinations", {"destinations": {"fill": {"color": "NOT_A_COLOR!!!"}}}),
+        ("Invalid.*values", {"values": {"alignment": {"horizontal": "FOOBAR!!!"}}}),
+    ]
+)
+def test_write_excel__raises_error_on_invalid_style_spec(tmp_path, err_msg_match, style_spec):
+    # Make a table
+    t = Table(name="foo")
+    t["place"] = ["home", "work", "beach", "wonderland"]
+    t.add_column("distance", list(range(3)) + [float("nan")], "km")
+
+    # Invalid font size
+    with pytest.raises(ValueError, match=err_msg_match):
+        write_excel([t], tmp_path / "foo_invalid_style.xlsx", styles=style_spec)
 
 
 def test_write_excel__transposed_table_units_and_values_are_centered_by_default(tmp_path):

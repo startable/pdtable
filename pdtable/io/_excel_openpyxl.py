@@ -17,42 +17,17 @@ from openpyxl.utils import get_column_letter
 from pdtable import Table
 from pdtable.io._represent import _represent_row_elements, _represent_col_elements
 
-
 DEFAULT_SHEET_NAME = "Sheet1"
 DEFAULT_STYLE_SPEC = {
-        "table_name": {
-            "font": {
-                "color": "1F4E78",   # hex color code
-                "bold": True,
-            },
-            "fill": {
-                "color": "D9D9D9",  # RGB color code
-            },
-        },
-        "destinations": {
-            "font": {
-                "color": "808080",
-                "bold": True,
-            },
-            "fill": {
-                "color": "D9D9D9",
-            },
-        },
-        "column_names": {
-            "fill": {
-                "color": "F2F2F2",
-            },
-            "font": {
-                "bold": True,
-            },
-        },
-        "column_units": {
-            "fill": {
-                "color": "F2F2F2",
-            },
-        },
-        "values": {},
-    }
+    "table_name": {
+        "font": {"color": "1F4E78", "bold": True,},  # hex color code
+        "fill": {"color": "D9D9D9",},  # RGB color code
+    },
+    "destinations": {"font": {"color": "808080", "bold": True,}, "fill": {"color": "D9D9D9",},},
+    "column_names": {"fill": {"color": "F2F2F2",}, "font": {"bold": True,},},
+    "column_units": {"fill": {"color": "F2F2F2",},},
+    "values": {},
+}
 
 
 def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
@@ -143,17 +118,26 @@ def _style_cells(cells: Iterable[Cell], style: Optional[Dict]) -> None:
     if style is None:
         # Do nothing
         return
+
     # Font: blindly assume JSON schema matches Font.__init__() parameters (reasonable enough)
     font_args = style.get("font")
-    font = Font(**font_args) if font_args else None
+    try:
+        font = Font(**font_args) if font_args else None
+    except (TypeError, ValueError) as err:
+        raise ValueError("Invalid font specification", font_args) from err
     # Fill: the only relevant thing is the fill color
     fill_color = deep_get(style, ["fill", "color"])
-    fill = PatternFill(start_color=fill_color, fill_type="solid") if fill_color else None
+    try:
+        fill = PatternFill(start_color=fill_color, fill_type="solid") if fill_color else None
+    except (TypeError, ValueError) as err:
+        raise ValueError("Invalid fill color", fill_color) from err
     # Alignment: blindly assume JSON schema matches Alignment.__init__() params (reasonable enough)
     alignment_args = style.get("alignment")
-    alignment = Alignment(**alignment_args) if alignment_args else None
-    # TODO throw clearer exception if non-existent arg passed to Font() or Alignment()
-    # TODO throw clearer exception on invalid arg value for all these things
+    try:
+        alignment = Alignment(**alignment_args,) if alignment_args else None
+    except (TypeError, ValueError) as err:
+        raise ValueError("Invalid alignment specification", alignment_args) from err
+
     for cell in cells:
         # Code inspection complains that Cell attributes are read-only, but mutating them is,
         # in fact, the correct, documented way of applying styles to cells.
@@ -167,9 +151,11 @@ def _style_cells(cells: Iterable[Cell], style: Optional[Dict]) -> None:
 
 
 def _style_tables_in_worksheet(
-        ws: OpenpyxlWorksheet, table_dimensions: List[Tuple[int, int, bool]], styles: Dict, sep_lines: int
+    ws: OpenpyxlWorksheet,
+    table_dimensions: List[Tuple[int, int, bool]],
+    styles: Dict,
+    sep_lines: int,
 ) -> None:
-
     num_header_rows = 2
     num_name_unit_rows = 2
 
@@ -184,7 +170,9 @@ def _style_tables_in_worksheet(
         if transposed:
             # By definition, swap understanding of rows and columns
             true_num_cols, true_num_rows = true_num_rows, true_num_cols
-        table_rows = [r[0:true_num_cols] for r in rows[i_start:i_start + true_num_rows + num_header_rows]]
+        table_rows = [
+            r[0:true_num_cols] for r in rows[i_start : i_start + true_num_rows + num_header_rows]
+        ]
 
         table_name_cells = table_rows[0]
         destination_cells = table_rows[1]
@@ -198,11 +186,18 @@ def _style_tables_in_worksheet(
             value_cells = table_rows[4:]
 
         # Apply all the styles
-        _style_cells(table_name_cells, styles.get("table_name"))
-        _style_cells(destination_cells, styles.get("destinations"))
-        _style_cells(column_name_cells, styles.get("column_names"))
-        _style_cells(column_unit_cells, styles.get("column_units"))
-        _style_cells(chain.from_iterable(value_cells), styles.get("values"))  # flatten 2-D struct
+        style_spec_names = [
+            (table_name_cells, "table_name"),
+            (destination_cells, "destinations"),
+            (column_name_cells, "column_names"),
+            (column_unit_cells, "column_units"),
+            (chain.from_iterable(value_cells), "values"),
+        ]
+        for cells, style_spec_name in style_spec_names:
+            try:
+                _style_cells(cells, styles.get(style_spec_name))
+            except ValueError as err:
+                raise ValueError(f"Invalid style specification for '{style_spec_name}'") from err
 
         # Special default case for transposed tables: center values and units
         if transposed:
