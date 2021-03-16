@@ -77,21 +77,59 @@ def write_excel(
             * If a single Table or an iterable of Tables, writes to one sheet with default name.
             * If a dict of {sheet_name: Table} or {sheet_name: Iterable[Table]}, writes tables to
               sheets with specified names.
+
         to:
             File path or binary stream to which to write.
             If a file path, then this file gets created/overwritten and then closed after writing.
             If a stream, then it is left open after writing; the caller is responsible for managing
             the stream.
+
         na_rep:
             Optional; String representation of missing values (NaN, None, NaT).
             If overriding the default '-', it is recommended to use another value compliant with
             the StarTable standard.
+
         sep_lines:
             Optional; Number of blank separator lines between tables.
             Default is 1.
+
         styles:
-            Optional; Whether or not to apply standard StarTable styles to Excel workbook file.
-            Default is False.
+            Optional. Determines whether styles are applied to table blocks in the output workbook.
+            * If bool(styles) is False (default), no styles are applied.
+            * If True, default pdtable styles are applied (neutral shades of grey and dark blue).
+            * Custom styles can be specified by passing a JSON-like structure of dictionaries.
+              The top-level keys represent the parts of a table block and are any number of:
+              {'table_name', 'destinations', 'column_names', 'units', 'values'}
+              For each given table part, the value is a dictionary with any number of the following
+              style element keys: {'font', 'fill', 'alignment'}
+              The value for each of these keys is in turn a dictionary of valid {property: value}
+              pairs.
+              Example:
+                {
+                    'table_name': {
+                        'font': {'color': '1F4E78', 'bold': True,},
+                        'fill': {'color': 'D9D9D9',},  # RGB color code
+                    },
+                    'destinations': {
+                        'font': {'color': '808080', 'italic': True,},
+                        'fill': {'color': 'D9D9D9',},
+                    },
+                    'column_names': {
+                        'fill': {'color': 'F2F2F2',},
+                        'font': {'bold': True,},
+                    },
+                    'units': {'fill': {'color': 'F2F2F2',}},
+                    'values': {'alignment': {'horizontal': 'center'}},
+                }
+
+             Colors are given as RGB hex codes of the form 'RRGGBB' e.g. 'FF0000' is red.
+             Leading transparency digits are accepted but unused e.g. '42FF0000' will still be red.
+
+             If a table part key is omitted, then no style is applied to that table part.
+             Similarly, if a style element key is omitted, then no style is explicitly applied to
+             that style element.
+             In such cases, the default style is determined by the Excel writer engine (the default
+             engine is openpyxl).
     """
     try:
         from ._excel_openpyxl import write_excel_openpyxl as write_excel_func

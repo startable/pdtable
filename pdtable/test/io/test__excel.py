@@ -291,11 +291,11 @@ def test_write_excel__custom_style(tmp_path):
             "font": {
                 "name": "Times New Roman",
                 "size": 24,
-                "color": "FF0000",   # hex color code
+                "color": "FF0000",   # RGB hex color code
                 "bold": True,
             },
             "fill": {
-                "color": "AAAAAA",
+                "color": "00AAAAAA",  # leading 'aa' transparency values are accepted (but unused)
             },
         },
         "destinations": {
