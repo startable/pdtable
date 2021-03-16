@@ -25,7 +25,7 @@ DEFAULT_STYLE_SPEC = {
     },
     "destinations": {"font": {"color": "808080", "bold": True,}, "fill": {"color": "D9D9D9",},},
     "column_names": {"fill": {"color": "F2F2F2",}, "font": {"bold": True,},},
-    "column_units": {"fill": {"color": "F2F2F2",},},
+    "units": {"fill": {"color": "F2F2F2",},},
     "values": {},
 }
 
@@ -190,7 +190,7 @@ def _style_tables_in_worksheet(
             (table_name_cells, "table_name"),
             (destination_cells, "destinations"),
             (column_name_cells, "column_names"),
-            (column_unit_cells, "column_units"),
+            (column_unit_cells, "units"),
             (chain.from_iterable(value_cells), "values"),
         ]
         for cells, style_spec_name in style_spec_names:
@@ -202,7 +202,7 @@ def _style_tables_in_worksheet(
         # Special default case for transposed tables: center values and units
         if transposed:
             centered = {"alignment": {"horizontal": "center"}}
-            if not deep_get(styles, ["column_units", "alignment", "horizontal"]):
+            if not deep_get(styles, ["units", "alignment", "horizontal"]):
                 _style_cells(column_unit_cells, centered)
             if not deep_get(styles, ["values", "alignment", "horizontal"]):
                 _style_cells(chain.from_iterable(value_cells), centered)

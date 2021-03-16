@@ -316,7 +316,7 @@ def test_write_excel__custom_style(tmp_path):
                 "color": "777777",
             },
         },
-        "column_units": {
+        "units": {
             "font": {
                 "color": "440044",
             },  # --------------------- fill unspecified, leave untouched
@@ -415,7 +415,7 @@ def test_write_excel__transposed_table_units_and_values_are_centered_by_default(
     # Write tables to workbook with custom alignment styles, save, and re-load
     out_path = tmp_path / "foo_custom_style.xlsx"
     left = {"alignment": {"horizontal": "left"}}
-    write_excel([t], out_path, styles={"column_units": left, "values": left})  # << Custom alignment
+    write_excel([t], out_path, styles={"units": left, "values": left})  # << Custom alignment
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
