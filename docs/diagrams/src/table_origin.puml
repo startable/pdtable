@@ -1,0 +1,109 @@
+     def resolve(specificaton: str, orchestrator: Orchestrator, included_from: Optional[Location])
+     	   # spec may not be unique: it can be relative to included_from
+          if identifier is folder:
+               for file in folder.glob(pattern):
+                   orchestrator.add_source(file, identifier->location)
+          else:
+          	file_metadata, generator = handlers[identifier->protocol].read(identifier)
+
+@startuml Table Origin
+
+namespace load {
+    interface LoadOrchestrator {
+        + add_load_item(spec: LoadItem)
+    }
+    note top
+        Separate orchestrator allows
+        plugable multithreaded load
+    end note
+
+    interface Loader {
+        + load(LoadItem, LoadOrchestrator) -> Iterator[Block]
+    }
+    note top
+        Not just a callable, to allow state.
+        State could inlude db connection,
+        project root folder, cache folder,
+    end note
+
+    class ProtocolOrchestrator {
+        + default_protocol: str
+        + load_by_protocol: Dict[str, Loader]
+        + load_from_root_specs([str]) -> Iterator[Block]
+    }
+
+    LoadOrchestrator <|-- ProtocolOrchestrator
+}
+
+namespace table {
+    class TableMetadata {
+        + name
+        + destinations
+        + transposed
+        + origin: TableOrigin
+
+    }
+    table_origin.TableOrigin -o TableMetadata
+}
+
+namespace table_origin {
+    class LoadItem  {
+        specification: str
+        included_from: LoadLocation
+        __str__ -> heritage
+    }
+
+    class LocationFolder {
+        + local_folder_path: Path
+    }
+
+    LoadItem o-- LoadLocation
+    LoadLocation <|-- LocationBlock
+    LoadLocation <|-- LocationFolder
+
+    interface LoadLocation {
+        + local_folder_path: None | Path
+        + open_interactive(read_only)
+    }
+
+    interface LocationFile {
+    + file_specification: LoadItem 
+    + file_metadata: Any  # record metadata, modtime,...
+    + open_interactive(sheet, row, read_only)  # may fail
+    + local_path: None | Path
+    + get_local_path(): Path # downloads if required
+    }
+
+    LoadItem  -o LocationFile
+
+    class LocationSheet {
+    + sheet_name: None | str
+    + sheet_metadata: Any
+    }
+
+    LocationFile --o "file" LocationSheet
+
+    class LocationBlock {
+    + row: int
+    }
+
+    LocationSheet --o "sheet" LocationBlock
+
+
+    interface TableOrigin {
+        parents: [TableOrigin]
+        concrete_ancestors: [ConcreteTableOrigin]
+        operation: str | None
+    }
+
+    class ConcreteTableOrigin {
+        origin: LocationBlock
+    }
+
+    TableOrigin <|-- ConcreteTableOrigin
+    TableOrigin <|-- SyntheticTableOrigin
+
+    LocationBlock -* ConcreteTableOrigin
+}
+
+@enduml
