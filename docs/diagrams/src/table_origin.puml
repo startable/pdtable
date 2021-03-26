@@ -9,30 +9,21 @@
 @startuml Table Origin
 
 namespace load {
+    class LoadIssue {
+        load_item: LoadItem,
+        location_file: None | LocationFile,
+        location: None | LocationBlock,
+        issue: str | Exception
+    }
+
     interface LoadOrchestrator {
         + add_load_item(spec: LoadItem)
+        + register_load_issue(load_issue)
     }
-    note top
-        Separate orchestrator allows
-        plugable multithreaded load
-    end note
 
     interface Loader {
         + load(LoadItem, LoadOrchestrator) -> Iterator[Block]
     }
-    note top
-        Not just a callable, to allow state.
-        State could inlude db connection,
-        project root folder, cache folder,
-    end note
-
-    class ProtocolOrchestrator {
-        + default_protocol: str
-        + load_by_protocol: Dict[str, Loader]
-        + load_from_root_specs([str]) -> Iterator[Block]
-    }
-
-    LoadOrchestrator <|-- ProtocolOrchestrator
 }
 
 namespace table {
@@ -49,29 +40,35 @@ namespace table {
 namespace table_origin {
     class LoadItem  {
         specification: str
-        included_from: LoadLocation
-        __str__ -> heritage
+        source: None | LoadLocation
+        load_history() -> [LoadItem]
     }
 
     class LocationFolder {
         + local_folder_path: Path
+        + load_specification: LoadItem
     }
 
     LoadItem o-- LoadLocation
     LoadLocation <|-- LocationBlock
     LoadLocation <|-- LocationFolder
 
+    LoadItem --o LocationFolder
+
     interface LoadLocation {
         + local_folder_path: None | Path
+        + load_identifier: str
         + open_interactive(read_only)
     }
 
     interface LocationFile {
-    + file_specification: LoadItem 
-    + file_metadata: Any  # record metadata, modtime,...
-    + open_interactive(sheet, row, read_only)  # may fail
-    + local_path: None | Path
-    + get_local_path(): Path # downloads if required
+        + load_specification: LoadItem 
+        + load_identifier: str # unique
+        + load_metadata: Any  # record metadata, modtime,...
+        + open_interactive(sheet, row, read_only)  # may fail
+        + local_path: None | Path
+        + local_folder_path: None | Path
+        + get_local_path(): Path # downloads if required
     }
 
     LoadItem  -o LocationFile
@@ -91,19 +88,13 @@ namespace table_origin {
 
 
     interface TableOrigin {
+        input_location: LocationBlock | None
         parents: [TableOrigin]
-        concrete_ancestors: [ConcreteTableOrigin]
         operation: str | None
+        input_ancestors: [LocationBlock]
     }
 
-    class ConcreteTableOrigin {
-        origin: LocationBlock
-    }
-
-    TableOrigin <|-- ConcreteTableOrigin
-    TableOrigin <|-- SyntheticTableOrigin
-
-    LocationBlock -* ConcreteTableOrigin
+    LocationBlock -* TableOrigin
 }
 
 @enduml
