@@ -58,17 +58,20 @@ namespace table_origin {
     interface LoadLocation {
         + local_folder_path: None | Path
         + load_identifier: str
-        + open_interactive(read_only)
+        + interactive_open(read_only)
+        + interactive_uri(read_only)
+        + interactive_identifier: str
     }
 
     interface LocationFile {
         + load_specification: LoadItem 
         + load_identifier: str # unique
-        + load_metadata: Any  # record metadata, modtime,...
-        + open_interactive(sheet, row, read_only)  # may fail
         + local_path: None | Path
         + local_folder_path: None | Path
         + get_local_path(): Path # downloads if required
+        + interactive_open(sheet, row, read_only)  # may fail
+        + interactive_uri(sheet, row, read_only): URI
+        + interactive_identifier: str 
     }
 
     LoadItem  -o LocationFile
@@ -87,11 +90,11 @@ namespace table_origin {
     LocationSheet --o "sheet" LocationBlock
 
 
-    interface TableOrigin {
+    class TableOrigin {
         input_location: LocationBlock | None
         parents: [TableOrigin]
         operation: str | None
-        input_ancestors: [LocationBlock]
+        get_input_ancestors(): [LocationBlock]
     }
 
     LocationBlock -* TableOrigin
