@@ -33,6 +33,7 @@ import pandas as pd
 from pdtable import BlockType, BlockIterator
 from pdtable import Table
 from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
+from pdtable.table_origin import LocationSheet, NullLocationFile, TableOrigin
 from .columns import parse_column
 from .fixer import ParseFixer
 from ... import frame
@@ -61,19 +62,18 @@ def make_directive(cells: CellGrid, origin: Optional[str] = None, **_) -> Direct
     return Directive(name, directive_lines, origin)
 
 
-def default_fixer(**kwargs):
+def default_fixer(origin, fixer=None, **kwargs):
     """ Determine if user has supplied custom fixer
         Else return default ParseFixer() instance.
     """
-    fixer = kwargs.get("fixer")
     if fixer is not None:
         if type(fixer) is type:
             # It's a class, not an instance. Make an instance here.
-            fixer = kwargs["fixer"]()
+            fixer = fixer()
     else:
         fixer = ParseFixer()
     assert fixer is not None
-    fixer.origin = kwargs.get("origin")
+    fixer.origin = origin
     return fixer
 
 
@@ -266,7 +266,11 @@ _re_block_marker = re.compile(
 # $4 = Metadata:
 
 
-def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
+def parse_blocks(
+    cell_rows: Iterable[Sequence], 
+    origin: LocationSheet = None, 
+    to: str = "pdtable", 
+    **kwargs) -> BlockIterator:
     """Parses blocks from a single sheet as rows of cells.
 
     Takes an iterable of cell rows and parses it into blocks.
@@ -283,20 +287,25 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
     """
 
     # Unpack, pre-process, validate, and repack the kwargs for downstream use
-    to = kwargs.get("to")
-    if to is None:
-        kwargs["to"] = to = "pdtable"
-    elif to not in VALID_PARSING_OUTPUT_TYPES:
+    if to not in VALID_PARSING_OUTPUT_TYPES:
         raise ValueError(
             f"Unknown parsing output type; expected one of {VALID_PARSING_OUTPUT_TYPES}.", to
         )
 
-    origin = kwargs["origin"] if "origin" in kwargs else "stream"
+    if origin is None:
+        origin = LocationSheet(file=NullLocationFile(), sheet_name=None)
 
-    fixer = default_fixer(**kwargs)
-    kwargs["fixer"] = fixer  # use in make_block
+    # TODO: inject fixer
+    fixer = default_fixer(origin=origin.file.load_identifier, **kwargs)
     fixer.reset_fixes()
-    fixer.origin = origin
+
+    def block_output(state, row: int, cell_grid):
+        if not cell_grid:
+            return
+        location = TableOrigin(input_location=origin.make_location_block(row=row))
+        block_type, block = make_block(state, cell_grid, origin=location, to=to, fixer=fixer)
+        if block_type is not None:
+            yield block_type, block
 
     cell_grid = []
 
@@ -337,15 +346,11 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
 
         if next_state is not None:
             # Current block has ended. Emit it.
-            if len(cell_grid) > 0:
-                kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-                block_type, block = make_block(state, cell_grid, **kwargs)
-                if block_type is not None:
-                    yield block_type, block
-            # TODO augment TableOriginCSV with one tailored for Excel
+            yield from block_output(state, this_block_1st_row, cell_grid)
             cell_grid = []
             state = next_state
             next_state = None
+            this_block_1st_row = row_number_0based
             if state != BlockType.BLANK:
                 cell_grid.append(row)
             elif len(row) > 0:
@@ -354,12 +359,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
                     continue
                 cell_grid.append(row)
 
-    if cell_grid:
-        # Block ended with EOF. Emit it.
-        kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-        block_type, block = make_block(state, cell_grid, **kwargs)
-        if block_type is not None:
-            yield block_type, block
+    yield from block_output(state, this_block_1st_row, cell_grid)
 
 
 def _fix_duplicate_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):
