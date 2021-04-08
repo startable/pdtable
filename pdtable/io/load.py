@@ -19,14 +19,9 @@ from pathlib import Path, PosixPath
 import sys, os, subprocess, logging, re
 import datetime
 
-from ..table_origin import LocationFile, LocationBlock, LoadItem, TableOrigin
+from ..table_origin import InputIssueTracker, LocationFile, LocationBlock, LoadItem, NullInputIssueTracker, TableOrigin, InputError
 
 logger = logging.getLogger(__name__)
-
-
-class LoadIssuesError(Exception):
-    def __init__(self, issues):
-        self.issues = issues
 
 
 class LoadError(Exception):
@@ -34,22 +29,15 @@ class LoadError(Exception):
 
 
 # Todo: integrate properly with origin
-class LoadIssue(NamedTuple):
-    load_item: Optional[LoadItem] = None
-    location_file: Optional[LocationFile] = None
-    location: Optional[LocationBlock] = None
-    issue: Any = None
-
-
 class LoadOrchestrator(Protocol):
     @abstractmethod
     def add_load_item(self, w: LoadItem):
         pass
 
+    @property
     @abstractmethod
-    def register_load_issue(self, load_issue: LoadIssue):
+    def issue_tracker(self) -> InputIssueTracker:
         pass
-
 
 class Loader(Protocol):
     @abstractmethod
@@ -186,7 +174,13 @@ class FilesystemLoader(Loader):
         return resolved
 
     def load(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> BlockIterator:
-        full_path = self.resolve_load_item_path(load_item)
+        try:
+            full_path = self.resolve_load_item_path(load_item)
+        except LoadError as e:
+            # tracker may raise new exception if so configured
+            orchestrator.issue_tracker.add_error(e, load_item=load_item)
+            return
+
         if full_path.is_dir():
             src = LocationFolder(local_folder_path=full_path, load_specification=load_item)
             yield from self.load_folder(src, orchestrator)
@@ -221,22 +215,22 @@ class FilesystemLoader(Loader):
 ### SimpleOrchestrator
 
 
-def load_all(roots: List[LoadItem], loader: Loader):
+def load_all(roots: List[LoadItem], loader: Loader, issue_tracker: InputIssueTracker = None):
     class Orchestrator:
-        def __init__(self, roots):
+        def __init__(self, roots, issue_tracker):
             self.load_items = roots
-            self.issues = []
+            self.issue_tracker = issue_tracker
 
         def add_load_item(self, item):
             self.load_items.append(item)
 
-        def register_load_issue(self, issue):
-            self.issues.append(issue)
-
-    orch = Orchestrator(roots)
+    orch = Orchestrator(
+        roots, 
+        issue_tracker if issue_tracker is not None else NullInputIssueTracker
+    )
     while orch.load_items:
         yield from loader.load(orch.load_items.pop(), orch)
 
-    if orch.issues:
-        raise LoadError(f"Load issues: {orch.issues}")
+    if not orch.issue_tracker.is_ok:
+        raise InputError(f"Load issues: {orch.issue_tracker}")
 

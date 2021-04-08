@@ -1,4 +1,3 @@
-from pdtable.store import BlockIterator, BlockType
 from typing import (
     Protocol,
     Iterator,
@@ -11,8 +10,9 @@ from typing import (
     Callable,
     List,
     Dict,
+    Union,
 )
-from abc import abstractmethod, abstractproperty, abstractstaticmethod
+from abc import abstractmethod, abstractproperty, abstractstaticmethod, ABC
 import logging, time
 from dataclasses import dataclass, field
 from pathlib import Path, PosixPath
@@ -352,4 +352,98 @@ def table_origin_as_str(tt: TableOrigin):
 
     visit(tt, 0)
     return "\n".join("  " * lev + s for lev, s in buf)
+
+
+@dataclass
+class InputIssue:
+    issue: Union[str, Exception]
+    load_item: Optional[LoadItem] = None
+    location_file: Optional[LocationFile] = None
+    origin: Optional[TableOrigin] = None
+    severity: int = logging.ERROR
+
+class InputIssueTracker(ABC):
+    """
+    Protocol for tracking issues across inputs
+    """
+
+    @abstractmethod
+    def add_issue(self, input_issue: InputIssue):
+        pass
+
+    def add_error(
+        self, 
+        issue: Union[str, Exception],
+        load_item: Optional[LoadItem] = None,
+        location_file: Optional[LocationFile] = None,
+        origin: Optional[TableOrigin] = None,
+    ):
+        self.add_issue(InputIssue(
+            load_item=load_item, location_file=location_file, 
+            origin=origin, issue=issue, severity=logging.ERROR))
+
+    def add_warning(
+        self, 
+        issue: Union[str, Exception],
+        load_item: Optional[LoadItem] = None,
+        location_file: Optional[LocationFile] = None,
+        origin: Optional[TableOrigin] = None,
+    ):
+        """
+        Add a warning about a non-critical input issue
+
+        Examples include
+        - additional columns compared to template
+        - additional tables compared to template
+        """
+        self.add_issue(InputIssue(
+            load_item=load_item, location_file=location_file, 
+            origin=origin, issue=issue, severity=logging.WARNING))
+
+    @property
+    @abstractmethod
+    def issues(self) -> Iterable[InputIssue]:
+        pass
+
+    @property
+    def is_ok(self) -> bool:
+        """
+        True if no errors have been registered
+        """
+        return not any(m.severity >= logging.ERROR for m in self.issues)
+class InputError(Exception):
+    """
+    An exception raised on irrecoverable error in the input processing
+
+    This exception should now be caught within the pdtable framework.
+    """
+    pass
+
+class NullInputIssueTracker(InputIssueTracker):
+    """
+    Raise an exception immediately on first input issue
+    """
+
+    def add_issue(self, issue):
+        raise InputError(issue)
+
+    @property
+    def is_ok(self):
+        return True
+
+    @property
+    def issues(self):
+        return ()
+
+
+class WrappedInputIssueError(Exception):
+    """
+    An `InputIssue` instance wrapped in an exception to bubble up to layer
+    with access to an InputIssueTracker
+
+    This exception should always be caught somewhere in the pdtable stack
+    and added to the issue tracker. For errors where this does not make sense, 
+    use a different exception class.
+    """
+    pass
 

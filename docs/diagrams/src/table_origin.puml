@@ -9,16 +9,9 @@
 @startuml Table Origin
 
 namespace load {
-    class LoadIssue {
-        load_item: LoadItem,
-        location_file: None | LocationFile,
-        location: None | LocationBlock,
-        issue: str | Exception
-    }
-
     interface LoadOrchestrator {
         + add_load_item(spec: LoadItem)
-        + register_load_issue(load_issue)
+        + issue_tracker
     }
 
     interface Loader {
@@ -98,6 +91,21 @@ namespace table_origin {
     }
 
     LocationBlock -* TableOrigin
+
+    class InputIssue {
+        load_item: LoadItem,
+        location_file: None | LocationFile,
+        origin: None | TableOrigin,
+        issue: str | Exception
+    }
+
+    interface InputIssueTracker {
+        add_issue(input_issue)
+        is_ok: bool
+        issues: Iterable[InputIssue]
+    }
+
+    InputIssue <-- InputIssueTracker
 }
 
 @enduml

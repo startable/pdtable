@@ -9,9 +9,8 @@ def test_include():
     input_folder = Path(__file__).parent / 'input/with_include'
 
     def read(location_file: LocationFile, _: LoadOrchestrator):
-        # origin = TableOrigin(input_location=location_file.make_location_sheet().make_location_block(row=1))
-        origin = location_file.make_location_sheet()
-        yield from read_csv(location_file.get_local_path(), origin=origin)
+        location_sheet = location_file.make_location_sheet()
+        yield from read_csv(location_file.get_local_path(), location_sheet=location_sheet)
 
     roots = [LoadItem('/', source=None)]
     loader=FilesystemLoader(file_reader=read, root_folder=input_folder)
