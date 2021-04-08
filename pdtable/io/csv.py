@@ -13,12 +13,14 @@ from .. import BlockType, Table, TableBundle
 from ..store import BlockIterator
 from .parsers.fixer import ParseFixer
 from .parsers.blocks import parse_blocks
+from ..table_origin import LocationSheet, NullLocationFile
 
 
 def read_csv(
     source: Union[str, PathLike, TextIO],
     sep: str = None,
     origin: str = None,
+    location_sheet: LocationSheet = None,
     fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
@@ -84,13 +86,15 @@ def read_csv(
     if sep is None:
         sep = pdtable.CSV_SEP
 
-    if origin is None:
-        if hasattr(source, "name"):
-            origin = source.name
-        else:
-            origin = str(source)
+    if location_sheet is None:
+        if origin is None:
+            if hasattr(source, "name"):
+                origin = source.name
+            else:
+                origin = str(source)
+        location_sheet = NullLocationFile(load_identifier=origin).make_location_sheet()
 
-    kwargs = {"sep": sep, "origin": origin, "fixer": fixer, "to": to, "filter": filter}
+    kwargs = {"sep": sep, "location_sheet": location_sheet, "fixer": fixer, "to": to, "filter": filter}
 
     if not isinstance(source, (str, PathLike)):
         assert isinstance(source, io.TextIOBase)
