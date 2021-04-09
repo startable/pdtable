@@ -54,6 +54,7 @@ import warnings
 from typing import Set, Dict, Optional, Iterable
 
 from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
+from .table_origin import TableOrigin
 
 _TABLE_INFO_FIELD_NAME = "_table_data"
 
@@ -101,8 +102,14 @@ def _combine_tables(
         return None
 
     # 1: Create table metadata as combination of all
+    origin = TableOrigin(
+        operation=f"Pandas {method}", 
+        parents=[d.metadata.origin for d in data]
+    )
     meta = TableMetadata(
-        name=data[0].metadata.name, operation=f"Pandas {method}", parents=[d.metadata for d in data]
+        name=data[0].metadata.name,
+        destinations=data[0].destinations,
+        origin=origin,
     )
 
     # 2: Check that units match for columns that appear in more than one table

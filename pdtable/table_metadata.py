@@ -34,10 +34,8 @@ class TableMetadata:
         )
         src = ""
         if self.origin:
-            src = f" from {self.origin}"
-        if self.parents:
-            src = " from {{{}}}".format(",".join(f"\n{c}" for c in self.parents))
-        return f'Table "{self.name}" {dst}. {self.operation}{src}'
+            src = f" From {self.origin}"
+        return f'Table "{self.name}" {dst}.{src}'
 
 
 class ColumnFormat:

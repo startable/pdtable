@@ -35,7 +35,14 @@ import warnings
 from pdtable import BlockType, BlockIterator
 from pdtable import Table
 from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
-from pdtable.table_origin import LocationSheet, NullLocationFile, TableOrigin, InputIssue, InputIssueTracker, NullInputIssueTracker
+from pdtable.table_origin import (
+    LocationSheet,
+    NullLocationFile,
+    TableOrigin,
+    InputIssue,
+    InputIssueTracker,
+    NullInputIssueTracker,
+)
 from .columns import parse_column
 from .fixer import ParseFixer
 from ... import frame
@@ -274,9 +281,13 @@ def parse_blocks(
     location_sheet: LocationSheet = None,
     to: str = "pdtable",
     filter: Any = None,
+    fixer: Any = None,
+    issue_tracker: InputIssueTracker = None,
     **kwargs,
 ) -> BlockIterator:
     """Parses blocks from a single sheet as rows of cells.
+
+    This is a legacy facade for `parse_blocks_stable`.
 
     Takes an iterable of cell rows and parses it into blocks.
 
@@ -296,8 +307,10 @@ def parse_blocks(
     """
 
     # Set up handlers
-    # Legacy default is to emit unknown types as raw cells, so use defaultdict
-    handlers = defaultdict(lambda: make_table_cell_grid, DEFAULT_HANDLERS)
+    handlers = {
+        bt: None for bt in BlockType
+    }  # Legacy default is to emit unknown types as raw cells
+    handlers.update(DEFAULT_HANDLERS)
     try:
         handlers[BlockType.TABLE] = _table_handlers[to]
     except KeyError:
@@ -308,14 +321,25 @@ def parse_blocks(
         for k, base_handler in handlers.items():
             handlers[k] = _apply_filter(k, filter, base_handler)
 
-    if kwargs:
+    if fixer is not None or kwargs:
         origin_str = location_sheet.file.load_identifier if location_sheet is not None else ""
-        fixer = make_fixer(origin=origin_str, **kwargs)
+        fixer = make_fixer(origin=origin_str, fixer=fixer, **kwargs)
+        warnings.warn(
+            "The fixer construct is deprecated and will be removed in future release. "
+            "Please file an issue describing fixer use case at https://github.com/startable/pdtable/issues."
+            f"Fixer was triggered by the following keyword args: fixer: {fixer}, [{kwargs}].",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     else:
         fixer = None
 
     yield from parse_blocks_stable(
-        cell_rows, location_sheet=location_sheet, block_handlers=handlers, fixer=fixer
+        cell_rows,
+        location_sheet=location_sheet,
+        block_handlers=handlers,
+        fixer=fixer,
+        issue_tracker=issue_tracker,
     )
 
 
@@ -334,6 +358,7 @@ _re_block_marker = re.compile(
 # $3 = :Template
 # $4 = Metadata:
 
+
 def parse_blocks_stable(
     cell_rows: Iterable[Sequence],
     issue_tracker: InputIssueTracker = None,
@@ -341,9 +366,34 @@ def parse_blocks_stable(
     location_sheet: LocationSheet = None,
     fixer: Any = None,
 ) -> BlockIterator:
+    """
+    Generate blocks (tables, metadata, directives,...) from cell-rows
 
+    This is a utility function for use by format-specific readers. It will return
+    a block generator based on a stream of cell rows.
+    The actual blocks are built by the supplied block handlers. A reader may need to 
+    modify the defaults to correctly handle format conversions.
+
+    Block handlers:
+    The supplied block_handlers dictionary is queried for a handler by block type.
+    If no block handler is defined, block will be silently ignored.
+    Otherwise handler is called with arguments (cell_grid, origin, fixer) and should return
+    a block of the correct type. If `None` is returned the block is silently ignored.
+
+    Args:
+        issue_tracker:
+            Read issues are handled by calls to the issue tracker. The default issue tracker
+            will simply raise an exception.
+        block_handlers:
+            A dictionary mapping block types to block handlers as described above
+        location_sheet:
+            Describes input location
+        fixer:
+            The fixer construct is a legacy system which will be deprecated. Please raise
+            issues on github for all use-cases.
+    """
     if location_sheet is None:
-        location_sheet = LocationSheet(file=NullLocationFile(), sheet_name=None)
+        location_sheet = NullLocationFile().make_location_sheet()
 
     if issue_tracker is None:
         issue_tracker = NullInputIssueTracker()
@@ -353,11 +403,6 @@ def parse_blocks_stable(
 
     if fixer is None:
         fixer = make_fixer(origin=location_sheet.file.load_identifier)
-    else:
-        warnings.warn(
-            "The fixer construct is deprecated and will be removed in future release."
-            "Please file an issue describing fixer use case at https://github.com/startable/pdtable/issues.",
-            DeprecationWarning, stacklevel=2)
 
     def block_output(block_type, cell_grid, row: int):
         """
