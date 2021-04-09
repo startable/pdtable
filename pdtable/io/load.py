@@ -1,5 +1,9 @@
-from pdtable.table_origin import LocationFolder
-from pdtable.store import BlockIterator, BlockType
+from abc import abstractmethod, abstractstaticmethod
+import logging, time
+from dataclasses import dataclass, field
+from pathlib import Path, PosixPath
+import sys, os, subprocess, logging, re
+import datetime
 from typing import (
     Protocol,
     Iterator,
@@ -11,15 +15,23 @@ from typing import (
     Tuple,
     Callable,
     List,
+    Union,
 )
-from abc import abstractmethod, abstractstaticmethod
-import logging, time
-from dataclasses import dataclass, field
-from pathlib import Path, PosixPath
-import sys, os, subprocess, logging, re
-import datetime
 
-from ..table_origin import InputIssueTracker, LocationFile, LocationBlock, LoadItem, NullInputIssueTracker, TableOrigin, InputError
+
+from .csv import read_csv
+from pdtable.store import BlockIterator, BlockType
+from pdtable.table_origin import (
+    LocationFolder,
+    InputIssueTracker,
+    LocationFile,
+    LocationBlock,
+    LoadItem,
+    NullInputIssueTracker,
+    TableOrigin,
+    InputError,
+    FilesystemLocationFile,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,84 +51,16 @@ class LoadOrchestrator(Protocol):
     def issue_tracker(self) -> InputIssueTracker:
         pass
 
+
 class Loader(Protocol):
     @abstractmethod
     def load(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> BlockIterator:
         pass
 
 
-### FilesystemLoder et al.
-
-
-class FilesystemLocationFile(LocationFile):
-    def __init__(
-        self, local_path: Path, load_specification: Optional[LoadItem] = None, stat_result=None
-    ) -> None:
-        self._local_path = local_path
-        self._load_specification = load_specification or LoadItem(
-            specification=str(local_path), source=None
-        )
-        self._stat_result = stat_result
-
-    @property
-    def local_path(self):
-        return self._local_path
-
-    @property
-    def load_specification(self) -> LoadItem:
-        return self._load_specification
-
-    def get_stat_result(self, cached=True):
-        if (not cached) or self._stat_result is None:
-            self._stat_result = self.local_path.stat()
-        return self._stat_result
-
-    def get_mtime(self) -> datetime.datetime:
-        return datetime.datetime.fromtimestamp(self.get_stat_result().st_mtime)
-
-    @property
-    def load_identifier(self) -> str:
-        name_part = str(self.local_path.absolute())
-        mtime = self.get_mtime()
-        if mtime:
-            return name_part + "@" + mtime.isoformat(timespec="seconds")
-        return name_part
-
-    @property
-    def interactive_identifier(self) -> str:
-        return str(self.local_path)
-
-    def get_interactive_identifier(
-        self, sheet: Optional[str] = None, row: Optional[int] = None
-    ) -> str:
-        if sheet is None:
-            loc = f"Row {row}"
-        else:
-            loc = f"'{sheet}'!A{row}"
-        return f"{loc} of '{self.interactive_identifier}'"
-
-    def interactive_uri(
-        self,
-        sheet: Optional[str] = None,
-        row: Optional[int] = None,
-        read_only: Optional[bool] = False,
-    ) -> str:
-        file_uri = self.local_path.as_uri()
-        if sheet is None and row is None:
-            return file_uri
-        if sheet is None:
-            sheet = "Sheet1"
-        row_mark = f"!A{row}" if row is not None else ""
-        return file_uri + f"#'{sheet}'{row_mark}"
-
-
-class LoadResolver(Protocol):
-    @abstractmethod
-    def resolve(spec_without_protocol) -> Tuple[bool, LocationFile]:
-        pass
-
-
 Reader = Callable[[LocationFile, LoadOrchestrator], BlockIterator]
+
+### FilesystemLoder et al.
 
 _ABSOLUTE_PATH = re.compile(r"/|\\")
 
@@ -148,28 +92,31 @@ class FilesystemLoader(Loader):
     """
 
     file_reader: Reader
-    root_folder: Path
-    file_name_pattern: re.Pattern = field(
-        default_factory=lambda: re.compile(r"^(input|setup)_.*\.(csv|xls|xlsx)$")
-    )
+    file_name_pattern: re.Pattern
+    root_folder: Optional[Path] = None
     ignore_protocol: Optional[str] = "file:"
 
     def resolve_load_item_path(self, load_item: LoadItem) -> Path:
         spec = load_item.specification
         if self.ignore_protocol and spec.startswith(self.ignore_protocol):
             spec = spec[len(self.ignore_protocol) :]
-        is_absolute = _ABSOLUTE_PATH.match(spec) is not None
-        if is_absolute:
+        leading_slash = _ABSOLUTE_PATH.match(spec) is not None
+        if leading_slash:
+            if self.root_folder is None:
+                raise LoadError("Absolute include not allowed since root folder is not specified")
             resolved = self.root_folder / spec[1:]
         else:
             if load_item.source is None or load_item.source.local_folder_path is None:
                 raise LoadError("Cannot load location relative to source with no local folder path")
             resolved = load_item.source.local_folder_path / spec
         resolved = resolved.resolve()
-        try:
-            resolved_relative = resolved.relative_to(self.root_folder)
-        except ValueError as e:
-            raise LoadError(f"Load item {resolved} is outside load root folder: {self.root_folder}")
+
+        if self.root_folder is not None:
+            # Check that resolved folder is inside root
+            try:
+                resolved_relative = resolved.relative_to(self.root_folder)
+            except ValueError as e:
+                raise LoadError(f"Load item {resolved} is outside load root folder: {self.root_folder}")
 
         return resolved
 
@@ -215,7 +162,12 @@ class FilesystemLoader(Loader):
 ### SimpleOrchestrator
 
 
-def load_all(roots: List[LoadItem], loader: Loader, issue_tracker: InputIssueTracker = None):
+def loader_load_all(roots: List[LoadItem], loader: Loader, issue_tracker: InputIssueTracker = None):
+    """
+    Load `LoadItem`-objects listed in `roots`, together with any items added by the loader due to ``***include`` directives or similar
+
+    This loader is single threaded. For higher performance, a multi-threaded loader should be used.
+    """
     class Orchestrator:
         def __init__(self, roots, issue_tracker):
             self.load_items = roots
@@ -225,8 +177,7 @@ def load_all(roots: List[LoadItem], loader: Loader, issue_tracker: InputIssueTra
             self.load_items.append(item)
 
     orch = Orchestrator(
-        roots, 
-        issue_tracker if issue_tracker is not None else NullInputIssueTracker
+        roots, issue_tracker if issue_tracker is not None else NullInputIssueTracker
     )
     while orch.load_items:
         yield from loader.load(orch.load_items.pop(), orch)
@@ -234,3 +185,65 @@ def load_all(roots: List[LoadItem], loader: Loader, issue_tracker: InputIssueTra
     if not orch.issue_tracker.is_ok:
         raise InputError(f"Load issues: {orch.issue_tracker}")
 
+
+class FileReader:
+    csv_sep: Optional[str]
+
+    def __init__(self, csv_sep: Optional[str]=None):
+        self.csv_sep = csv_sep
+
+    def read(self, location_file: LocationFile, orchestrator: LoadOrchestrator) -> BlockIterator:
+        path = location_file.get_local_path()
+        ext = path.suffix.lower()
+        if ext=='.csv':
+            location_sheet = location_file.make_location_sheet()
+            yield from read_csv(
+                path, sep=self.csv_sep, 
+                location_sheet = location_sheet,
+                issue_tracker = orchestrator.issue_tracker,
+            )
+        elif ext=='.xlsx':
+            # TODO: make read_excel `location_file`-aware and call here
+            raise NotImplementedError
+        else:
+            raise ValueError(f"Unsupported file extension: {ext}")
+
+
+def load_files(
+    files: Iterable[str],
+    csv_sep: Optional[str]=None,
+    root_folder: Optional[Path]=None,
+    issue_tracker: Optional[InputIssueTracker]=None,
+    file_name_pattern: re.Pattern=None
+):
+    """
+    Load one or more files, respecting include directive
+
+    Example: load all files matching `input_*`, `setup_*` in `input_folder`::
+
+        load_files(['/'], root_folder=input_folder, csv_sep=';')
+
+
+    args:
+        csv_sep: 
+            Optional; Separator for csv files. Defaults to pdtable.CSV_SEP
+        root_folder:
+            Optional; Root folder for resolving absolute imports.
+            If defined, no loads outside root folder are allowed.
+        file_name_pattern:
+            Compiled regexp to match filenames against when reading a whole 
+            directory. Defaults to `^(input|setup)_.*\.(csv|xlsx)$`
+    
+    """    
+    if file_name_pattern is None:
+        file_name_pattern = re.compile(r"^(input|setup)_.*\.(csv|xlsx)$")
+    reader = FileReader(csv_sep=csv_sep)
+    yield from loader_load_all(
+        roots=[LoadItem(str(f), source=None) for f in files], 
+        loader=FilesystemLoader(
+            file_reader=reader.read, 
+            root_folder=root_folder,
+            file_name_pattern=file_name_pattern,
+            ),
+        issue_tracker=issue_tracker
+    )

@@ -19,16 +19,6 @@ namespace load {
     }
 }
 
-namespace table {
-    class TableMetadata {
-        + name
-        + destinations
-        + transposed
-        + origin: TableOrigin
-
-    }
-    table_origin.TableOrigin -o TableMetadata
-}
 
 namespace table_origin {
     class LoadItem  {
@@ -50,6 +40,7 @@ namespace table_origin {
 
     interface LoadLocation {
         + local_folder_path: None | Path
+        + load_specification: LoadItem
         + load_identifier: str
         + interactive_open(read_only)
         + interactive_uri(read_only)
@@ -66,6 +57,10 @@ namespace table_origin {
         + interactive_uri(sheet, row, read_only): URI
         + interactive_identifier: str 
     }
+
+    LocationFile <|-- FileSystemLocationFile
+    LocationFile <|-- NullLocationFile
+    
 
     LoadItem  -o LocationFile
 
@@ -106,6 +101,9 @@ namespace table_origin {
     }
 
     InputIssue <-- InputIssueTracker
+
+    InputIssueTracker <|-- NullInputIssueTracker
 }
+
 
 @enduml

@@ -42,6 +42,10 @@ class LoadLocation(Protocol):
     def interactive_open(self, read_only: bool = False):
         pass
 
+    @abstractmethod
+    def interactive_uri(self, read_only: bool = False) -> str:
+        pass
+
 
 class LoadItem(NamedTuple):
     specification: str
@@ -75,7 +79,7 @@ class LoadItem(NamedTuple):
 
     def __str__(self) -> str:
         return ";".join(
-            f'included as "{li.specification} from "{li.source_identifier}"'
+            f'included as "{li.specification}" from "{li.source_identifier}"'
             for li in self.load_history()
         )
 
@@ -175,20 +179,97 @@ class LocationFile(Protocol):
 def _random_id() -> str:
     return base64.b32encode(os.urandom(5*2)).decode('ascii')
 
-@dataclass(frozen=True)
-class NullLocationFile:
+class NullLocationFile(LocationFile):
     """
     Null-implementation of LocationFile
     """
-    load_specification: LoadItem = field(default_factory = lambda: LoadItem("Unknown", source=None))
-    load_identifier: str = field(default_factory = lambda: f"<Random load identifier - {_random_id()}>")
-    local_path: Optional[Path] = None
+    def __init__(self, description: Optional[str]=None, id: Optional[str]=None):
+        if description is None:
+            description = "Unknown"
+        if id is None:
+            id = f"{description}-{_random_id()}"
+        self._spec = LoadItem(description, source=None)
+        self._load_identifier = id
+
+    @property
+    def load_specification(self) -> LoadItem:
+        return self._spec
+
+    @property
+    def load_identifier(self) -> str:
+        return self._load_identifier
+
+    @property
+    def local_path(self) -> Optional[Path]:
+        return None
 
     def interactive_uri(
         self, sheet: Optional[str] = None, row: Optional[int] = None, read_only=True
     ) -> Optional[str]:
         return None
-        
+
+
+class FilesystemLocationFile(LocationFile):
+    def __init__(
+        self, local_path: Path, load_specification: Optional[LoadItem] = None, stat_result=None
+    ) -> None:
+        self._local_path = local_path
+        self._load_specification = load_specification or LoadItem(
+            specification=str(local_path), source=None
+        )
+        self._stat_result = stat_result
+
+    @property
+    def local_path(self):
+        return self._local_path
+
+    @property
+    def load_specification(self) -> LoadItem:
+        return self._load_specification
+
+    def get_stat_result(self, cached=True):
+        if (not cached) or self._stat_result is None:
+            self._stat_result = self.local_path.stat()
+        return self._stat_result
+
+    def get_mtime(self) -> datetime.datetime:
+        return datetime.datetime.fromtimestamp(self.get_stat_result().st_mtime)
+
+    @property
+    def load_identifier(self) -> str:
+        name_part = str(self.local_path.absolute())
+        mtime = self.get_mtime()
+        if mtime:
+            return name_part + "@" + mtime.isoformat(timespec="seconds")
+        return name_part
+
+    @property
+    def interactive_identifier(self) -> str:
+        return str(self.local_path)
+
+    def get_interactive_identifier(
+        self, sheet: Optional[str] = None, row: Optional[int] = None
+    ) -> str:
+        if sheet is None:
+            loc = f"Row {row}"
+        else:
+            loc = f"'{sheet}'!A{row}"
+        return f"{loc} of '{self.interactive_identifier}'"
+
+    def interactive_uri(
+        self,
+        sheet: Optional[str] = None,
+        row: Optional[int] = None,
+        read_only: Optional[bool] = False,
+    ) -> str:
+        file_uri = self.local_path.as_uri()
+        if sheet is None and row is None:
+            return file_uri
+        if sheet is None:
+            sheet = "Sheet1"
+        row_mark = f"!A{row}" if row is not None else ""
+        return file_uri + f"#'{sheet}'{row_mark}"
+
 
 class LocationFolder(NamedTuple):
     local_folder_path: Path
@@ -245,6 +326,10 @@ class LocationBlock(NamedTuple):
     @property
     def load_identifier(self) -> str:
         return self.file.load_identifier
+
+    @property
+    def load_specification(self) -> LoadItem:
+        return self.file.load_specification
 
     @property
     def interactive_identifier(self) -> str:
@@ -411,6 +496,7 @@ class InputIssueTracker(ABC):
         True if no errors have been registered
         """
         return not any(m.severity >= logging.ERROR for m in self.issues)
+
 class InputError(Exception):
     """
     An exception raised on irrecoverable error in the input processing
@@ -434,7 +520,6 @@ class NullInputIssueTracker(InputIssueTracker):
     @property
     def issues(self):
         return ()
-
 
 class WrappedInputIssueError(Exception):
     """
