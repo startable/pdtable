@@ -1,4 +1,14 @@
+"""
+The purpose of the `table_origin` module is to provide an object model of the origin of a given table
+
+The `table_origin` module defines the data structure for achieving this. The process of building the object
+model is performed by the load system. The object model is attached to `Table`-objects as a `TableOrigin` instance
+in the `.origin` field of `.metadata`.
+"""
+
+
 from typing import (
+    DefaultDict,
     Protocol,
     Iterator,
     Any,
@@ -36,6 +46,10 @@ class LoadLocation(Protocol):
     @property
     @abstractmethod
     def load_identifier(self) -> str:
+        pass
+
+    @property
+    def interactive_identifier(self) -> str:
         pass
 
     @abstractmethod
@@ -79,7 +93,7 @@ class LoadItem(NamedTuple):
 
     def __str__(self) -> str:
         return ";".join(
-            f'included as "{li.specification}" from "{li.source_identifier}"'
+            f'included as "{li.specification}" from "{li.source.interactive_identifier if li.source else "<root>"}"'
             for li in self.load_history()
         )
 
@@ -175,15 +189,26 @@ class LocationFile(Protocol):
     def make_location_sheet(self, sheet_name: Optional[str] = None):
         return LocationSheet(file=self, sheet_name=sheet_name)
 
+    def __str__(self) -> str:
+        return self.interactive_identifier
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}(id={repr(self.load_identifier)}, "
+            f"spec={repr(self.load_specification)})"
+        )
+
 
 def _random_id() -> str:
-    return base64.b32encode(os.urandom(5*2)).decode('ascii')
+    return base64.b32encode(os.urandom(5 * 2)).decode("ascii")
+
 
 class NullLocationFile(LocationFile):
     """
     Null-implementation of LocationFile
     """
-    def __init__(self, description: Optional[str]=None, id: Optional[str]=None):
+
+    def __init__(self, description: Optional[str] = None, id: Optional[str] = None):
         if description is None:
             description = "Unknown"
         if id is None:
@@ -210,14 +235,24 @@ class NullLocationFile(LocationFile):
 
 
 class FilesystemLocationFile(LocationFile):
+    """
+    Args:
+        root_folder: If specified, interactive_identifier will be given relative to this
+    """
+
     def __init__(
-        self, local_path: Path, load_specification: Optional[LoadItem] = None, stat_result=None
+        self,
+        local_path: Path,
+        load_specification: Optional[LoadItem] = None,
+        root_folder: Optional[Path] = None,
+        stat_result=None,
     ) -> None:
         self._local_path = local_path
         self._load_specification = load_specification or LoadItem(
             specification=str(local_path), source=None
         )
         self._stat_result = stat_result
+        self.root_folder = root_folder
 
     @property
     def local_path(self):
@@ -245,7 +280,9 @@ class FilesystemLocationFile(LocationFile):
 
     @property
     def interactive_identifier(self) -> str:
-        return str(self.local_path)
+        if self.root_folder is None:
+            return str(self.local_path)
+        return str(self.local_path.relative_to(self.root_folder))
 
     def get_interactive_identifier(
         self, sheet: Optional[str] = None, row: Optional[int] = None
@@ -274,6 +311,7 @@ class FilesystemLocationFile(LocationFile):
 class LocationFolder(NamedTuple):
     local_folder_path: Path
     load_specification: LoadItem
+    root_folder: Optional[Path] = None
 
     @property
     def load_identifier(self) -> str:
@@ -281,7 +319,13 @@ class LocationFolder(NamedTuple):
 
     @property
     def interactive_identifier(self) -> str:
-        return self.load_identifier
+        if self.root_folder is None:
+            return self.load_identifier
+        rel_path = self.local_folder_path.relative_to(self.root_folder)
+        if rel_path == Path("."):
+            return f"<root_folder: {self.root_folder}>"
+        else:
+            return str(rel_path)
 
     def interactive_uri(self, read_only=False) -> str:
         return self.local_folder_path.as_uri()
@@ -291,11 +335,14 @@ class LocationFolder(NamedTuple):
 
     @classmethod
     def make_location_folder(
-        cls, local_folder_path: Path, load_specification: LoadItem = None
+        cls,
+        local_folder_path: Path,
+        load_specification: LoadItem = None,
+        root_folder: Optional[Path] = None,
     ) -> "LocationFolder":
         if load_specification is None:
             load_specification = LoadItem(str(local_folder_path), source=None)
-        return cls(local_folder_path=local_folder_path, load_specification=load_specification)
+        return cls(local_folder_path=local_folder_path, load_specification=load_specification, root_folder=root_folder)
 
 
 @dataclass(frozen=True)  # to allow empty dict default
@@ -307,7 +354,12 @@ class LocationSheet:
     def make_location_block(self, row: int):
         return LocationBlock(sheet=self, row=row)
 
+
 class LocationBlock(NamedTuple):
+    """
+
+    """
+
     sheet: LocationSheet
     row: int
 
@@ -325,7 +377,7 @@ class LocationBlock(NamedTuple):
 
     @property
     def load_identifier(self) -> str:
-        return self.file.load_identifier
+        return f"{self.file.load_identifier}#'{self.sheet_name or 'Sheet1'}'!A{self.row}"
 
     @property
     def load_specification(self) -> LoadItem:
@@ -340,6 +392,13 @@ class LocationBlock(NamedTuple):
 
     def interactive_open(self, read_only: bool = False):
         interactive_open_uri(self.interactive_uri(read_only=read_only))
+
+    def __str__(self) -> str:
+        return f"{self.interactive_identifier};{self.file.load_specification}"
+
+    def __repr__(self) -> str:
+        sheet_spec = "" if self.sheet_name is None else f", sheet={self.sheet_name}"
+        return f"LocationBlock(row={self.row}{sheet_spec}, file={repr(self.file)})"
 
 
 @dataclass(frozen=True)
@@ -447,6 +506,7 @@ class InputIssue:
     origin: Optional[TableOrigin] = None
     severity: int = logging.ERROR
 
+
 class InputIssueTracker(ABC):
     """
     Protocol for tracking issues across inputs
@@ -457,18 +517,24 @@ class InputIssueTracker(ABC):
         pass
 
     def add_error(
-        self, 
+        self,
         issue: Union[str, Exception],
         load_item: Optional[LoadItem] = None,
         location_file: Optional[LocationFile] = None,
         origin: Optional[TableOrigin] = None,
     ):
-        self.add_issue(InputIssue(
-            load_item=load_item, location_file=location_file, 
-            origin=origin, issue=issue, severity=logging.ERROR))
+        self.add_issue(
+            InputIssue(
+                load_item=load_item,
+                location_file=location_file,
+                origin=origin,
+                issue=issue,
+                severity=logging.ERROR,
+            )
+        )
 
     def add_warning(
-        self, 
+        self,
         issue: Union[str, Exception],
         load_item: Optional[LoadItem] = None,
         location_file: Optional[LocationFile] = None,
@@ -481,9 +547,15 @@ class InputIssueTracker(ABC):
         - additional columns compared to template
         - additional tables compared to template
         """
-        self.add_issue(InputIssue(
-            load_item=load_item, location_file=location_file, 
-            origin=origin, issue=issue, severity=logging.WARNING))
+        self.add_issue(
+            InputIssue(
+                load_item=load_item,
+                location_file=location_file,
+                origin=origin,
+                issue=issue,
+                severity=logging.WARNING,
+            )
+        )
 
     @property
     @abstractmethod
@@ -497,13 +569,16 @@ class InputIssueTracker(ABC):
         """
         return not any(m.severity >= logging.ERROR for m in self.issues)
 
+
 class InputError(Exception):
     """
     An exception raised on irrecoverable error in the input processing
 
     This exception should now be caught within the pdtable framework.
     """
+
     pass
+
 
 class NullInputIssueTracker(InputIssueTracker):
     """
@@ -521,6 +596,7 @@ class NullInputIssueTracker(InputIssueTracker):
     def issues(self):
         return ()
 
+
 class WrappedInputIssueError(Exception):
     """
     An `InputIssue` instance wrapped in an exception to bubble up to layer
@@ -530,5 +606,6 @@ class WrappedInputIssueError(Exception):
     and added to the issue tracker. For errors where this does not make sense, 
     use a different exception class.
     """
+
     pass
 

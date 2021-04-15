@@ -42,9 +42,9 @@ namespace table_origin {
         + local_folder_path: None | Path
         + load_specification: LoadItem
         + load_identifier: str
+        + interactive_identifier: str
         + interactive_open(read_only)
         + interactive_uri(read_only)
-        + interactive_identifier: str
     }
 
     interface LocationFile {
@@ -60,7 +60,7 @@ namespace table_origin {
 
     LocationFile <|-- FileSystemLocationFile
     LocationFile <|-- NullLocationFile
-    
+    LocationFile --|> LoadLocation
 
     LoadItem  -o LocationFile
 
