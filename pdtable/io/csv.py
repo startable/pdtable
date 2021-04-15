@@ -65,7 +65,7 @@ def read_csv(
             Optional; CSV field delimiter. Default is ';'.
 
         origin:
-            Optional; Table location. May be shadowed by `location_sheet`.
+            Optional; File origin description/file name as str. May be shadowed by `location_sheet`.
 
         location_sheet:
             Optional; Origin of sheet as a LocationSheet object.
@@ -103,7 +103,7 @@ def read_csv(
         if not source_is_stream:
             location_sheet = FilesystemLocationFile(local_path=source, load_specification=origin).make_location_sheet()
         elif origin is not None:
-            location_sheet = NullLocationFile(origin).make_location_sheet()
+            location_sheet = NullLocationFile(str(origin)).make_location_sheet()
         # else: keep location_sheet undefined
     elif origin is not None:
         warnings.warn(f"Input 'origin': {origin} is shadowed by input 'location_sheet': {location_sheet}.")

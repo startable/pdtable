@@ -10,20 +10,29 @@ requiring them (read_excel() or write_excel()) are called for the first time.
 import os
 from os import PathLike
 from pathlib import Path
-from typing import Union, Callable, Iterable, BinaryIO, Dict
+from typing import Union, Callable, Iterable, BinaryIO, Dict, Optional
+import re
+import warnings
+import logging
 
 from .parsers.blocks import parse_blocks
 from .parsers.fixer import ParseFixer
 from .. import BlockType, Table
 from ..store import BlockIterator
+from ..table_origin import FilesystemLocationFile, InputIssueTracker, LocationFile
 
+logger = logging.getLogger(__name__)
 
 def read_excel(
-    source: Union[str, PathLike, Path, BinaryIO],
-    origin=None,
+    source: Union[str, PathLike, Path],
+    *, 
+    origin: str = None,
+    location_file: LocationFile = None,
+    sheet_name_pattern: Optional[re.Pattern] = None,
     fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
+    issue_tracker: InputIssueTracker = None,
 ) -> BlockIterator:
     """Reads StarTable blocks from an Excel workbook.
     # TODO copy most of read_csv() docstring over
@@ -35,6 +44,18 @@ def read_excel(
         source:
             Path of workbook to read.
 
+        origin:
+            Optional; File origin description/file name as str. May be shadowed by `location_sheet`.
+
+        location_file:
+            Optional; Origin of file as a LocationFile object.
+            `location_sheet` takes precedence over `origin`. For file input default
+            if input path with `origin` as optional input specification, for stream input
+            default is a null context with `origin` as description.
+        sheet_name_pattern: 
+            Optional[re.Pattern] = None;
+            If specified, only sheets with name matching pattern will be loaded.
+            Matching is done with ``match``, i.e. must match from start of string.
 
 
     Yields:
@@ -43,9 +64,14 @@ def read_excel(
 
     kwargs = {"origin": origin, "fixer": fixer, "to": to, "filter": filter}
 
-    try:
-        from ._excel_openpyxl import read_cell_rows_openpyxl as read_cell_rows
+    # resolve location
+    if location_file is None:
+        location_file = FilesystemLocationFile(local_path=source, load_specification=origin).make_location_sheet()
+    elif origin is not None:
+        warnings.warn(f"Input 'origin': {origin} is shadowed by input 'location_file': {location_file}.")
 
+    try:
+        from ._excel_openpyxl import read_sheets
     except ImportError as err:
         raise ImportError(
             "Unable to find a usable Excel engine. "
@@ -53,7 +79,19 @@ def read_excel(
             "Please install openpyxl for Excel I/O support."
         ) from err
 
-    yield from parse_blocks(read_cell_rows(source), **kwargs)
+    def name_matches(name) -> bool:
+        if sheet_name_pattern is None:  
+            return True
+        return sheet_name_pattern.match(name) is not None
+
+    for name, row_cell_iter in read_sheets(source):
+        if not name_matches(name):
+            logger.debug(f"Skipping sheet '{name}'")
+            continue
+        location_sheet = location_file.make_location_sheet(name)
+        yield from parse_blocks(row_cell_iter,
+            location_sheet=location_sheet, 
+            fixer=fixer, to=to, filter=filter, issue_tracker=issue_tracker)
 
 
 def write_excel(
