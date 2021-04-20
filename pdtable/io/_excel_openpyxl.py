@@ -2,7 +2,7 @@
 from itertools import chain
 from os import PathLike
 from typing import Union, Iterable, Sequence, Any, Dict, List, Tuple, Optional
-
+from contextlib import closing
 import openpyxl
 
 try:
@@ -32,11 +32,17 @@ DEFAULT_STYLE_SPEC = {
 
 def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
     """Reads from an Excel workbook, yielding one row of cells at a time."""
-    import openpyxl
 
-    wb = openpyxl.load_workbook(path, read_only=True, data_only=True, keep_links=False)
-    for ws in wb.worksheets:
-        yield from ws.iter_rows(values_only=True)
+    with closing(openpyxl.load_workbook(path, read_only=True, data_only=True, keep_links=False)) as wb:
+        for ws in wb.worksheets:
+            yield from ws.iter_rows(values_only=True)
+
+def read_sheets(path: Union[str, PathLike]) -> Iterable[Tuple[str, Iterable[Sequence[Any]]]]:
+    """Reads from an Excel workbook, yielding (sheet_name, <row iterator>)."""
+
+    with closing(openpyxl.load_workbook(path, read_only=True, data_only=True, keep_links=False)) as wb:
+        for ws in wb.worksheets:
+            yield   (ws.title, ws.iter_rows(values_only=True))
 
 
 def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines):

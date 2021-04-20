@@ -9,6 +9,7 @@ from pytest import raises
 
 from pdtable import ParseFixer, BlockType
 from pdtable import read_csv
+from pdtable.table_origin import InputError
 from pdtable.io import table_to_json_data
 from pdtable.io.parsers import parse_blocks
 from pdtable.io.parsers.blocks import make_table
@@ -34,9 +35,11 @@ def test_displays_all_error_messages():
         Duplicate column 'flt' at position 4 in table 'farm_cols1'.
         Duplicate column 'flt' at position 5 in table 'farm_cols1'."""
     )
-    with raises(ValueError, match=expected_error_msg):
+    with raises(InputError) as input_error:
         blocks = list(read_csv(input_dir() / "cols1.csv"))
 
+    msg = input_error.value.args[0].issue  # Avoid repr escaping
+    assert expected_error_msg == str(msg)
 
 def test_columns_duplicate():
     """
@@ -87,7 +90,7 @@ def test_custom_fixer():
                 assert tt["columns"]["flt"]["values"][0] == 22.0 / 7.0
                 assert tt["columns"]["flt2"]["values"][2] == 22.0 / 7.0
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         # test read_csv w. class (not instance) of fixer
         # class has default stop_on_errors = True
         with open(input_dir() / "types3.csv", "r") as fh:
@@ -162,14 +165,14 @@ def test_stop_on_errors():
     fix.stop_on_errors = True
     fix._dbg = False  # ignore during test
     pi = 0
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         for typ, tab in parse_blocks(table_lines, fixer=fix, to="pdtable"):
             if typ != BlockType.TABLE:
                 continue
             assert tab.df["a4"][0] == 3.14
             pi += 1
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         for typ, tab in parse_blocks(table_lines, fixer=fix, to="jsondata"):
             if typ != BlockType.TABLE:
                 continue
@@ -213,7 +216,7 @@ def test_stop_on_errors_default_fixer():
     assert tab.name == "tab_ok"
     assert tab.df["a4"][0] == 3.14
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         typ, tab = next(g)
         print(f"-oOo-: {typ} {tab}")
 
@@ -237,7 +240,7 @@ def test_stop_on_errors_default_fixer():
     assert tab.name == "tab_ok"
     assert tab.df["a1"][0] == 3.14
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         typ, tab = next(g)
         print(f"-oOo-: {typ} {tab}")
 
@@ -264,7 +267,7 @@ def test_stop_on_errors_default_fixer():
     assert tab.df["a1"][1] == 3.14
     assert tab.df["a2"][1] == pd.to_datetime("2020-08-12")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         typ, tab = next(g)
         print(f"-oOo-: {typ} {tab}")
 
