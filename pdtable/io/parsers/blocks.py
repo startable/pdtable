@@ -81,7 +81,7 @@ def make_fixer(origin, fixer=None, **kwargs):
         fixer = ParseFixer()
     assert fixer is not None
     fixer.origin = origin
-    fixer.reset_fixes()
+    # fixer.reset_fixes()
     return fixer
 
 
@@ -96,7 +96,7 @@ def parse_column_names(column_names_raw: Sequence[Union[str, None]]) -> List[str
     ]
 
 
-def make_table_json_precursor(cells: CellGrid, fixer, origin) -> Tuple[JsonDataPrecursor, bool]:
+def make_table_json_precursor(cells: CellGrid, origin, fixer:ParseFixer) -> Tuple[JsonDataPrecursor, bool]:
     """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
 
     Parses cell grid to a JSON-like data structure of nested "objects" (dict), "arrays" (list),
@@ -115,6 +115,7 @@ def make_table_json_precursor(cells: CellGrid, fixer, origin) -> Tuple[JsonDataP
     if transposed:
         # Chop off the transpose decorator from the name
         table_name = table_name[:-1]
+    fixer.table_name = table_name
 
     # internally hold destinations as json-compatible dict
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
@@ -197,10 +198,10 @@ def make_table_json_precursor(cells: CellGrid, fixer, origin) -> Tuple[JsonDataP
     )
 
 
-def make_table(cells: CellGrid, origin: TableOrigin, **kwargs) -> Table:
+def _make_table(cells: CellGrid, origin, fixer) -> Table:
     """Parses cell grid into a pdtable-style Table block object."""
     json_precursor, transposed = make_table_json_precursor(
-        cells, origin=str(origin.input_location), **kwargs
+        cells, origin=str(origin.input_location), fixer=fixer,
     )
     return Table(
         frame.make_table_dataframe(
@@ -216,9 +217,20 @@ def make_table(cells: CellGrid, origin: TableOrigin, **kwargs) -> Table:
     )
 
 
-def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
+def make_table(cells: CellGrid, origin: Optional[TableOrigin]=None, **kwargs) -> Table:
+    """Parses cell grid into a pdtable-style Table block object."""
+    fixer=make_fixer(origin=origin, **kwargs)
+    if origin is None:
+        origin = TableOrigin()
+    elif isinstance(origin, str):
+        warnings.warn("Passing origin as str is deprecated", DeprecationWarning, stacklevel=2)
+        origin = TableOrigin(NullLocationFile(origin).make_location_sheet().make_location_block(0))
+    return _make_table(cells, origin, fixer=fixer)
+
+
+def make_table_json_data(cells: CellGrid, origin, fixer) -> JsonData:
     """Parses cell grid into a JSON-ready data structure."""
-    impure_json, transposed = make_table_json_precursor(cells, origin=origin, **kwargs)
+    impure_json, transposed = make_table_json_precursor(cells, origin=origin, fixer=fixer)
     # attach unit directly to individual column
     units = impure_json["units"]
     del impure_json["units"]  # replaced by "unit" field in columns
@@ -230,21 +242,21 @@ def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     return to_json_serializable(impure_json)
 
 
-def make_table_cell_grid(cells: CellGrid, origin, **kwargs) -> CellGrid:
+def make_raw_cells(cells: CellGrid, origin, **kwargs) -> CellGrid:
     return cells
 
 
 DEFAULT_HANDLERS = (
     (BlockType.METADATA, make_metadata_block),
     (BlockType.DIRECTIVE, make_directive),
-    (BlockType.TABLE, make_table),
+    (BlockType.TABLE, _make_table),
 )
 _default_handlers = dict(DEFAULT_HANDLERS)
 
 TABLE_HANDLERS = (
-    ("pdtable", make_table),
+    ("pdtable", _make_table),
     ("jsondata", make_table_json_data),
-    ("cellgrid", make_table_cell_grid),
+    ("cellgrid", make_raw_cells),
 )
 _table_handlers = dict(TABLE_HANDLERS)
 
@@ -266,7 +278,7 @@ _re_block_marker = re.compile(
 
 def _apply_filter(block_type, filter, handler):
     if not block_type == BlockType.TABLE:
-        lambda cellgrid, *args, **kwargs: handler(cellgrid, *args, **kwargs) if filter(
+        return lambda cellgrid, *args, **kwargs: handler(cellgrid, *args, **kwargs) if filter(
             block_type, ""
         ) else None
     return (
@@ -283,6 +295,7 @@ def parse_blocks(
     filter: Any = None,
     fixer: Any = None,
     issue_tracker: InputIssueTracker = None,
+    origin: Optional[str] = None,
     **kwargs,
 ) -> BlockIterator:
     """Parses blocks from a single sheet as rows of cells.
@@ -307,9 +320,10 @@ def parse_blocks(
     """
 
     # Set up handlers
+    # Legacy default is to emit unknown types as raw cells
     handlers = {
-        bt: None for bt in BlockType
-    }  # Legacy default is to emit unknown types as raw cells
+        bt: make_raw_cells for bt in BlockType
+    }  
     handlers.update(DEFAULT_HANDLERS)
     try:
         handlers[BlockType.TABLE] = _table_handlers[to]
@@ -320,9 +334,11 @@ def parse_blocks(
     if filter:
         for k, base_handler in handlers.items():
             handlers[k] = _apply_filter(k, filter, base_handler)
+    if origin and location_sheet:
+        warnings.warn("Origin is shadowed by location.sheet.")
 
     if fixer is not None or kwargs:
-        origin_str = location_sheet.file.load_identifier if location_sheet is not None else ""
+        origin_str = location_sheet.file.load_identifier if location_sheet is not None else origin
         fixer = make_fixer(origin=origin_str, fixer=fixer, **kwargs)
         warnings.warn(
             "The fixer construct is deprecated and will be removed in future release. "
@@ -415,10 +431,11 @@ def parse_blocks_stable(
             return
         origin = TableOrigin(input_location=location_sheet.make_location_block(row=row))
 
+        fixer.reset_fixes()
         try:
             block = handler(cell_grid, origin=origin, fixer=fixer)
         except ValueError as e:
-            issue_tracker.add_error(e, origin=origin)
+            issue_tracker.add_error(str(e), origin=origin)
 
         if block is not None:
             yield block_type, block

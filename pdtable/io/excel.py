@@ -19,7 +19,7 @@ from .parsers.blocks import parse_blocks
 from .parsers.fixer import ParseFixer
 from .. import BlockType, Table
 from ..store import BlockIterator
-from ..table_origin import FilesystemLocationFile, InputIssueTracker, LocationFile
+from ..table_origin import FilesystemLocationFile, InputIssueTracker, LocationFile, NullLocationFile
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def read_excel(
             Path of workbook to read.
 
         origin:
-            Optional; File origin description/file name as str. May be shadowed by `location_sheet`.
+            Optional; File origin description/file name as str. May be shadowed by `location_file`.
 
         location_file:
             Optional; Origin of file as a LocationFile object.
@@ -62,11 +62,16 @@ def read_excel(
         Tuples of the form (block type, block content)
     """
 
-    kwargs = {"origin": origin, "fixer": fixer, "to": to, "filter": filter}
+    source_is_stream = hasattr(source, "read")
+    if not source_is_stream:
+        source = Path(source)
 
     # resolve location
     if location_file is None:
-        location_file = FilesystemLocationFile(local_path=source, load_specification=origin).make_location_sheet()
+        if not source_is_stream:
+            location_file = FilesystemLocationFile(local_path=source, load_specification=origin)
+        else:
+            location_file = NullLocationFile()
     elif origin is not None:
         warnings.warn(f"Input 'origin': {origin} is shadowed by input 'location_file': {location_file}.")
 

@@ -472,9 +472,9 @@ def test_parse_blocks__block_types():
     ]
     # fmt: on
 
+    parse_result = list(parse_blocks(cell_rows, to="cellgrid"))
     seen = {}
-    for ty, block in parse_blocks(cell_rows, to="cellgrid"):
-        #  print(f"\n-oOo- {ty} {block}")
+    for ty, block in parse_result:
         if seen.get(ty) is None:
             seen[ty] = []
         seen[ty].append(block)

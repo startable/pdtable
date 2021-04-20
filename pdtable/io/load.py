@@ -1,3 +1,25 @@
+"""
+The ``load``-module is responsible for reading input sets
+
+Compared to the single-file reader functions, the load functionality adds:
+
+  - Support of `***include` directives
+  - Support for multiple input sources (records systems, blobs, etc)
+  - Support of tracking input origin 
+
+
+Example of loading all files in a given folder::
+
+    inputs = load_files(['/'], root_folder=root_folder, csv_sep=';')
+    bundle =  TableBundle(inputs)
+
+The Table objects returned by load will have an `origin` attribute describing their load herritage. 
+An example of how this can be used is the `make_location_trees`-function, which builds a tree-representation of the load process::
+
+    location_trees = make_location_trees(iter(bundle))
+    print('\n'.join(str(n) for n in location_trees))
+"""
+
 from abc import abstractmethod, abstractstaticmethod
 import logging, time
 from dataclasses import dataclass, field

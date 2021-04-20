@@ -108,7 +108,7 @@ def _combine_tables(
     )
     meta = TableMetadata(
         name=data[0].metadata.name,
-        destinations=data[0].destinations,
+        destinations=data[0].metadata.destinations,
         origin=origin,
     )
 
