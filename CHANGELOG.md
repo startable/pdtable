@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased changes yet. 
+### Fixed
+- In response to a Numpy deprecation warning, changed one `dtype` argument from deprecated `numpy.str` to its designated successor, built-in `str`.
 
 ## [0.0.10] - 2021-03-16
 
