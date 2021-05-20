@@ -27,7 +27,6 @@ from pathlib import Path, PosixPath
 import sys, os, subprocess, logging, re
 import datetime
 from typing import (
-    Protocol,
     Iterator,
     Any,
     NamedTuple,
@@ -40,6 +39,13 @@ from typing import (
     Union,
     Dict,
 )
+
+
+try:
+    from typing import Protocol
+except ImportError:
+    # Protocol is not available in python 3.7
+    from typing_extensions import Protocol
 
 
 from .csv import read_csv
@@ -98,7 +104,7 @@ class FilesystemLoader(Loader):
 
     Implementation of ``***include``-directive
     ------------------------------------------
-    Each row in an include directive correspond to a load item. 
+    Each row in an include directive correspond to a load item.
     Paths are resolved as follows:
     - relative paths are resolved relative to the file they are specified in
     - absolute paths are resolved relative to the root folder
@@ -271,21 +277,21 @@ def load_files(
     and the backing implementation will be updated when best practice changes.
 
     args:
-        csv_sep: 
+        csv_sep:
             Optional; Separator for csv files. Defaults to pdtable.CSV_SEP
         root_folder:
             Optional; Root folder for resolving absolute imports.
             If defined, no loads outside root folder are allowed.
         file_name_pattern:
-            Compiled regexp to match filenames against when reading a whole 
+            Compiled regexp to match filenames against when reading a whole
             directory. Defaults to `^(input|setup)_.*\\.(csv|xlsx)$`
         sheet_name_pattern:
             Compiled regexp to match sheet names against when reading a workbook
             directory. Defaults to `^(input|setup)`
 
     yields:
-        
-    
+
+
     """
     if file_name_pattern is None:
         file_name_pattern = re.compile(r"^(input|setup)_.*\.(csv|xlsx)$")
@@ -295,7 +301,9 @@ def load_files(
     yield from loader_load_all(
         roots=[LoadItem(str(f), source=None) for f in files],
         loader=FilesystemLoader(
-            file_reader=reader.read, root_folder=root_folder, file_name_pattern=file_name_pattern,
+            file_reader=reader.read,
+            root_folder=root_folder,
+            file_name_pattern=file_name_pattern,
         ),
         issue_tracker=issue_tracker,
     )
@@ -395,4 +403,3 @@ def make_location_trees(tables: Iterable[Table]):
 
     # return nodes without parent as roots:
     return [v for v in buf.values() if v.parent == None]
-

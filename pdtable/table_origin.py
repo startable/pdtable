@@ -9,7 +9,6 @@ in the `.origin` field of `.metadata`.
 
 from typing import (
     DefaultDict,
-    Protocol,
     Iterator,
     Any,
     NamedTuple,
@@ -17,7 +16,6 @@ from typing import (
     Optional,
     Set,
     Tuple,
-    Callable,
     List,
     Dict,
     Union,
@@ -27,6 +25,13 @@ import logging, time
 from dataclasses import dataclass, field
 from pathlib import Path, PosixPath
 import sys, os, subprocess, datetime, html, random, base64
+
+
+try:
+    from typing import Protocol
+except ImportError:
+    # Protocol is not available in python 3.7
+    from typing_extensions import Protocol
 
 
 class LoadLocation(Protocol):
@@ -134,7 +139,7 @@ class LocationFile(Protocol):
     def load_identifier(self) -> str:
         """
         Unique identifier of loaded item
-        
+
         Must be unique to allow import loop detection and input caching.
         For local files, this could be absolute path and modification time.
         """
@@ -342,7 +347,11 @@ class LocationFolder(NamedTuple):
     ) -> "LocationFolder":
         if load_specification is None:
             load_specification = LoadItem(str(local_folder_path), source=None)
-        return cls(local_folder_path=local_folder_path, load_specification=load_specification, root_folder=root_folder)
+        return cls(
+            local_folder_path=local_folder_path,
+            load_specification=load_specification,
+            root_folder=root_folder,
+        )
 
 
 @dataclass(frozen=True)  # to allow empty dict default
@@ -356,9 +365,7 @@ class LocationSheet:
 
 
 class LocationBlock(NamedTuple):
-    """
-
-    """
+    """ """
 
     sheet: LocationSheet
     row: int
@@ -410,12 +417,12 @@ class TableOrigin:
     parents (represented by TableOrigin instances) into a derived table, so that each
     ``TableOrigin``-instance is the root of a tree of ``TableOrigin`` instances.
 
-    Each node in the tree is either a _leaf_, corresponding to a loaded input, in which 
+    Each node in the tree is either a _leaf_, corresponding to a loaded input, in which
     case only ``input_location`` is defined, or a _branch_, corresponding to a derived
     table, in which case only ``parents`` and ``operation`` are defined.
-    
+
     For an integrated representation of this information, an application should traverse
-    the tree and provide a representation in the most convenient form. For an example, 
+    the tree and provide a representation in the most convenient form. For an example,
     see ``table_origin_as_html`` or ``table_origin_as_str``.
     """
 
@@ -603,9 +610,8 @@ class WrappedInputIssueError(Exception):
     with access to an InputIssueTracker
 
     This exception should always be caught somewhere in the pdtable stack
-    and added to the issue tracker. For errors where this does not make sense, 
+    and added to the issue tracker. For errors where this does not make sense,
     use a different exception class.
     """
 
     pass
-
