@@ -1,14 +1,98 @@
-     def resolve(specificaton: str, orchestrator: Orchestrator, included_from: Optional[Location])
-     	   # spec may not be unique: it can be relative to included_from
-          if identifier is folder:
-               for file in folder.glob(pattern):
-                   orchestrator.add_source(file, identifier->location)
-          else:
-          	file_metadata, generator = handlers[identifier->protocol].read(identifier)
+def resolve(specificaton: str, orchestrator: Orchestrator, included_from: Optional[Location])
+# spec may not be unique: it can be relative to included_from
+if identifier is folder:
+for file in folder.glob(pattern):
+orchestrator.add_source(file, identifier->location)
+else:
+file_metadata, generator = handlers[identifier->protocol].read(identifier)
 
 @startuml Table Origin
 
+namespace table_origin {
+    class LoadItem  {
+        + specification: str
+        + source: None | LoadLocation
+        + load_history() -> [LoadItem]
+    }
+
+    ' LoadItem o-- LoadLocation
+    LoadLocation <|-- LocationBlock
+
+    interface LoadLocation {
+        + load_specification: LoadItem
+        + load_identifier: str # unique
+        + local_folder_path: None | Path
+        + interactive_identifier: str
+        + interactive_open(read_only)
+        + interactive_uri(read_only)
+    }
+
+    interface LocationFile {
+        + local_path: None | Path
+        + get_local_path(): Path # downloads if required
+        + interactive_open(read_only, sheet, row)  # may fail
+        + interactive_uri(read_only, sheet, row): URI
+        + interactive_identifier: str
+    }
+
+    class FileSystemLocationFile {
+        + root_folder
+    }
+    LocationFile <|-- FileSystemLocationFile
+    LocationFile <|-- NullLocationFile
+    LocationFile -|> LoadLocation
+
+    LoadItem  -o LocationFile
+
+    class LocationSheet {
+        + sheet_name: None | str
+        + sheet_metadata: Any
+    }
+
+    LocationFile --o "file" LocationSheet
+
+    class LocationBlock {
+        + row: int
+    }
+
+    LocationSheet --o "sheet" LocationBlock
+
+    class TableOrigin {
+        + input_location: LocationBlock | None
+        + parents: [TableOrigin]
+        + operation: str | None
+        + get_input_ancestors(): [LocationBlock]
+    }
+
+    TableOrigin *- LocationBlock
+
+    class InputIssue {
+        + load_item: LoadItem,
+        + location_file: None | LocationFile,
+        + origin: None | TableOrigin,
+        + issue: str | Exception
+    }
+
+    interface InputIssueTracker {
+        + add_issue(input_issue)
+        + is_ok: bool
+        + issues: Iterable[InputIssue]
+    }
+
+    InputIssue <-- InputIssueTracker
+
+    InputIssueTracker <|-- NullInputIssueTracker
+
+}
+
 namespace load {
+    class LocationFolder {
+        + local_folder_path: Path
+        + load_specification: LoadItem
+        + root_folder
+    }
+    table_origin.LoadLocation <|- LocationFolder
+
     interface LoadOrchestrator {
         + add_load_item(spec: LoadItem)
         + issue_tracker
@@ -17,93 +101,35 @@ namespace load {
     interface Loader {
         + load(LoadItem, LoadOrchestrator) -> Iterator[Block]
     }
+
+    class FileSystemLoader {
+        + root_folder
+        + file_name_pattern
+    }
+
+    class ProtocolLoader {
+        + handlers
+    }
+
+    Loader <|-- ProtocolLoader
+    Loader <|-- FileSystemLoader
+    Loader <|-- IncludeLoader
+
+    class FileReader {
+        + sheet_name_pattern
+        + csv_sep
+    }
+
+    FileSystemLoader o- FileReader
+
+    class LocationTreeNode {
+        + location: LoadLocation
+        + table: Table | None
+        + parent: None | LocationTreeNode
+        + children: [LocationTreeNode]
+    }
+
+    table_origin.LoadLocation --o LocationTreeNode
+
 }
-
-
-namespace table_origin {
-    class LoadItem  {
-        specification: str
-        source: None | LoadLocation
-        load_history() -> [LoadItem]
-    }
-
-    class LocationFolder {
-        + local_folder_path: Path
-        + load_specification: LoadItem
-    }
-
-    LoadItem o-- LoadLocation
-    LoadLocation <|-- LocationBlock
-    LoadLocation <|-- LocationFolder
-
-    LoadItem --o LocationFolder
-
-    interface LoadLocation {
-        + local_folder_path: None | Path
-        + load_specification: LoadItem
-        + load_identifier: str
-        + interactive_identifier: str
-        + interactive_open(read_only)
-        + interactive_uri(read_only)
-    }
-
-    interface LocationFile {
-        + load_specification: LoadItem 
-        + load_identifier: str # unique
-        + local_path: None | Path
-        + local_folder_path: None | Path
-        + get_local_path(): Path # downloads if required
-        + interactive_open(sheet, row, read_only)  # may fail
-        + interactive_uri(sheet, row, read_only): URI
-        + interactive_identifier: str 
-    }
-
-    LocationFile <|-- FileSystemLocationFile
-    LocationFile <|-- NullLocationFile
-    LocationFile --|> LoadLocation
-
-    LoadItem  -o LocationFile
-
-    class LocationSheet {
-    + sheet_name: None | str
-    + sheet_metadata: Any
-    }
-
-    LocationFile --o "file" LocationSheet
-
-    class LocationBlock {
-    + row: int
-    }
-
-    LocationSheet --o "sheet" LocationBlock
-
-
-    class TableOrigin {
-        input_location: LocationBlock | None
-        parents: [TableOrigin]
-        operation: str | None
-        get_input_ancestors(): [LocationBlock]
-    }
-
-    LocationBlock -* TableOrigin
-
-    class InputIssue {
-        load_item: LoadItem,
-        location_file: None | LocationFile,
-        origin: None | TableOrigin,
-        issue: str | Exception
-    }
-
-    interface InputIssueTracker {
-        add_issue(input_issue)
-        is_ok: bool
-        issues: Iterable[InputIssue]
-    }
-
-    InputIssue <-- InputIssueTracker
-
-    InputIssueTracker <|-- NullInputIssueTracker
-}
-
-
 @enduml

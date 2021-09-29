@@ -1,74 +1,33 @@
 """
-The purpose of the `table_origin` module is to provide an object model of the origin of a given table
+The purpose of the `table_origin` module is to provide an object model of the origin of a table
 
-The `table_origin` module defines the data structure for achieving this. The process of building the object
-model is performed by the load system. The object model is attached to `Table`-objects as a `TableOrigin` instance
-in the `.origin` field of `.metadata`.
+The `table_origin` module defines the data structure for achieving this. The process of building
+the object model is performed by the load system. The object model is attached to `Table`-objects
+as a `TableOrigin` instance in the `.origin` field of `.metadata`.
 """
-
+from __future__ import annotations
 
 from typing import (
-    DefaultDict,
     Iterator,
-    Any,
     NamedTuple,
     Iterable,
-    Optional,
-    Set,
-    Tuple,
-    List,
-    Dict,
-    Union,
 )
-from abc import abstractmethod, abstractproperty, abstractstaticmethod, ABC
-import logging, time
+from typing_extensions import Protocol  # Protocol is not available in python 3.7
+from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
-from pathlib import Path, PosixPath
-import sys, os, subprocess, datetime, html, random, base64
-
-
-try:
-    from typing import Protocol
-except ImportError:
-    # Protocol is not available in python 3.7
-    from typing_extensions import Protocol
-
-
-class LoadLocation(Protocol):
-    @property
-    @abstractmethod
-    def local_folder_path(self) -> Optional[Path]:
-        """
-        Used for resolving relative imports
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def load_specification(self) -> "LoadItem":
-        pass
-
-    @property
-    @abstractmethod
-    def load_identifier(self) -> str:
-        pass
-
-    @property
-    def interactive_identifier(self) -> str:
-        pass
-
-    @abstractmethod
-    def interactive_open(self, read_only: bool = False):
-        pass
-
-    @abstractmethod
-    def interactive_uri(self, read_only: bool = False) -> str:
-        pass
+from pathlib import Path
+import logging
+import sys
+import os
+import subprocess
+import html
+import base64
+import datetime
 
 
 class LoadItem(NamedTuple):
     specification: str
-    source: Optional[LoadLocation]
+    source: None | LoadLocation
 
     @property
     def source_identifier(self) -> str:
@@ -80,7 +39,8 @@ class LoadItem(NamedTuple):
 
         Typical use:
         ```
-        '\n'.join(f'included as "{li.spec} from "{li.source_identifier}"' for li in load_specification.load_history())
+        '\n'.join(f'included as "{li.spec} from "{li.source_identifier}"'
+                  for li in load_specification.load_history())
         ```
 
         Example text representation
@@ -98,7 +58,8 @@ class LoadItem(NamedTuple):
 
     def __str__(self) -> str:
         return ";".join(
-            f'included as "{li.specification}" from "{li.source.interactive_identifier if li.source else "<root>"}"'
+            f'included as "{li.specification}" from '
+            f'{li.source.interactive_identifier if li.source else "<root>"}"'
             for li in self.load_history()
         )
 
@@ -114,14 +75,14 @@ def interactive_open_uri(uri):
         subprocess.call([opener, uri])
 
 
-class LocationFile(Protocol):
-    """
-    Represents a traceable load entity
-
-    The load entity could be a file, a blob, an http response. The LocationFile instance
-    should hold enough information to uniquely identify (and if possible allow recreation)
-    of the block stream resulting of loading this entity.
-    """
+class LoadLocation(Protocol):
+    @property
+    @abstractmethod
+    def local_folder_path(self) -> None | Path:
+        """
+        Used for resolving relative imports
+        """
+        pass
 
     @property
     @abstractmethod
@@ -146,31 +107,52 @@ class LocationFile(Protocol):
         pass
 
     @property
-    @abstractmethod
-    def local_path(self) -> Optional[Path]:
+    def interactive_identifier(self) -> str:
         pass
 
+    @abstractmethod
+    def interactive_open(self, read_only: bool = False):
+        pass
+
+    @abstractmethod
+    def interactive_uri(self, read_only: bool = False) -> str:
+        pass
+
+
+class LocationFile(LoadLocation):
+    """
+    Represents a traceable load entity
+
+    The load entity could be a file, a blob, an http response. The LocationFile instance
+    should hold enough information to uniquely identify (and if possible allow recreation)
+    of the block stream resulting of loading this entity.
+    """
+
     @property
-    def local_folder_path(self) -> Optional[Path]:
-        return None if self.local_path is None else self.local_path.parent
+    @abstractmethod
+    def local_path(self) -> None | Path:
+        pass
 
     @abstractmethod
     def interactive_uri(
-        self, sheet: Optional[str] = None, row: Optional[int] = None, read_only=True
-    ) -> Optional[str]:
+        self, read_only=True, sheet: None | str = None, row: None | int = None
+    ) -> None | str:
         pass
 
-    def interactive_open(
-        self, sheet: Optional[str] = None, row: Optional[int] = None, read_only=True
-    ):
+    @property
+    def local_folder_path(self) -> None | Path:
+        return None if self.local_path is None else self.local_path.parent
+
+    def interactive_open(self, read_only=True, sheet: None | str = None, row: None | int = None):
         uri = self.interactive_uri(sheet, row, read_only)
         interactive_open_uri(uri)
 
-    def get_interactive_identifier(
-        self, sheet: Optional[str] = None, row: Optional[int] = None
-    ) -> str:
+    def get_interactive_identifier(self, sheet: None | str = None, row: None | int = None) -> str:
         """
-        Defaults to load identifier, but may be replaced with replacement better suited for interactive use
+        Interactive identifier for location
+
+        Defaults to load identifier.
+        May be replaced with replacement better suited for interactive use.
         """
         s_loc = "" if sheet is None else f" Sheet '{sheet}'"
         r_loc = "" if row is None else f" Row {row}"
@@ -191,7 +173,7 @@ class LocationFile(Protocol):
             return self.local_path
         raise NotImplementedError("Automatic download not implemented")
 
-    def make_location_sheet(self, sheet_name: Optional[str] = None):
+    def make_location_sheet(self, sheet_name: None | str = None):
         return LocationSheet(file=self, sheet_name=sheet_name)
 
     def __str__(self) -> str:
@@ -213,7 +195,7 @@ class NullLocationFile(LocationFile):
     Null-implementation of LocationFile
     """
 
-    def __init__(self, description: Optional[str] = None, id: Optional[str] = None):
+    def __init__(self, description: None | str = None, id: None | str = None):
         if description is None:
             description = "Unknown"
         if id is None:
@@ -230,12 +212,12 @@ class NullLocationFile(LocationFile):
         return self._load_identifier
 
     @property
-    def local_path(self) -> Optional[Path]:
+    def local_path(self) -> None | Path:
         return None
 
     def interactive_uri(
-        self, sheet: Optional[str] = None, row: Optional[int] = None, read_only=True
-    ) -> Optional[str]:
+        self, sheet: None | str = None, row: None | int = None, read_only=True
+    ) -> None | str:
         return None
 
 
@@ -248,10 +230,10 @@ class FilesystemLocationFile(LocationFile):
     def __init__(
         self,
         local_path: Path,
-        load_specification: Optional[LoadItem] = None,
-        root_folder: Optional[Path] = None,
+        load_specification: None | LoadItem = None,
+        root_folder: None | Path = None,
         stat_result=None,
-    ) -> None:
+    ):
         self._local_path = local_path
         self._load_specification = load_specification or LoadItem(
             specification=str(local_path), source=None
@@ -289,9 +271,7 @@ class FilesystemLocationFile(LocationFile):
             return str(self.local_path)
         return str(self.local_path.relative_to(self.root_folder))
 
-    def get_interactive_identifier(
-        self, sheet: Optional[str] = None, row: Optional[int] = None
-    ) -> str:
+    def get_interactive_identifier(self, sheet: None | str = None, row: None | int = None) -> str:
         if sheet is None:
             loc = f"Row {row}"
         else:
@@ -300,9 +280,9 @@ class FilesystemLocationFile(LocationFile):
 
     def interactive_uri(
         self,
-        sheet: Optional[str] = None,
-        row: Optional[int] = None,
-        read_only: Optional[bool] = False,
+        sheet: None | str = None,
+        row: None | int = None,
+        read_only: None | bool = False,
     ) -> str:
         file_uri = self.local_path.as_uri()
         if sheet is None and row is None:
@@ -313,52 +293,11 @@ class FilesystemLocationFile(LocationFile):
         return file_uri + f"#'{sheet}'{row_mark}"
 
 
-class LocationFolder(NamedTuple):
-    local_folder_path: Path
-    load_specification: LoadItem
-    root_folder: Optional[Path] = None
-
-    @property
-    def load_identifier(self) -> str:
-        return str(self.local_folder_path)
-
-    @property
-    def interactive_identifier(self) -> str:
-        if self.root_folder is None:
-            return self.load_identifier
-        rel_path = self.local_folder_path.relative_to(self.root_folder)
-        if rel_path == Path("."):
-            return f"<root_folder: {self.root_folder}>"
-        else:
-            return str(rel_path)
-
-    def interactive_uri(self, read_only=False) -> str:
-        return self.local_folder_path.as_uri()
-
-    def interactive_open(self):
-        interactive_open_uri(self.interactive_uri())
-
-    @classmethod
-    def make_location_folder(
-        cls,
-        local_folder_path: Path,
-        load_specification: LoadItem = None,
-        root_folder: Optional[Path] = None,
-    ) -> "LocationFolder":
-        if load_specification is None:
-            load_specification = LoadItem(str(local_folder_path), source=None)
-        return cls(
-            local_folder_path=local_folder_path,
-            load_specification=load_specification,
-            root_folder=root_folder,
-        )
-
-
 @dataclass(frozen=True)  # to allow empty dict default
 class LocationSheet:
     file: LocationFile
-    sheet_name: Optional[str]
-    sheet_metadata: Dict[str, str] = field(default_factory=dict)
+    sheet_name: None | str
+    sheet_metadata: dict[str, str] = field(default_factory=dict)
 
     def make_location_block(self, row: int):
         return LocationBlock(sheet=self, row=row)
@@ -375,11 +314,11 @@ class LocationBlock(NamedTuple):
         return self.sheet.file
 
     @property
-    def sheet_name(self) -> Optional[str]:
+    def sheet_name(self) -> None | str:
         return self.sheet.sheet_name
 
     @property
-    def local_folder_path(self) -> Optional[Path]:
+    def local_folder_path(self) -> None | Path:
         return self.file.local_folder_path
 
     @property
@@ -426,9 +365,9 @@ class TableOrigin:
     see ``table_origin_as_html`` or ``table_origin_as_str``.
     """
 
-    input_location: Optional[LocationBlock] = None
+    input_location: None | LocationBlock = None
     parents: Iterable["TableOrigin"] = ()
-    operation: Optional[str] = None
+    operation: None | str = None
 
     def _post_init_(self):
         if self.operation is None:
@@ -488,7 +427,7 @@ def table_origin_as_html(tt: TableOrigin):
 
 
 def table_origin_as_str(tt: TableOrigin):
-    buf: List[Tuple[int, str]] = []
+    buf: list[tuple[int, str]] = []
 
     def visit(tt, lev):
         return visit_branch(tt, lev) if tt.input_location is None else visit_leaf(tt, lev)
@@ -507,10 +446,10 @@ def table_origin_as_str(tt: TableOrigin):
 
 @dataclass
 class InputIssue:
-    issue: Union[str, Exception]
-    load_item: Optional[LoadItem] = None
-    location_file: Optional[LocationFile] = None
-    origin: Optional[TableOrigin] = None
+    issue: str | Exception
+    load_item: None | LoadItem = None
+    location_file: None | LocationFile = None
+    origin: None | TableOrigin = None
     severity: int = logging.ERROR
 
 
@@ -525,11 +464,17 @@ class InputIssueTracker(ABC):
 
     def add_error(
         self,
-        issue: Union[str, Exception],
-        load_item: Optional[LoadItem] = None,
-        location_file: Optional[LocationFile] = None,
-        origin: Optional[TableOrigin] = None,
+        issue: str | Exception,
+        load_item: None | LoadItem = None,
+        location_file: None | LocationFile = None,
+        origin: None | TableOrigin = None,
     ):
+        """
+        Add a error for critical input issue that should cause load to abort
+
+        This is a convenience function that will create an `InputIssue` instance with
+        severity "error" and pass this to the ``.add_issue`` method.
+        """
         self.add_issue(
             InputIssue(
                 load_item=load_item,
@@ -542,13 +487,16 @@ class InputIssueTracker(ABC):
 
     def add_warning(
         self,
-        issue: Union[str, Exception],
-        load_item: Optional[LoadItem] = None,
-        location_file: Optional[LocationFile] = None,
-        origin: Optional[TableOrigin] = None,
+        issue: str | Exception,
+        load_item: None | LoadItem = None,
+        location_file: None | LocationFile = None,
+        origin: None | TableOrigin = None,
     ):
         """
         Add a warning about a non-critical input issue
+
+        This is a convenience function that will create an `InputIssue` instance with
+        severity "warning" and pass this to the ``.add_issue`` method.
 
         Examples include
         - additional columns compared to template
@@ -589,11 +537,16 @@ class InputError(Exception):
 
 class NullInputIssueTracker(InputIssueTracker):
     """
-    Raise an exception immediately on first input issue
+    Log the issue and raise an Input Error immediately if severity is not below logging.ERROR
+
+    Note that this tracker is stateless: `.is_ok()` will always return `True`, and `.issues()`
+    will always return empty.
     """
 
-    def add_issue(self, issue):
-        raise InputError(issue)
+    def add_issue(self, issue: InputIssue):
+        logging.log(issue.severity, str(issue))
+        if issue.severity >= logging.ERROR:
+            raise InputError(issue)
 
     @property
     def is_ok(self):

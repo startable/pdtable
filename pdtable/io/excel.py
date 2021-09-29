@@ -23,9 +23,10 @@ from ..table_origin import FilesystemLocationFile, InputIssueTracker, LocationFi
 
 logger = logging.getLogger(__name__)
 
+
 def read_excel(
     source: Union[str, PathLike, Path],
-    *, 
+    *,
     origin: str = None,
     location_file: LocationFile = None,
     sheet_name_pattern: Optional[re.Pattern] = None,
@@ -52,7 +53,7 @@ def read_excel(
             `location_sheet` takes precedence over `origin`. For file input default
             if input path with `origin` as optional input specification, for stream input
             default is a null context with `origin` as description.
-        sheet_name_pattern: 
+        sheet_name_pattern:
             Optional[re.Pattern] = None;
             If specified, only sheets with name matching pattern will be loaded.
             Matching is done with ``match``, i.e. must match from start of string.
@@ -73,7 +74,9 @@ def read_excel(
         else:
             location_file = NullLocationFile()
     elif origin is not None:
-        warnings.warn(f"Input 'origin': {origin} is shadowed by input 'location_file': {location_file}.")
+        warnings.warn(
+            f"Input 'origin': {origin} is shadowed by input 'location_file': {location_file}."
+        )
 
     try:
         from ._excel_openpyxl import read_sheets
@@ -85,7 +88,7 @@ def read_excel(
         ) from err
 
     def name_matches(name) -> bool:
-        if sheet_name_pattern is None:  
+        if sheet_name_pattern is None:
             return True
         return sheet_name_pattern.match(name) is not None
 
@@ -94,9 +97,14 @@ def read_excel(
             logger.debug(f"Skipping sheet '{name}'")
             continue
         location_sheet = location_file.make_location_sheet(name)
-        yield from parse_blocks(row_cell_iter,
-            location_sheet=location_sheet, 
-            fixer=fixer, to=to, filter=filter, issue_tracker=issue_tracker)
+        yield from parse_blocks(
+            row_cell_iter,
+            location_sheet=location_sheet,
+            fixer=fixer,
+            to=to,
+            filter=filter,
+            issue_tracker=issue_tracker,
+        )
 
 
 def write_excel(
@@ -104,7 +112,7 @@ def write_excel(
     to: Union[str, os.PathLike, Path, BinaryIO],
     na_rep: str = "-",
     sep_lines: int = 1,
-    styles: Union[bool, Dict] = False
+    styles: Union[bool, Dict] = False,
 ):
     """Writes one or more tables to an Excel workbook.
 

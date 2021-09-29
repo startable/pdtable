@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pdtable  # Required to read dynamically-set pdtable.CSV_SEP
 from ._represent import _represent_row_elements, _represent_col_elements
-from .. import BlockType, Table, TableBundle
+from .. import BlockType, Table
 from ..store import BlockIterator
 from .parsers.fixer import ParseFixer
 from .parsers.blocks import parse_blocks
@@ -21,7 +21,7 @@ from ..table_origin import FilesystemLocationFile, InputIssueTracker, LocationSh
 def read_csv(
     source: Union[str, PathLike, TextIO],
     sep: str = None,
-    *, 
+    *,
     origin: str = None,
     location_sheet: LocationSheet = None,
     fixer: ParseFixer = None,
