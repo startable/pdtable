@@ -16,7 +16,7 @@ def test_file_reader():
 
 
 @pytest.fixture
-def input_folder():
+def input_folder() -> Path:
     return Path(__file__).parent / "input"
 
 
@@ -33,13 +33,16 @@ def test_include(input_folder):
     assert set(res.keys()) == {"bar_table", "bar_abs_table"}
     input_location = res["bar_table"].metadata.origin.input_location
 
-    spec_ref = list(zip(
-        str(input_location.file.load_specification).split(";"),
-        [
-            """included as "bar.csv" from """,
-            """included as "input_foo.csv" from """,
-            """included as "/" from <root>""",
-        ]))
+    spec_ref = list(
+        zip(
+            str(input_location.file.load_specification).split(";"),
+            [
+                """included as "bar.csv" from """,
+                """included as "input_foo.csv" from """,
+                """included as "/" from <root>""",
+            ],
+        )
+    )
     spec_ref_ok = [s.startswith(ref) for s, ref in spec_ref]
     assert all(spec_ref_ok)
 
@@ -97,3 +100,11 @@ def test_excel_sheets(input_folder):
     )
     res = {b.name for t, b in blocks if t == BlockType.TABLE}
     assert res.issuperset({"places_to_go", "setup_table", "spelling_numbers"})
+
+
+#  This should be xfail, but current implementation hangs rather than fails...
+@pytest.mark.skip(reason="Loop detection not implemented")
+def test_include_loop(input_folder: Path):
+    f = input_folder / "with_loop_include/load_include_loop.csv"
+    blocks = list(load_files([f.absolute()]))
+    assert blocks

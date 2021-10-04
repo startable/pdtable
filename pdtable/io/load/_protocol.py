@@ -2,11 +2,8 @@ from __future__ import annotations
 from abc import abstractmethod
 import logging
 
-# Protocol is not available in python 3.7
-from typing_extensions import Protocol
+from typing_extensions import Protocol  # Protocol is not available in python 3.7
 
-# from pdtable.io.csv import read_csv
-# from pdtable.io.excel import read_excel
 from pdtable.store import BlockIterator
 from pdtable.table_origin import (
     InputIssueTracker,
@@ -31,6 +28,9 @@ class LoadOrchestrator(Protocol):
         pass
 
 
+# TODO: The Loader-protocol does not abstract out the mapping from `LoadItem` to `LoadLocation`
+#       This makes desirable features such as loop detection and generic caching problematic, as
+#       they would ideally be keyed on the ``load_identifier`` member of the ``LoadLocation``.
 class Loader(Protocol):
     @abstractmethod
     def load(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> BlockIterator:

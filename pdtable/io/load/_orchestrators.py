@@ -22,6 +22,8 @@ def queued_load(roots: list[LoadItem], loader: Loader, issue_tracker: InputIssue
     to ``***include`` directives or similar
 
     This loader is single threaded. For higher performance, a multi-threaded loader should be used.
+
+    This loader does not check for include-loops.
     """
 
     class Orchestrator:
@@ -43,14 +45,14 @@ def queued_load(roots: list[LoadItem], loader: Loader, issue_tracker: InputIssue
 
 
 def load_files(
-    files: Iterable[str],
+    roots: Iterable[str | Path] = None,
     *,
     issue_tracker: None | InputIssueTracker = None,
     # below inputs are forwarded to make_reader -- only included for easy docs
     csv_sep: None | str = None,
     sheet_name_pattern: re.Pattern = None,
     file_reader: FileReader = None,
-    root_folder: None | Path = None,
+    root_folder: None | str | Path = None,
     file_name_pattern: re.Pattern = None,
     file_name_start_pattern: str = None,
     additional_protocol_loaders: dict[str, Loader] = None,
@@ -58,12 +60,12 @@ def load_files(
     **kwargs,
 ) -> BlockIterator:
     """
-    Load a set of startable inputs
+    Load a complete startable inputset
 
-    Example: load all files matching `input_*`, `setup_*` in `input_folder`::
+    Example: load all files matching `input_*`, `setup_*` in folder `foo`::
 
-        load_files(['/'], root_folder=input_folder,
-                   csv_sep=';', file_name_start_pattern="(input|setup)_")
+        load_files(root_folder="foo",
+                   csv_sep=';', file_name_start_pattern="^(input|setup)_")
 
     This function is a thin wrapper around the current best-practice loader
     and the backing implementation will be updated when best practice changes.
@@ -72,6 +74,12 @@ def load_files(
     pass absolute filenames. See docs for ``FileSystemReader`` for details.
 
     Args:
+        roots: The root load items.
+            If ``root_folder`` is specified, contents must be valid root load specifiers
+            which cannot be relative file names. Default value is ``["/"]``, indicating
+            that the root folder is the only root load item.
+            If ``root_folder`` is not specified, file-protocol roots must be provided as
+            absolute paths.
         issue_tracker: Optional; Custom `InputIssuesTracker` instance to use.
 
     Any additional keyword arguments are forwarded to `make_loader` (see docs there).
@@ -87,8 +95,10 @@ def load_files(
         allow_include=allow_include,
         **kwargs,
     )
+    if roots is None and root_folder is not None:
+        roots = ["/"]
     yield from queued_load(
-        roots=[LoadItem(str(f), source=None) for f in files],
+        roots=[LoadItem(str(f), source=None) for f in roots],
         loader=loader,
         issue_tracker=issue_tracker,
     )

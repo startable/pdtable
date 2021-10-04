@@ -14,11 +14,6 @@ class InvalidNamingError(Exception):
 class TableMetadata:
     """
     Node in tree describing table sources.
-
-    operation: Describes operation to create table, e.g. 'Created',
-    'Loaded', 'Concatenated', 'Merged'
-
-    Only parents or origin should be defined. Neither needs to be.
     """
 
     name: str

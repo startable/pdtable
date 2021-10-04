@@ -307,7 +307,7 @@ class Table:
         The converter is also responsible for deciding what unit is considered the
         "base unit" of unit X.  Depending on your application and favourite unit system, the base
         unit of 'mm' could be 'm', 'foot', 'furlong', or some other unit of dimension length.
-        
+
         Args:
             to:
                 Specifies to what units to convert which columns. Can be:

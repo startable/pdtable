@@ -277,7 +277,7 @@ def make_loader(
     csv_sep: None | str = None,
     sheet_name_pattern: re.Pattern = None,
     file_reader: FileReader = None,
-    root_folder: None | Path = None,
+    root_folder: None | str | Path = None,
     file_name_pattern: re.Pattern = None,
     file_name_start_pattern: str = None,
     additional_protocol_loaders: dict[str, Loader] = None,
@@ -330,6 +330,8 @@ def make_loader(
         file_name_pattern = re.compile(file_name_start_pattern + sfp.pattern, sfp.flags)
     elif file_name_start_pattern is not None:
         raise ValueError("file_name_start_pattern cannot be used with file_name_pattern")
+    if root_folder is not None:
+        root_folder = Path(root_folder)
     file_loader = FileSystemLoader(
         file_reader=file_reader, root_folder=root_folder, file_name_pattern=file_name_pattern
     )
