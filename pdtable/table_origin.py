@@ -39,7 +39,7 @@ class LoadItem(NamedTuple):
 
         Typical use:
         ```
-        '\n'.join(f'included as "{li.spec} from "{li.source_identifier}"'
+        '\n'.join(f'included as "{li.specification} from "{li.source_identifier}"'
                   for li in load_specification.load_history())
         ```
 
