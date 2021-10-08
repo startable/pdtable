@@ -4,53 +4,21 @@ from typing import Set, List, Optional, Dict, Union
 import numpy
 import pandas as pd
 
+from .table_origin import TableOrigin
 
 class InvalidNamingError(Exception):
     pass
-
-
-class TableOrigin:
-    """
-    A TableOrigin instance uniquely defines the source of a Table instance.
-
-    Subclasses should take care to define __str__.
-    If possible, as_html() should be defined to include backlink to original input.
-    """
-
-    def as_html(self) -> str:
-        return str(self)
-
-
-class TableOriginCSV(TableOrigin):
-    def __init__(self, file_name: str = "", row: int = 0):
-        self._file_name = file_name
-        self._row = row
-
-    def __str__(self) -> str:
-        return f'"{self._file_name}" row {self._row}'
-
-    def __repr__(self) -> str:
-        return f"TableOriginCSV({self})"
 
 
 @dataclass
 class TableMetadata:
     """
     Node in tree describing table sources.
-
-    operation: Describes operation to create table, e.g. 'Created',
-    'Loaded', 'Concatenated', 'Merged'
-
-    Only parents or origin should be defined. Neither needs to be.
     """
 
     name: str
     destinations: Set[str] = field(default_factory=lambda: {"all"})
-    operation: str = "Created"
-    parents: List["TableMetadata"] = field(default_factory=list)
-    origin: Optional[
-        str
-    ] = ""  # Should be replaced with a TableOrigin object to allow file-edit access
+    origin: Optional[TableOrigin] = None
     transposed: bool = False
 
     def __str__(self):
@@ -61,10 +29,8 @@ class TableMetadata:
         )
         src = ""
         if self.origin:
-            src = f" from {self.origin}"
-        if self.parents:
-            src = " from {{{}}}".format(",".join(f"\n{c}" for c in self.parents))
-        return f'Table "{self.name}" {dst}. {self.operation}{src}'
+            src = f" From {self.origin}"
+        return f'Table "{self.name}" {dst}.{src}'
 
 
 class ColumnFormat:

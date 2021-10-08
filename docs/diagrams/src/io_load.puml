@@ -1,0 +1,64 @@
+@startuml Table Origin
+namespace io.load {
+    class LocationFolder {
+        + local_folder_path: Path
+        + load_specification: LoadItem
+        + root_folder
+    }
+    ' table_origin.LoadLocation <|- LocationFolder
+
+    interface LoadOrchestrator {
+        + add_load_item(spec: LoadItem)
+        + issue_tracker
+    }
+
+    interface Reader {
+        +read(LoadLocation, LoadOrchestrator) -> Iterator[Block]
+    }
+
+    interface LoadProxy {
+        +load_location
+        +reader
+        +read(LoadOrchestrator) -> Iterator[Block]
+    }
+
+    LoadProxy *-- Reader
+    Loader --> LoadProxy
+    LoadOrchestrator <- Loader
+
+    interface Loader {
+        + resolve(LoadItem, LoadOrchestrator) -> LoadProxy
+        + load(LoadItem, LoadOrchestrator) -> Iterator[Block]
+    }
+
+    class FileSystemLoader {
+        + root_folder
+        + file_name_pattern
+    }
+
+    class ProtocolLoader {
+        + handlers
+    }
+
+    Loader <|-- ProtocolLoader
+    Loader <|-- FileSystemLoader
+    Loader <|-- IncludeLoader
+
+    class FileReader {
+        + sheet_name_pattern
+        + csv_sep
+    }
+
+    FileSystemLoader o-- FileReader
+    LocationFolder <-- FileSystemLoader
+
+    class LocationTreeNode {
+        + location: LoadLocation
+        + table: Table | None
+        + parent: None | LocationTreeNode
+        + children: [LocationTreeNode]
+    }
+
+    'table_origin.LoadLocation --o LocationTreeNode
+}
+@enduml
