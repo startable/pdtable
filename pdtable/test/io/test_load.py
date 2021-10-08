@@ -6,6 +6,7 @@ import re
 import pdtable
 from pdtable.store import BlockType
 from pdtable.io.load import load_files, make_location_trees, FileReader
+from pdtable.table_origin import InputError
 
 
 def test_file_reader():
@@ -61,6 +62,15 @@ def test_include(input_folder):
     assert tree_as_str == reference_str
 
 
+
+def test_include_without_root(input_folder):
+    root_folder = input_folder / "with_include"
+    blocks = list(load_files([root_folder/"foo_relative.csv"], csv_sep=";"))
+
+    res = {b.name: b for t, b in blocks if t == BlockType.TABLE}
+
+    assert set(res.keys()) == {"bar_table", "bar_abs_table"}
+
 def test_excel_all_files(input_folder):
     blocks = load_files(
         ["/"],
@@ -102,9 +112,9 @@ def test_excel_sheets(input_folder):
     assert res.issuperset({"places_to_go", "setup_table", "spelling_numbers"})
 
 
-#  This should be xfail, but current implementation hangs rather than fails...
-@pytest.mark.skip(reason="Loop detection not implemented")
 def test_include_loop(input_folder: Path):
     f = input_folder / "with_loop_include/load_include_loop.csv"
-    blocks = list(load_files([f.absolute()]))
-    assert blocks
+    with pytest.raises(InputError, match="Load location included multiple times"):
+        blocks = list(load_files([f.absolute()]))
+
+

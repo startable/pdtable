@@ -435,7 +435,7 @@ def parse_blocks_stable(
         try:
             block = handler(cell_grid, origin=origin, fixer=fixer)
         except ValueError as e:
-            issue_tracker.add_error(str(e), origin=origin)
+            issue_tracker.add_error(str(e), load_location=origin.input_location)
 
         if block is not None:
             yield block_type, block

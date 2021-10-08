@@ -37,11 +37,19 @@ def queued_load(roots: list[LoadItem], loader: Loader, issue_tracker: InputIssue
     orch = Orchestrator(
         roots, issue_tracker if issue_tracker is not None else NullInputIssueTracker()
     )
+    visited: set[str] = set()
     while orch.load_items:
-        yield from loader.load(orch.load_items.pop(), orch)
+        load_proxy = loader.resolve(orch.load_items.pop(), orch)
+        # check for loops/duplicates
+        load_identifier = load_proxy.load_location.load_identifier
+        if load_identifier in visited:
+            orch.issue_tracker.add_error(
+                "Load location included multiple times (this may be due to an include loop)",
+                load_location=load_proxy.load_location)
+            continue
+        visited.add(load_identifier)
 
-    if not orch.issue_tracker.is_ok:
-        raise InputError(f"Load issues: {orch.issue_tracker}")
+        yield from load_proxy.read(orch)
 
 
 def load_files(

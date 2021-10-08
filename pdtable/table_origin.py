@@ -444,13 +444,17 @@ def table_origin_as_str(tt: TableOrigin):
     return "\n".join("  " * lev + s for lev, s in buf)
 
 
-@dataclass
+@dataclass(frozen=True)
 class InputIssue:
     issue: str | Exception
     load_item: None | LoadItem = None
-    location_file: None | LocationFile = None
-    origin: None | TableOrigin = None
+    load_location: None | LoadLocation = None
     severity: int = logging.ERROR
+
+    def __post_init__(self):
+        # Set load_item according to load_location if applicable
+        if self.load_item is None and self.load_location is not None:
+            object.__setattr__(self, "load_item", self.load_location.load_specification)
 
 
 class InputIssueTracker(ABC):
@@ -466,8 +470,7 @@ class InputIssueTracker(ABC):
         self,
         issue: str | Exception,
         load_item: None | LoadItem = None,
-        location_file: None | LocationFile = None,
-        origin: None | TableOrigin = None,
+        load_location: None | LocationFile = None,
     ):
         """
         Add a error for critical input issue that should cause load to abort
@@ -478,8 +481,7 @@ class InputIssueTracker(ABC):
         self.add_issue(
             InputIssue(
                 load_item=load_item,
-                location_file=location_file,
-                origin=origin,
+                load_location=load_location,
                 issue=issue,
                 severity=logging.ERROR,
             )
@@ -489,8 +491,7 @@ class InputIssueTracker(ABC):
         self,
         issue: str | Exception,
         load_item: None | LoadItem = None,
-        location_file: None | LocationFile = None,
-        origin: None | TableOrigin = None,
+        load_location: None | LocationFile = None,
     ):
         """
         Add a warning about a non-critical input issue
@@ -505,8 +506,7 @@ class InputIssueTracker(ABC):
         self.add_issue(
             InputIssue(
                 load_item=load_item,
-                location_file=location_file,
-                origin=origin,
+                load_location=load_location,
                 issue=issue,
                 severity=logging.WARNING,
             )
@@ -543,10 +543,10 @@ class NullInputIssueTracker(InputIssueTracker):
     will always return empty.
     """
 
-    def add_issue(self, issue: InputIssue):
-        logging.log(issue.severity, str(issue))
-        if issue.severity >= logging.ERROR:
-            raise InputError(issue)
+    def add_issue(self, input_issue: InputIssue):
+        logging.log(input_issue.severity, str(input_issue))
+        if input_issue.severity >= logging.ERROR:
+            raise InputError(input_issue)
 
     @property
     def is_ok(self):
@@ -556,15 +556,3 @@ class NullInputIssueTracker(InputIssueTracker):
     def issues(self):
         return ()
 
-
-class WrappedInputIssueError(Exception):
-    """
-    An `InputIssue` instance wrapped in an exception to bubble up to layer
-    with access to an InputIssueTracker
-
-    This exception should always be caught somewhere in the pdtable stack
-    and added to the issue tracker. For errors where this does not make sense,
-    use a different exception class.
-    """
-
-    pass

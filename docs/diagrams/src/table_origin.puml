@@ -69,12 +69,13 @@ namespace table_origin {
     class InputIssue {
         + load_item: LoadItem,
         + location_file: None | LocationFile,
-        + origin: None | TableOrigin,
         + issue: str | Exception
     }
 
     interface InputIssueTracker {
         + add_issue(input_issue)
+        + add_error()
+        + add_warning()
         + is_ok: bool
         + issues: Iterable[InputIssue]
     }
@@ -85,7 +86,7 @@ namespace table_origin {
 
 }
 
-namespace load {
+namespace io.load {
     class LocationFolder {
         + local_folder_path: Path
         + load_specification: LoadItem
@@ -98,7 +99,22 @@ namespace load {
         + issue_tracker
     }
 
+    interface Reader {
+        +read(LoadLocation, LoadOrchestrator) -> Iterator[Block]
+    }
+
+    interface LoadProxy {
+        +load_location
+        +reader
+        +read(LoadOrchestrator) -> Iterator[Block]
+    }
+
+    LoadProxy *-- Reader
+    Loader --> LoadProxy
+    LoadOrchestrator <- Loader
+
     interface Loader {
+        + resolve(LoadItem, LoadOrchestrator) -> LoadProxy
         + load(LoadItem, LoadOrchestrator) -> Iterator[Block]
     }
 
@@ -120,7 +136,8 @@ namespace load {
         + csv_sep
     }
 
-    FileSystemLoader o- FileReader
+    FileSystemLoader o-- FileReader
+    LocationFolder <-- FileSystemLoader
 
     class LocationTreeNode {
         + location: LoadLocation

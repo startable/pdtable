@@ -9,8 +9,9 @@ from typing import (
 
 from pdtable.store import BlockIterator, BlockType
 from pdtable.table_origin import (
-    FilesystemLocationFile,
     LoadItem,
+    LoadLocation,
+    FilesystemLocationFile,
     LocationFile,
     interactive_open_uri,
 )
@@ -19,7 +20,9 @@ from pdtable.table_origin import (
 from ..csv import read_csv
 from ..excel import read_excel
 from ._protocol import (
+    LoadProxy,
     Loader,
+    Reader,
     LoadError,
     LoadOrchestrator,
 )
@@ -120,55 +123,20 @@ class LocationFolder(NamedTuple):
         )
 
 
-@dataclass(frozen=True)
-class ProtocolLoader(Loader):
-    """
-    A composable Loader implementation that allows multi-protocol support
-
-    ``default_protocol``
-    -------------------
-    If the ``specification`` in a ``LoadItem`` instance does not include a known protocol,
-    the protocol is assumed to be ``default_protocol``.
-    """
-
-    protocol_handlers: dict[str, Loader]
-    default_protocol: str = "file"
-
-    def load(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> BlockIterator:
-        # Do not try to parse protocol, as this may cause issues on windows where file paths may
-        # look like protocols (e.g. C:...)
-        spec = load_item.specification.lower()
-        handler = next(
-            (h for p, h in self.protocol_handlers.items() if spec.startswith(p + ":")),
-            self.protocol_handlers[self.default_protocol],
-        )
-        yield from handler.load(load_item=load_item, orchestrator=orchestrator)
-
-
-@dataclass(frozen=True)
-class IncludeLoader(Loader):
-    """
-    A composable Loader implementation that implements an ``include``-directive
-
-    Each row in an include directive correspond to a load item.
-    The ``FileSystemLoader`` will resolve relative file paths relative to the
-    folder containing the file with the include-directive.
-    """
-
-    loader: Loader
-
-    def load(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> BlockIterator:
-        for block_type, value in self.loader.load(load_item, orchestrator):
-            if block_type == BlockType.DIRECTIVE and value.name == "include":
-                source = value.origin.input_location
-                for line in value.lines:
-                    logger.debug(f"Adding include '{line}' from {source.interactive_identifier}")
-                    orchestrator.add_load_item(LoadItem(specification=line, source=source))
-            else:
-                yield block_type, value
-
-
 _LEADING_SLASH = re.compile(r"/|\\")
+
+
+@dataclass(frozen=True)
+class FolderReader:
+    file_name_pattern: re.Pattern
+
+    def read(self, location: LocationFolder, orchestrator: LoadOrchestrator) -> BlockIterator:
+        for p in location.local_folder_path.iterdir():
+            if not self.file_name_pattern.match(p.name):
+                continue
+            logger.debug(f"Including file '{p}' from '{location}'")
+            orchestrator.add_load_item(LoadItem(specification=p.name, source=location))
+        yield from ()  # ensure this is an iterator
 
 
 @dataclass
@@ -188,6 +156,9 @@ class FileSystemLoader:
     ---------------
     If a ``root_folder`` is specified, all path specifications with a leading ``/`` or ``\\`` are
     resolved relative to the root folder, and all paths must be inside the root folder.
+    This implies absolute paths will be handled differently depending on whether the root folder is
+    defined or not, and so the decision on whether or not to use root folder in a project should
+    be taken with care.
 
     ``ignore_protocol``
     -------------------
@@ -200,7 +171,7 @@ class FileSystemLoader:
     """
 
     file_reader: FileReader
-    file_name_pattern: re.Pattern
+    folder_reader: FolderReader
     root_folder: None | Path = None
     ignore_protocol: str = "file:"
 
@@ -209,11 +180,11 @@ class FileSystemLoader:
 
         if self.ignore_protocol and spec.lower().startswith(self.ignore_protocol):
             spec = spec[len(self.ignore_protocol) :]
+        resolved: Path = Path(spec)
 
         leading_slash = _LEADING_SLASH.match(spec) is not None
         if leading_slash:
             if self.root_folder is None:
-                resolved = Path(spec)
                 if not resolved.is_absolute():
                     raise LoadError(
                         "Include with leading slash must be an absolute path when root_folder "
@@ -223,8 +194,10 @@ class FileSystemLoader:
                 resolved = self.root_folder / spec[1:]
         else:
             if load_item.source is None or load_item.source.local_folder_path is None:
-                raise LoadError("Cannot load location relative to source with no local folder path")
-            resolved = load_item.source.local_folder_path / spec
+                if not resolved.is_absolute():
+                    raise LoadError("Cannot load location relative to source with no local folder path")
+            else:
+                resolved = load_item.source.local_folder_path / spec
         resolved = resolved.resolve()
 
         if self.root_folder is not None:
@@ -237,39 +210,85 @@ class FileSystemLoader:
                 )
         return resolved
 
-    def load(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> BlockIterator:
+    def resolve(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> LoadProxy:
         try:
             full_path = self._resolve_load_item_path(load_item)
         except LoadError as e:
-            # tracker may raise new exception if so configured
+            # tracker may raise new exception if so configured, but this error cannot be recovered
             orchestrator.issue_tracker.add_error(e, load_item=load_item)
-            return
+            raise e
 
         if full_path.is_dir():
-            self._load_folder(
-                LocationFolder(
-                    local_folder_path=full_path,
-                    load_specification=load_item,
-                    root_folder=self.root_folder,
-                ),
-                orchestrator,
+            load_location = LocationFolder(
+                local_folder_path=full_path,
+                load_specification=load_item,
+                root_folder=self.root_folder,
             )
+            reader = self.folder_reader
         else:
-            yield from self.file_reader.read(
-                FilesystemLocationFile(
-                    local_path=full_path, load_specification=load_item, root_folder=self.root_folder
-                ),
-                orchestrator,
+            load_location = FilesystemLocationFile(
+                local_path=full_path, load_specification=load_item, root_folder=self.root_folder
             )
+            reader = self.file_reader
 
-    def _load_folder(
-        self, location: LocationFolder, orchestrator: LoadOrchestrator
-    ) -> BlockIterator:
-        for p in location.local_folder_path.iterdir():
-            if not self.file_name_pattern.match(p.name):
-                continue
-            logger.debug(f"Including file '{p}' from '{location}'")
-            orchestrator.add_load_item(LoadItem(specification=p.name, source=location))
+        return LoadProxy(load_location=load_location, reader=reader)
+
+
+@dataclass(frozen=True)
+class ProtocolLoader(Loader):
+    """
+    A composable Loader implementation that allows multi-protocol support
+
+    ``default_protocol``
+    -------------------
+    If the ``specification`` in a ``LoadItem`` instance does not include a known protocol,
+    the protocol is assumed to be ``default_protocol``.
+    """
+
+    protocol_handlers: dict[str, Loader]
+    default_protocol: str = "file"
+
+    def resolve(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> LoadProxy:
+        # Do not try to parse protocol, as this may cause issues on windows where file paths may
+        # look like protocols (e.g. C:...)
+        spec = load_item.specification.lower()
+        handler = next(
+            (h for p, h in self.protocol_handlers.items() if spec.startswith(p + ":")),
+            self.protocol_handlers[self.default_protocol],
+        )
+        return handler.resolve(load_item=load_item, orchestrator=orchestrator)
+
+
+@dataclass(frozen=True)
+class IncludeReader(Reader):
+    reader: Reader
+
+    def read(self, load_location: LoadLocation, orchestrator: LoadOrchestrator) -> BlockIterator:
+        for block_type, value in self.reader.read(load_location, orchestrator):
+            if block_type == BlockType.DIRECTIVE and value.name == "include":
+                source = value.origin.input_location
+                for line in value.lines:
+                    logger.debug(f"Adding include '{line}' from {source.interactive_identifier}")
+                    orchestrator.add_load_item(LoadItem(specification=line, source=source))
+            else:
+                yield block_type, value
+
+
+@dataclass(frozen=True)
+class IncludeLoader(Loader):
+    """
+    A composable Loader implementation that implements an ``include``-directive
+
+    Each row in an include directive correspond to a load item.
+    The ``FileSystemLoader`` will resolve relative file paths relative to the
+    folder containing the file with the include-directive.
+    """
+
+    loader: Loader
+
+    def resolve(self, load_item: LoadItem, orchestrator: LoadOrchestrator) -> LoadProxy:
+        proxy = self.loader.resolve(load_item, orchestrator)
+        return LoadProxy(reader=IncludeReader(proxy.reader), load_location=proxy.load_location)
 
 
 def make_loader(
@@ -321,7 +340,7 @@ def make_loader(
     elif csv_sep is not None or sheet_name_pattern is not None:
         raise ValueError("csv_sep and sheet_name_pattern cannot be used with file_reader")
 
-    # file loader
+    # folder reader
     if file_name_pattern is None:
         if file_name_start_pattern is None:
             # negative lookahead to avoid excel tempfiles
@@ -330,10 +349,13 @@ def make_loader(
         file_name_pattern = re.compile(file_name_start_pattern + sfp.pattern, sfp.flags)
     elif file_name_start_pattern is not None:
         raise ValueError("file_name_start_pattern cannot be used with file_name_pattern")
+    folder_reader = FolderReader(file_name_pattern=file_name_pattern)
+
+    # filesystem loader
     if root_folder is not None:
         root_folder = Path(root_folder)
     file_loader = FileSystemLoader(
-        file_reader=file_reader, root_folder=root_folder, file_name_pattern=file_name_pattern
+        file_reader=file_reader, folder_reader=folder_reader, root_folder=root_folder
     )
 
     # protocols
