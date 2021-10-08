@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.11]
+
+### Added
+- [#106] Support for detailed origin information in table metadata.
+- [#106] Support for loading complete input sets.
+
+### Changed
+- Table origin information has been moved from `TableMetadata` to an aggregate object.
+- The error type raised by the `fixer` has been changed to integrate with `load` framework.
+
 ### Fixed
 - In response to a Numpy deprecation warning, changed one `dtype` argument from deprecated `numpy.str` to its designated successor, built-in `str`.
 
