@@ -298,7 +298,7 @@ def add_column(df: TableDataFrame, name: str, values, unit: Optional[str] = None
 def set_units(df: TableDataFrame, unit_map: Dict[str, str]):
     columns = get_table_info(df).columns
     for col, unit in unit_map.items():
-        columns[col] = unit
+        columns[col].unit = unit
 
 
 def set_all_units(df: TableDataFrame, units: Iterable[Optional[str]]):
