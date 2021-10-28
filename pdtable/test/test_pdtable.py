@@ -117,6 +117,22 @@ def test_table__str(dft):
     assert lines[2:] == expected_lines[2:]
 
 
+def test_make_table_dataframe_units(data_ab):
+    tdf = frame.make_table_dataframe(
+        pd.DataFrame(data_ab),
+        name="ab",
+        units=["m", "text"],
+    )
+    assert frame.get_table_info(tdf).columns["cola"].unit == "m"
+
+    tdf = frame.make_table_dataframe(
+        pd.DataFrame(data_ab),
+        name="ab",
+        unit_map={"cola": "m"},
+    )
+    assert frame.get_table_info(tdf).columns["cola"].unit == "m"
+
+
 def test_df_operations(data_ab, data_cd):
     t_ab = frame.make_table_dataframe(pd.DataFrame(data_ab), name="ab")
     t_cd = frame.make_table_dataframe(pd.DataFrame(data_cd), name="cd")
