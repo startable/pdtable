@@ -83,6 +83,26 @@ def test_write_csv__writes_two_tables():
         )
 
 
+def test__empty_to_csv():
+    # Make a table with content of various units
+    t = Table(name="empty")
+
+    # Write table to stream
+    with io.StringIO() as out:
+        _table_to_csv(t, out, ";", "-")
+        # Assert stream content is as expected
+        assert out.getvalue() == dedent(
+            """\
+            **empty;
+            all
+
+
+
+
+            """
+        )
+
+
 def test_write_csv__leaves_stream_open_if_caller_passes_stream():
     # Make a table
     t2 = Table(
