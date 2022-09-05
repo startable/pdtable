@@ -153,6 +153,25 @@ def test_make_table__no_trailing_sep():
     assert t.dash[0] == 10
 
 
+def test_make_table__empty():
+    cells = [
+        ["**an_empty_table"],
+        ["all"]
+    ]
+    t = make_table(cells).df
+    assert t.shape == (0, 0)
+
+
+def test_make_table__empty_transposed():
+    cells = [
+        ["**an_empty_table*"],
+        ["all"]
+    ]
+    t = make_table(cells).df
+    assert t.shape == (0, 0)
+
+
+
 def test_parse_blocks():
     cell_rows = [
         line.split(";")

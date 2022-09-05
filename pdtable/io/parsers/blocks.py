@@ -111,8 +111,10 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
     # internally hold destinations as json-compatible dict
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
-
-    if transposed:
+    table_is_empty = len(cells) < 3
+    if table_is_empty:
+        column_names = []
+    elif transposed:
         # Column names are in lines' first cell
         column_names = parse_column_names([line[0] for line in cells[2:]])
     else:
@@ -121,13 +123,15 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     column_names = _fix_duplicate_column_names(column_names, fixer)
 
     n_col = len(column_names)
-    if transposed:
+    if table_is_empty:
+        units = []
+    elif transposed:
         units = [line[1] for line in cells[2 : 2 + n_col]]
     else:
         units = cells[3][:n_col]
     units = [unit.strip() for unit in units]
 
-    if transposed:
+    if transposed and not table_is_empty:
         data_lines = [line[2:] for line in cells[2 : 2 + n_col]]
         len_longest_line = max(len(line) for line in data_lines)
 
