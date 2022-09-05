@@ -222,6 +222,11 @@ def test_groupby(dft_m):
     ]
     assert gg[0][0] == 0
 
+    for _, group in dft_m.groupby("cola"):
+        group_t = Table(group)
+        assert group_t["cola"].unit == "m"
+        assert group_t["colb"].unit == "text"
+
 
 def test_assign(dft_m):
     # triggers method "copy" in DataFrame.__finalize__ on pandas 1.1

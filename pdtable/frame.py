@@ -79,7 +79,7 @@ def _combine_tables(
     if metadata is required, or by dropping to bare dataframes otherwise.
     """
 
-    if method is None or method in frozenset({"reindex", "take", "copy"}):
+    if method is None or method in frozenset({"reindex", "take", "copy", "groupby"}):
         # method: None - copy, slicing (pandas <1.1)
         src = [other]
     elif method == "merge":
