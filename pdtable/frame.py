@@ -54,6 +54,7 @@ import warnings
 from typing import Set, Dict, Optional, Iterable
 
 from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInfo
+from .table_origin import TableOrigin
 
 _TABLE_INFO_FIELD_NAME = "_table_data"
 
@@ -101,8 +102,14 @@ def _combine_tables(
         return None
 
     # 1: Create table metadata as combination of all
+    origin = TableOrigin(
+        operation=f"Pandas {method}", 
+        parents=[d.metadata.origin for d in data]
+    )
     meta = TableMetadata(
-        name=data[0].metadata.name, operation=f"Pandas {method}", parents=[d.metadata for d in data]
+        name=data[0].metadata.name,
+        destinations=data[0].metadata.destinations,
+        origin=origin,
     )
 
     # 2: Check that units match for columns that appear in more than one table
@@ -199,7 +206,7 @@ def make_table_dataframe(
     **kwargs,
 ) -> TableDataFrame:
     """
-    Create TableDataFrame object from a pandas.DataFream and table metadata elements.
+    Create TableDataFrame object from a pandas.DataFrame and table metadata elements.
 
     Unknown keyword arguments (e.g. `name = ...`) are used to create a `TableMetadata` object.
     Alternatively, a `TableMetadata` object can be provided directly.
@@ -291,7 +298,7 @@ def add_column(df: TableDataFrame, name: str, values, unit: Optional[str] = None
 def set_units(df: TableDataFrame, unit_map: Dict[str, str]):
     columns = get_table_info(df).columns
     for col, unit in unit_map.items():
-        columns[col] = unit
+        columns[col].unit = unit
 
 
 def set_all_units(df: TableDataFrame, units: Iterable[Optional[str]]):

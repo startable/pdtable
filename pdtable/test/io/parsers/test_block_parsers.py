@@ -171,6 +171,24 @@ def test_make_table__empty_transposed():
     assert t.shape == (0, 0)
 
 
+def test_make_table__empty_values():
+    lines = [
+        ["**foo"],
+        ["all"],
+        ["place", "distance"],
+        ["text", "km"],
+    ]
+
+    t = make_table(lines)
+
+    assert t.name == "foo"
+    assert set(t.metadata.destinations) == {"all"}
+    assert t.column_names == ["place", "distance"]
+    assert t.units == ["text", "km"]
+
+    df = pd.DataFrame({"place": [], "distance": []})
+    pd.testing.assert_frame_equal(t.df, df)
+
 
 def test_parse_blocks():
     cell_rows = [
@@ -472,9 +490,9 @@ def test_parse_blocks__block_types():
     ]
     # fmt: on
 
+    parse_result = list(parse_blocks(cell_rows, to="cellgrid"))
     seen = {}
-    for ty, block in parse_blocks(cell_rows, to="cellgrid"):
-        #  print(f"\n-oOo- {ty} {block}")
+    for ty, block in parse_result:
         if seen.get(ty) is None:
             seen[ty] = []
         seen[ty].append(block)

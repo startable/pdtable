@@ -35,7 +35,7 @@ def is_missing_data_marker(normalized_val):
 
 def _parse_text_column(values: Iterable, fixer: ParseFixer = None):
     # Ensure that 'values' is a Sequence, else np.array() will not unpack it
-    return np.array(values if isinstance(values, Sequence) else list(values), dtype=np.str)
+    return np.array(values if isinstance(values, Sequence) else list(values), dtype=str)
 
 
 def _onoff_to_bool(val) -> bool:
@@ -65,7 +65,7 @@ def _parse_onoff_column(values: Iterable, fixer: ParseFixer = None):
                 bool_values.append(fix_value)
             else:
                 raise ValueError("Illegal value in onoff column", val) from err
-    return np.array(bool_values, dtype=np.bool)
+    return np.array(bool_values, dtype=bool)
 
 
 def _float_convert(val: str) -> float:
