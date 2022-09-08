@@ -125,6 +125,8 @@ def make_table_json_precursor(cells: CellGrid, origin, fixer:ParseFixer) -> Tupl
     elif transposed:
         # Column names are in lines' first cell
         column_names = parse_column_names([line[0] for line in cells[2:]])
+    elif len(cells) == 3:
+        raise ValueError(f"Invalid table {table_name}: no unit specification found")
     else:
         # Column names are on line 2 (zero-based)
         column_names = parse_column_names(cells[2])
