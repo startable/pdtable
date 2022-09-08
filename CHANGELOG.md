@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Can now read empty tables (tables with only name and origin, no column or unit information).
+- Fixes deprecation warning related to numpy type
+- Fixes warning when calling `groupby` method
 
 ## [0.0.13]
 
