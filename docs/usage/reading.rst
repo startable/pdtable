@@ -245,3 +245,55 @@ contains an ``include`` directive pointing to ``foo.csv`` then calling
 overflow. You may want to perform such a check if relevant for your
 application.
 
+Alternatively, look into the section on `Loading input sets`_ below, which includes a more robust implementation
+of the ``include``-directive.
+
+
+Loading input sets
+------------------
+
+The term "reading" has been used above to describe the low-level process of reading a single input location.
+We will use the term "loading" for the process of reading a full input set, possibly from multiple storage backends,
+while recording information about the input locations for each table. Support for "loading" in this sense is
+implemented in the ``io.load`` and ``table_origin`` modules. These modules are built as layers on top of the
+fundamental readers, and a given project can choose to not use either, to use only ``table_origin`` or to use both.
+The design is intended to be flexible enough to support most scenarios, while still being convenient to use
+for the most basic use-case of reading a folder of files.
+
+As an example of using the modules, this is how you would use the convenience function ``load_files`` to load
+an filesystem input-set based on a root folder and a file name pattern::
+
+    bundle = pdtable.TableBundle(pdtable.load_files(
+        root_folder=inputs,
+        file_name_start_pattern="(input|setup)_"))
+
+The included load information can be accessed via the ``.metadata``-field as::
+
+    input_location = bundle['bar_table'].metadata.origin.input_location
+
+The resulting object can be inspected via the string-representation::
+
+    >>> print(input_location.interactive_identifier)
+    >>> print('\n'.join(str(input_location.load_specification).split(';')))
+    Row 0 of 'bar.csv'
+    included as "bar.csv" from Row 0 of 'input_foo.csv'"
+    included as "input_foo.csv" from <root_folder: C:\Code\github_corp\pdtable\pdtable\test\io\input\with_include>"
+    included as "/" from <root>"
+
+
+
+Alternatively, the function ``make_location_trees`` can be used to generate a tree-representaion of the load
+process for an entire table bundle::
+
+    >>> for tree in pdtable.io.load.make_location_trees(bundle):
+    ...     print(tree)
+    <root_folder: C:\Code\github_corp\pdtable\pdtable\test\io\input\with_include>
+      Row 0 of 'input_foo.csv'
+        bar_abs.csv
+          **bar_abs_table
+        bar.csv
+          **bar_table
+
+For detailed information about the module, please refer to the source code and the ``docs/diagrams`` folder in the
+repository.
+

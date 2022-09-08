@@ -238,3 +238,15 @@ def test_TableBundle_all():
     assert len(lst) == 2
     for tab in lst:
         assert tab.name == "infs"
+
+
+def test_TableBundle_attribute_error():
+    bundle = TableBundle([])
+    with pytest.raises(AttributeError):
+        bundle.invalid_attribute_name
+
+
+def test_TableBundle_in_operator():
+    bundle = TableBundle(parse_blocks(cell_rows))
+    assert "foo" in bundle
+    assert "qux" not in bundle

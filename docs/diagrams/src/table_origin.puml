@@ -1,0 +1,88 @@
+def resolve(specificaton: str, orchestrator: Orchestrator, included_from: Optional[Location])
+# spec may not be unique: it can be relative to included_from
+if identifier is folder:
+for file in folder.glob(pattern):
+orchestrator.add_source(file, identifier->location)
+else:
+file_metadata, generator = handlers[identifier->protocol].read(identifier)
+
+@startuml Table Origin
+
+namespace table_origin {
+    class LoadItem  {
+        + specification: str
+        + source: None | LoadLocation
+        + load_history() -> [LoadItem]
+    }
+
+    ' LoadItem o-- LoadLocation
+    LoadLocation <|-- LocationBlock
+
+    interface LoadLocation {
+        + load_specification: LoadItem
+        + load_identifier: str # unique
+        + local_folder_path: None | Path
+        + interactive_identifier: str
+        + interactive_open(read_only)
+        + interactive_uri(read_only)
+    }
+
+    interface LocationFile {
+        + local_path: None | Path
+        + get_local_path(): Path # downloads if required
+        + interactive_open(read_only, sheet, row)  # may fail
+        + interactive_uri(read_only, sheet, row): URI
+        + interactive_identifier: str
+    }
+
+    class FileSystemLocationFile {
+        + root_folder
+    }
+    LocationFile <|-- FileSystemLocationFile
+    LocationFile <|-- NullLocationFile
+    LocationFile -|> LoadLocation
+
+    LoadItem  -o LocationFile
+
+    class LocationSheet {
+        + sheet_name: None | str
+        + sheet_metadata: Any
+    }
+
+    LocationFile --o "file" LocationSheet
+
+    class LocationBlock {
+        + row: int
+    }
+
+    LocationSheet --o "sheet" LocationBlock
+
+    class TableOrigin {
+        + input_location: LocationBlock | None
+        + parents: [TableOrigin]
+        + operation: str | None
+        + get_input_ancestors(): [LocationBlock]
+    }
+
+    TableOrigin *- LocationBlock
+
+    class InputIssue {
+        + load_item: LoadItem,
+        + location_file: None | LocationFile,
+        + issue: str | Exception
+    }
+
+    interface InputIssueTracker {
+        + add_issue(input_issue)
+        + add_error()
+        + add_warning()
+        + is_ok: bool
+        + issues: Iterable[InputIssue]
+    }
+
+    InputIssue <-- InputIssueTracker
+
+    InputIssueTracker <|-- NullInputIssueTracker
+
+}
+@enduml

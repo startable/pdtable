@@ -27,15 +27,17 @@ def test_read_excel():
     t2.add_column("melting_point", [273], "K")
 
     expected_tables = [t0, t1, t2]
+    expected_transposed_flag = [False, False, True]
 
     # Read tables from file
     blocks = read_excel(Path(__file__).parent / "input" / "foo.xlsx")
     tables_read = [block for (block_type, block) in blocks if block_type == BlockType.TABLE]
     assert len(expected_tables) == len(tables_read)
 
-    # Assert read tables are equal to the expected ones
-    for te, tr in zip(expected_tables, tables_read):
+    # Tables read are equal to the expected ones
+    for te, tr, flag in zip(expected_tables, tables_read, expected_transposed_flag):
         assert te.equals(tr)
+        assert tr.metadata.transposed == flag
 
     # test_read_excel__from_stream
     with open(Path(__file__).parent / "input" / "foo.xlsx", "rb") as fh:

@@ -24,25 +24,33 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
+from abc import abstractmethod
 import itertools
 import re
-from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union
-
+from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union, Dict
+from collections import defaultdict
 import pandas as pd
+import warnings
 
 from pdtable import BlockType, BlockIterator
 from pdtable import Table
 from pdtable.io._json import to_json_serializable, JsonData, JsonDataPrecursor
+from pdtable.table_origin import (
+    LocationSheet,
+    NullLocationFile,
+    TableOrigin,
+    InputIssue,
+    InputIssueTracker,
+    NullInputIssueTracker,
+)
 from .columns import parse_column
 from .fixer import ParseFixer
 from ... import frame
 from ...auxiliary import MetadataBlock, Directive
-from ...table_metadata import TableOriginCSV, TableMetadata
+from ...table_metadata import TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
-
-VALID_PARSING_OUTPUT_TYPES = {"pdtable", "jsondata", "cellgrid"}
 
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None, **_) -> MetadataBlock:
@@ -61,19 +69,19 @@ def make_directive(cells: CellGrid, origin: Optional[str] = None, **_) -> Direct
     return Directive(name, directive_lines, origin)
 
 
-def default_fixer(**kwargs):
+def make_fixer(origin, fixer=None, **kwargs):
     """ Determine if user has supplied custom fixer
         Else return default ParseFixer() instance.
     """
-    fixer = kwargs.get("fixer")
     if fixer is not None:
         if type(fixer) is type:
             # It's a class, not an instance. Make an instance here.
-            fixer = kwargs["fixer"]()
+            fixer = fixer()
     else:
         fixer = ParseFixer()
     assert fixer is not None
-    fixer.origin = kwargs.get("origin")
+    fixer.origin = origin
+    # fixer.reset_fixes()
     return fixer
 
 
@@ -88,7 +96,7 @@ def parse_column_names(column_names_raw: Sequence[Union[str, None]]) -> List[str
     ]
 
 
-def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
+def make_table_json_precursor(cells: CellGrid, origin, fixer:ParseFixer) -> Tuple[JsonDataPrecursor, bool]:
     """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
 
     Parses cell grid to a JSON-like data structure of nested "objects" (dict), "arrays" (list),
@@ -98,6 +106,8 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     This JSON data "precursor" can then be sent for further processing:
     - Parsing to pdtable-style Table block object
     - Conversion to a "pure" JSON data object in which all values are of JSON-native types.
+
+    Also returns a bool "transposed" flag.
     """
 
     table_name: str = cells[0][0][2:]
@@ -105,29 +115,33 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
     if transposed:
         # Chop off the transpose decorator from the name
         table_name = table_name[:-1]
-
-    fixer = default_fixer(**kwargs)
     fixer.table_name = table_name
 
     # internally hold destinations as json-compatible dict
     destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
-
-    if transposed:
+    table_is_empty = len(cells) < 3
+    if table_is_empty:
+        column_names = []
+    elif transposed:
         # Column names are in lines' first cell
         column_names = parse_column_names([line[0] for line in cells[2:]])
+    elif len(cells) == 3:
+        raise ValueError(f"Invalid table {table_name}: no unit specification found")
     else:
         # Column names are on line 2 (zero-based)
         column_names = parse_column_names(cells[2])
     column_names = _fix_duplicate_column_names(column_names, fixer)
 
     n_col = len(column_names)
-    if transposed:
+    if table_is_empty:
+        units = []
+    elif transposed:
         units = [line[1] for line in cells[2 : 2 + n_col]]
     else:
         units = cells[3][:n_col]
     units = [unit.strip() for unit in units]
 
-    if transposed:
+    if transposed and not table_is_empty:
         data_lines = [line[2:] for line in cells[2 : 2 + n_col]]
         len_longest_line = max(len(line) for line in data_lines)
 
@@ -166,7 +180,7 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
             data_rows[i_row] = fix_row
 
     # build dictionary of columns iteratively to allow meaningful error messages
-    columns = {}
+    columns = dict(zip(column_names, [[]] * len(column_names)))
     for name, unit, values in zip(column_names, units, zip(*data_rows)):
         try:
             fixer.column_name = name
@@ -178,18 +192,23 @@ def make_table_json_precursor(cells: CellGrid, **kwargs) -> JsonDataPrecursor:
 
     fixer.report()
 
-    return {
-        "name": table_name,
-        "columns": columns,
-        "units": units,
-        "destinations": destinations,
-        "origin": kwargs.get("origin"),
-    }
+    return (
+        {
+            "name": table_name,
+            "columns": columns,
+            "units": units,
+            "destinations": destinations,
+            "origin": origin,
+        },
+        transposed,
+    )
 
 
-def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwargs) -> Table:
+def _make_table(cells: CellGrid, origin, fixer) -> Table:
     """Parses cell grid into a pdtable-style Table block object."""
-    json_precursor = make_table_json_precursor(cells, origin=origin, **kwargs)
+    json_precursor, transposed = make_table_json_precursor(
+        cells, origin=str(origin.input_location), fixer=fixer,
+    )
     return Table(
         frame.make_table_dataframe(
             pd.DataFrame(json_precursor["columns"]),
@@ -197,15 +216,27 @@ def make_table(cells: CellGrid, origin: Optional[TableOriginCSV] = None, **kwarg
             table_metadata=TableMetadata(
                 name=json_precursor["name"],
                 destinations=set(json_precursor["destinations"].keys()),
-                origin=json_precursor["origin"],
+                origin=origin,
+                transposed=transposed,
             ),
         )
     )
 
 
-def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
+def make_table(cells: CellGrid, origin: Optional[TableOrigin]=None, **kwargs) -> Table:
+    """Parses cell grid into a pdtable-style Table block object."""
+    fixer=make_fixer(origin=origin, **kwargs)
+    if origin is None:
+        origin = TableOrigin()
+    elif isinstance(origin, str):
+        warnings.warn("Passing origin as str is deprecated", DeprecationWarning, stacklevel=2)
+        origin = TableOrigin(NullLocationFile(origin).make_location_sheet().make_location_block(0))
+    return _make_table(cells, origin, fixer=fixer)
+
+
+def make_table_json_data(cells: CellGrid, origin, fixer) -> JsonData:
     """Parses cell grid into a JSON-ready data structure."""
-    impure_json = make_table_json_precursor(cells, origin=origin, **kwargs)
+    impure_json, transposed = make_table_json_precursor(cells, origin=origin, fixer=fixer)
     # attach unit directly to individual column
     units = impure_json["units"]
     del impure_json["units"]  # replaced by "unit" field in columns
@@ -217,34 +248,121 @@ def make_table_json_data(cells: CellGrid, origin, **kwargs) -> JsonData:
     return to_json_serializable(impure_json)
 
 
-def make_block(
-    block_type: BlockType, cells: CellGrid, origin, **kwargs
-) -> Tuple[Optional[BlockType], Optional[Any]]:
-    """Dispatches cell grid to the proper parser, depending on block type and desired output type"""
-    block_name = ""
-    if block_type == BlockType.METADATA:
-        factory = make_metadata_block
-    elif block_type == BlockType.DIRECTIVE:
-        factory = make_directive
-    elif block_type == BlockType.TABLE:
-        block_name = cells[0][0][2:]
-        to = kwargs.get("to")
-        if to == "cellgrid":
-            factory = lambda c, *_, **__: c  # Regurgitate the unprocessed cell grid  # noqa:E731
-        elif to == "jsondata":
-            factory = make_table_json_data
-        else:
-            factory = make_table
+def make_raw_cells(cells: CellGrid, origin, **kwargs) -> CellGrid:
+    return cells
+
+
+DEFAULT_HANDLERS = (
+    (BlockType.METADATA, make_metadata_block),
+    (BlockType.DIRECTIVE, make_directive),
+    (BlockType.TABLE, _make_table),
+)
+_default_handlers = dict(DEFAULT_HANDLERS)
+
+TABLE_HANDLERS = (
+    ("pdtable", _make_table),
+    ("jsondata", make_table_json_data),
+    ("cellgrid", make_raw_cells),
+)
+_table_handlers = dict(TABLE_HANDLERS)
+
+# Regex that matches valid block start markers
+_re_block_marker = re.compile(
+    r"^("  # Marker must start exactly at start of cell
+    r"(?<!\*)(\*\*\*?)(?!\*)"  # **table or ***directive but not ****undefined
+    r"|"
+    r"((?<!:):{1,3}(?!:))[^:]*\s*$"  # :col, ::table, :::file but not ::::undefined, :ambiguous:
+    r"|"
+    r"([^:]+:)\s*$"  # metadata:  but not :ambiguous:
+    r")"
+)
+# $1 = Valid block start marker
+# $2 = **Table / ***Directive
+# $3 = :Template
+# $4 = Metadata:
+
+
+def _apply_filter(block_type, filter, handler):
+    if not block_type == BlockType.TABLE:
+        return lambda cellgrid, *args, **kwargs: handler(cellgrid, *args, **kwargs) if filter(
+            block_type, ""
+        ) else None
+    return (
+        lambda cellgrid, *args, **kwargs: handler(cellgrid, *args, **kwargs)
+        if filter(block_type, cellgrid[0][0][2:])
+        else None
+    )
+
+
+def parse_blocks(
+    cell_rows: Iterable[Sequence],
+    location_sheet: LocationSheet = None,
+    to: str = "pdtable",
+    filter: Any = None,
+    fixer: Any = None,
+    issue_tracker: InputIssueTracker = None,
+    origin: Optional[str] = None,
+    **kwargs,
+) -> BlockIterator:
+    """Parses blocks from a single sheet as rows of cells.
+
+    This is a legacy facade for `parse_blocks_stable`.
+
+    Takes an iterable of cell rows and parses it into blocks.
+
+    Args:
+        cell_rows: 
+            Iterable of cell rows, where each row is a sequence of cells.
+        location_sheet: 
+            A `LocationSheet` object describing the sheet being read.
+        filter: 
+            Optional. Will be called as (block type, name | ""). Block is dropped if false.
+        to: 
+            Optional. Generate Table of this type ("pdtable", "jsondata", "cellgrid")
+    kwargs:
+        fixer: Also a thing, but different.
+    Yields:
+        Blocks.
+    """
+
+    # Set up handlers
+    # Legacy default is to emit unknown types as raw cells
+    handlers = {
+        bt: make_raw_cells for bt in BlockType
+    }  
+    handlers.update(DEFAULT_HANDLERS)
+    try:
+        handlers[BlockType.TABLE] = _table_handlers[to]
+    except KeyError:
+        raise ValueError(
+            f"Unknown parsing output type; expected one of {list(_table_handlers.keys())}.", to
+        )
+    if filter:
+        for k, base_handler in handlers.items():
+            handlers[k] = _apply_filter(k, filter, base_handler)
+    if origin and location_sheet:
+        warnings.warn("Origin is shadowed by location.sheet.")
+
+    if fixer is not None or kwargs:
+        origin_str = location_sheet.file.load_identifier if location_sheet is not None else origin
+        fixer = make_fixer(origin=origin_str, fixer=fixer, **kwargs)
+        warnings.warn(
+            "The fixer construct is deprecated and will be removed in future release. "
+            "Please file an issue describing fixer use case at https://github.com/startable/pdtable/issues."
+            f"Fixer was triggered by the following keyword args: fixer: {fixer}, [{kwargs}].",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     else:
-        factory = None
+        fixer = None
 
-    block_filter = kwargs.get("filter")
-    if block_filter:
-        assert callable(block_filter)
-        if not block_filter(block_type, block_name):
-            return None, None
-
-    return block_type, cells if factory is None else factory(cells, origin, **kwargs)
+    yield from parse_blocks_stable(
+        cell_rows,
+        location_sheet=location_sheet,
+        block_handlers=handlers,
+        fixer=fixer,
+        issue_tracker=issue_tracker,
+    )
 
 
 # Regex that matches valid block start markers
@@ -263,45 +381,76 @@ _re_block_marker = re.compile(
 # $4 = Metadata:
 
 
-def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
-    """Parses blocks from a single sheet as rows of cells.
+def parse_blocks_stable(
+    cell_rows: Iterable[Sequence],
+    issue_tracker: InputIssueTracker = None,
+    block_handlers: Dict[BlockType, Any] = None,
+    location_sheet: LocationSheet = None,
+    fixer: Any = None,
+) -> BlockIterator:
+    """
+    Generate blocks (tables, metadata, directives,...) from cell-rows
 
-    Takes an iterable of cell rows and parses it into blocks.
+    This is a utility function for use by format-specific readers. It will return
+    a block generator based on a stream of cell rows.
+    The actual blocks are built by the supplied block handlers. A reader may need to 
+    modify the defaults to correctly handle format conversions.
+
+    Block handlers:
+    The supplied block_handlers dictionary is queried for a handler by block type.
+    If no block handler is defined, block will be silently ignored.
+    Otherwise handler is called with arguments (cell_grid, origin, fixer) and should return
+    a block of the correct type. If `None` is returned the block is silently ignored.
 
     Args:
-        cell_rows: Iterable of cell rows, where each row is a sequence of cells.
-    kwargs:
-        origin: A thing.
-        fixer: Also a thing, but different.
-        to: generate Table of this type ("pdtable", "jsondata", "cellgrid")
-
-    Yields:
-        Blocks.
+        issue_tracker:
+            Read issues are handled by calls to the issue tracker. The default issue tracker
+            will simply raise an exception.
+        block_handlers:
+            A dictionary mapping block types to block handlers as described above
+        location_sheet:
+            Describes input location
+        fixer:
+            The fixer construct is a legacy system which will be deprecated. Please raise
+            issues on github for all use-cases.
     """
+    if location_sheet is None:
+        location_sheet = NullLocationFile().make_location_sheet()
 
-    # Unpack, pre-process, validate, and repack the kwargs for downstream use
-    to = kwargs.get("to")
-    if to is None:
-        kwargs["to"] = to = "pdtable"
-    elif to not in VALID_PARSING_OUTPUT_TYPES:
-        raise ValueError(
-            f"Unknown parsing output type; expected one of {VALID_PARSING_OUTPUT_TYPES}.", to
-        )
+    if issue_tracker is None:
+        issue_tracker = NullInputIssueTracker()
 
-    origin = kwargs["origin"] if "origin" in kwargs else "stream"
+    if block_handlers is None:
+        block_handlers = dict(DEFAULT_HANDLERS)
 
-    fixer = default_fixer(**kwargs)
-    kwargs["fixer"] = fixer  # use in make_block
-    fixer.reset_fixes()
-    fixer.origin = origin
+    if fixer is None:
+        fixer = make_fixer(origin=location_sheet.file.load_identifier)
+
+    def block_output(block_type, cell_grid, row: int):
+        """
+        Emit cell_grid as given block_type
+        """
+        if not cell_grid:  # return on None or empty
+            return
+        handler = block_handlers.get(block_type, None)
+        if handler is None:
+            return
+        origin = TableOrigin(input_location=location_sheet.make_location_block(row=row))
+
+        fixer.reset_fixes()
+        try:
+            block = handler(cell_grid, origin=origin, fixer=fixer)
+        except ValueError as e:
+            issue_tracker.add_error(str(e), load_location=origin.input_location)
+
+        if block is not None:
+            yield block_type, block
 
     cell_grid = []
-
     state = BlockType.METADATA
     next_state = None
     this_block_1st_row = 0
     for row_number_0based, row in enumerate(cell_rows):
-        #  print(f"parse_blocks: {state} {row[0] if len(row) > 0 else ' (empty) '}")
         if row is None or len(row) == 0 or _is_cell_blank(row[0]):
             if state != BlockType.BLANK:
                 next_state = BlockType.BLANK
@@ -334,15 +483,11 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
 
         if next_state is not None:
             # Current block has ended. Emit it.
-            if len(cell_grid) > 0:
-                kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-                block_type, block = make_block(state, cell_grid, **kwargs)
-                if block_type is not None:
-                    yield block_type, block
-            # TODO augment TableOriginCSV with one tailored for Excel
+            yield from block_output(state, cell_grid, this_block_1st_row)
             cell_grid = []
             state = next_state
             next_state = None
+            this_block_1st_row = row_number_0based
             if state != BlockType.BLANK:
                 cell_grid.append(row)
             elif len(row) > 0:
@@ -351,12 +496,7 @@ def parse_blocks(cell_rows: Iterable[Sequence], **kwargs) -> BlockIterator:
                     continue
                 cell_grid.append(row)
 
-    if cell_grid:
-        # Block ended with EOF. Emit it.
-        kwargs["origin"] = TableOriginCSV(origin, this_block_1st_row)
-        block_type, block = make_block(state, cell_grid, **kwargs)
-        if block_type is not None:
-            yield block_type, block
+    yield from block_output(state, cell_grid, this_block_1st_row)
 
 
 def _fix_duplicate_column_names(col_names_raw: Sequence[str], fixer: ParseFixer):

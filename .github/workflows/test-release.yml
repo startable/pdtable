@@ -1,4 +1,7 @@
-name: run-tests
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: test-release
 
 on:
   push:
@@ -6,8 +9,6 @@ on:
     tags: [ v* ]
   pull_request:
     branches: [ master ]
-  schedule:
-    - cron: '42 1 * * *'
   workflow_dispatch: 
 
 jobs:
@@ -30,15 +31,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest pytest-cov
         pip install -r requirements.txt
+        pip install -e .
+        
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
     - name: Test with pytest
       run: |
-        pytest --cov
+        pytest pdtable --cov
+        # the test_optional_dependencies test has to be run separatelly because python imports are cached
+        pytest test
+
   release:
 
     runs-on: ubuntu-latest
@@ -55,13 +62,16 @@ jobs:
 
     - name: Build package
       run: |
-        python -m pip install --upgrade pip setuptools
+        python -m pip install --upgrade pip setuptools wheel
         python setup.py sdist
+        # the package is pure python, but let's build wheels anyway
         python setup.py bdist_wheel
+
     - name: Upload to PyPI
       run: |
         python -m pip install twine
-        python -m twine upload --repository testpypi dist/* -u __token__ -p "$TOKEN"
+        python -m twine upload dist/* -u __token__ -p "$TOKEN"
       env:
         TOKEN: ${{ secrets.PYPI_TOKEN }}
       
+ 

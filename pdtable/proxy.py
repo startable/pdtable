@@ -257,10 +257,9 @@ class Table:
 
     def __repr__(self):
         m = self.metadata
-        # TODO __repr__ shouldn't display the dataframe's index. Could also display units on their own line.  # noqa
+        # TODO Could also display units on their own line, to look less like a dataframe and more like a table block...  # noqa
         return (
-            f"**{m.name}\n{', '.join(s for s in m.destinations)}"
-            f"\n{self.as_dataframe_with_annotated_column_names()}"
+            f"**{m.name}\n{' '.join(s for s in m.destinations)}\n" + self.as_dataframe_with_annotated_column_names().to_string(index=False)
         )
 
     def __str__(self):
@@ -308,7 +307,7 @@ class Table:
         The converter is also responsible for deciding what unit is considered the
         "base unit" of unit X.  Depending on your application and favourite unit system, the base
         unit of 'mm' could be 'm', 'foot', 'furlong', or some other unit of dimension length.
-        
+
         Args:
             to:
                 Specifies to what units to convert which columns. Can be:

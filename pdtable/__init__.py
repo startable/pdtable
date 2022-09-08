@@ -1,6 +1,6 @@
 # flake8: noqa
 
-__version__ = "0.0.4"
+__version__ = "0.0.13"
 
 CSV_SEP = ";"  # User can overwrite this default
 
@@ -13,3 +13,5 @@ from .io import ParseFixer
 from .io import read_csv, write_csv
 from .io import read_excel, write_excel
 from .units.pint import PintUnitConverter, pint_converter
+from .io.load import load_files
+

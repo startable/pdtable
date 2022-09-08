@@ -40,6 +40,56 @@ def test__table_to_csv():
         )
 
 
+def test__table_to_csv__writes_transposed_table():
+    # Make a TRANSPOSED table with content of various units
+    t = Table(name="foo")
+    t["place"] = ["home", "work", "beach", "wonderland"]
+    t.add_column("distance", list(range(3)) + [float("nan")], "km")
+    t.add_column(
+        "ETA",
+        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
+        "datetime",
+    )
+    t.add_column("is_hot", [True, False, True, False], "onoff")
+    t.metadata.transposed = True  # <<<< aha
+
+    # Write transposed table to stream
+    with io.StringIO() as out:
+        _table_to_csv(t, out, ";", "-")
+        # Stream content is as expected
+        assert out.getvalue() == dedent(
+            """\
+            **foo*;
+            all
+            place;text;home;work;beach;wonderland
+            distance;km;0.0;1.0;2.0;-
+            ETA;datetime;2020-08-04 08:00:00;2020-08-04 09:00:00;2020-08-04 17:00:00;-
+            is_hot;onoff;1;0;1;0
+
+            """
+        )
+
+
+def test__table_to_csv__writes_empty_table():
+    # Make a table with content of various units
+    t = Table(name="empty")
+
+    # Write table to stream
+    with io.StringIO() as out:
+        _table_to_csv(t, out, ";", "-")
+        # Assert stream content is as expected
+        assert out.getvalue() == dedent(
+            """\
+            **empty;
+            all
+
+
+
+
+            """
+        )
+
+
 def test_write_csv__writes_two_tables():
     # Make a couple of tables
     t = Table(name="foo")
@@ -52,9 +102,11 @@ def test_write_csv__writes_two_tables():
     )
     t.add_column("is_hot", [True, False, True, False], "onoff")
 
+    # This table is transposed
     t2 = Table(name="bar")
     t2.add_column("number", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
+    t2.metadata.transposed = True
 
     # Write tables to stream
     with io.StringIO() as out:
@@ -71,13 +123,10 @@ def test_write_csv__writes_two_tables():
             beach;2.0;2020-08-04 17:00:00;1
             wonderland;-;-;0
 
-            **bar;
+            **bar*;
             all
-            number;spelling
-            -;text
-            1;one
-            6;six
-            42;forty-two
+            number;-;1;6;42
+            spelling;text;one;six;forty-two
 
             """
         )

@@ -4,6 +4,7 @@
 # log files
 *.log
 *.log.*
+ipython_log.*
 
 # testing
 .coverage
@@ -92,6 +93,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+/*.ipynb
 
 # pyenv
 .python-version

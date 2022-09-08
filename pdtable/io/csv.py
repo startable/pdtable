@@ -2,25 +2,32 @@
 import os
 import io
 from contextlib import nullcontext
+from itertools import chain
 from os import PathLike
-
+from re import I
+import warnings
 from typing import TextIO, Union, Callable, Iterable
+from pathlib import Path
 
 import pdtable  # Required to read dynamically-set pdtable.CSV_SEP
-from ._represent import _represent_row_elements
-from .. import BlockType, Table, TableBundle
+from ._represent import _represent_row_elements, _represent_col_elements
+from .. import BlockType, Table
 from ..store import BlockIterator
 from .parsers.fixer import ParseFixer
 from .parsers.blocks import parse_blocks
+from ..table_origin import FilesystemLocationFile, InputIssueTracker, LocationSheet, NullLocationFile
 
 
 def read_csv(
     source: Union[str, PathLike, TextIO],
     sep: str = None,
+    *,
     origin: str = None,
+    location_sheet: LocationSheet = None,
     fixer: ParseFixer = None,
     to: str = "pdtable",
     filter: Callable[[BlockType, str], bool] = None,
+    issue_tracker: InputIssueTracker = None,
 ) -> BlockIterator:
     """Reads StarTable data from a CSV file or text stream, yielding one block at a time.
 
@@ -58,7 +65,13 @@ def read_csv(
             Optional; CSV field delimiter. Default is ';'.
 
         origin:
-            Optional; Table location
+            Optional; File origin description/file name as str. May be shadowed by `location_sheet`.
+
+        location_sheet:
+            Optional; Origin of sheet as a LocationSheet object.
+            `location_sheet` takes precedence over `origin`. For file input default
+            if input path with `origin` as optional input specification, for stream input
+            default is a null context with `origin` as description.
 
         fixer:
             Customized ParseFixer instance to be used instead of default fixer.
@@ -78,29 +91,34 @@ def read_csv(
     Yields:
         Tuples of (BlockType, block) where 'block' is one of {Table, MetadataBlock, Directive,
         TemplateBlock}
-
     """
+    
+    # handle heterogeneous input source
+    source_is_stream = hasattr(source, "readline")
+    if not source_is_stream:
+        source = Path(source)
+
+    # resolve location_sheet
+    if location_sheet is None:
+        if not source_is_stream:
+            location_sheet = FilesystemLocationFile(local_path=source, load_specification=origin).make_location_sheet()
+        elif origin is not None:
+            location_sheet = NullLocationFile(str(origin)).make_location_sheet()
+        # else: keep location_sheet undefined
+    elif origin is not None:
+        warnings.warn(f"Input 'origin': {origin} is shadowed by input 'location_sheet': {location_sheet}.")
+
     if sep is None:
         sep = pdtable.CSV_SEP
 
-    if origin is None:
-        if hasattr(source, "name"):
-            origin = source.name
-        else:
-            origin = str(source)
-
-    kwargs = {"sep": sep, "origin": origin, "fixer": fixer, "to": to, "filter": filter}
-
-    if not isinstance(source, (str, PathLike)):
-        assert isinstance(source, io.TextIOBase)
-
-    with open(source) if isinstance(source, (str, PathLike)) else nullcontext(source) as f:
+    with nullcontext(source) if source_is_stream else open(source) as f:
         cell_rows = (line.rstrip("\n").split(sep) for line in f)
-        yield from parse_blocks(cell_rows, **kwargs)
+        yield from parse_blocks(cell_rows, location_sheet=location_sheet, 
+                                fixer=fixer, to=to, filter=filter, issue_tracker=issue_tracker)
 
 
 def write_csv(
-    tables: Union[Table, Iterable[Table], TableBundle],
+    tables: Union[Table, Iterable[Table]],
     to: Union[str, os.PathLike, TextIO],
     sep: str = None,
     na_rep: str = "-",
@@ -147,22 +165,43 @@ def _table_to_csv(table: Table, stream: TextIO, sep: str, na_rep: str) -> None:
     format_strings = [f"{{:{f.specifier}}}" if f else None for f in display_formats]
 
     # Build entire string at once
-    the_whole_thing = (
-        f"**{table.name}{sep}\n"
-        + " ".join(str(x) for x in table.metadata.destinations)
-        + "\n"
-        + sep.join(str(x) for x in table.column_names)
-        + "\n"
-        + sep.join(str(x) for x in units)
-        + "\n"
-        + "\n".join(
+    if table.metadata.transposed:
+        formatted_col_vals = (
+            (
+                fs.format(x) if fs else str(x)
+                for x in _represent_col_elements(col.values, col.unit, na_rep)
+            )
+            for col, fs in zip(table, format_strings)
+        )
+        the_whole_thing = (
+            f"**{table.name}*{sep}\n"
+            + " ".join(str(x) for x in table.metadata.destinations)
+            + "\n"
+            + "\n".join(
+                str(col.name) + sep + str(col.unit) + sep + sep.join(vals)
+                for col, vals in zip(table, formatted_col_vals)  # FIXME shouldnt' be looping over formatted_col_vals here, its' already a string
+            )
+            + "\n\n"
+        )
+    else:
+        # if True:
+        formatted_rows = (
             sep.join(
                 fs.format(x) if fs else str(x)
                 for x, fs in zip(_represent_row_elements(row, units, na_rep), format_strings)
             )
             for row in table.df.itertuples(index=False, name=None)
         )
-        + "\n\n"
-    )
+        the_whole_thing = (
+            f"**{table.name}{sep}\n"
+            + " ".join(str(x) for x in table.metadata.destinations)
+            + "\n"
+            + sep.join(str(x) for x in table.column_names)
+            + "\n"
+            + sep.join(str(x) for x in units)
+            + "\n"
+            + "\n".join(formatted_rows)
+            + "\n\n"
+        )
 
     stream.write(the_whole_thing)

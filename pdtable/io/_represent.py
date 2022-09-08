@@ -1,3 +1,5 @@
+from itertools import repeat
+
 import pandas as pd
 
 from typing import Iterable
@@ -41,3 +43,9 @@ def _represent_row_elements(row: Iterable, units: Iterable, na_rep: str = "-"):
         else:
             # Leave everything else be as it is
             yield val
+
+
+def _represent_col_elements(values: Iterable, unit: str, na_rep: str = "-"):
+    """Prepare column value representations for writing"""
+    # Let's be lazy and just reuse the row code, sending it the same unit forever
+    yield from _represent_row_elements(values, repeat(unit), na_rep)
