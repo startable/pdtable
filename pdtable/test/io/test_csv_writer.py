@@ -70,6 +70,26 @@ def test__table_to_csv__writes_transposed_table():
         )
 
 
+def test__table_to_csv__writes_empty_table():
+    # Make a table with content of various units
+    t = Table(name="empty")
+
+    # Write table to stream
+    with io.StringIO() as out:
+        _table_to_csv(t, out, ";", "-")
+        # Assert stream content is as expected
+        assert out.getvalue() == dedent(
+            """\
+            **empty;
+            all
+
+
+
+
+            """
+        )
+
+
 def test_write_csv__writes_two_tables():
     # Make a couple of tables
     t = Table(name="foo")

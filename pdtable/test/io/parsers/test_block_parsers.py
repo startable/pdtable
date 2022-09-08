@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pytest
 import datetime as dt
 from textwrap import dedent
 
@@ -151,6 +152,34 @@ def test_make_table__no_trailing_sep():
     t = make_table(cells).df
     assert t.column[0] == "bar"
     assert t.dash[0] == 10
+
+
+def test_make_table__empty():
+    cells = [
+        ["**an_empty_table"],
+        ["all"]
+    ]
+    t = make_table(cells).df
+    assert t.shape == (0, 0)
+
+
+def test_make_table__empty_transposed():
+    cells = [
+        ["**an_empty_table*"],
+        ["all"]
+    ]
+    t = make_table(cells).df
+    assert t.shape == (0, 0)
+
+
+def test_make_table__no_units_raises():
+    cells = [
+        ["**an_empty_table"],
+        ["all"],
+        ["col_a", "col_b"]
+    ]
+    with pytest.raises(ValueError):
+        make_table(cells)
 
 
 def test_make_table__empty_values():
