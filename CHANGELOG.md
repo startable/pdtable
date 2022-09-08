@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Can now read empty tables (tables with only name and origin, no column or unit information).
+
 ## [0.0.13]
 
 ### Fixed
