@@ -56,7 +56,8 @@ def test__append_table_to_openpyxl_worksheet():
     assert [ws.cell(r, 4).value for r in range(5, 9)] == [1, 0, 1, 0]
 
 
-def test_write_excel(tmp_path):
+@pytest.mark.parametrize("backend", ["openpyxl"])
+def test_write_excel(tmp_path, backend):
     # Make a couple of tables
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]

@@ -113,6 +113,7 @@ def write_excel(
     na_rep: str = "-",
     sep_lines: int = 1,
     styles: Union[bool, Dict] = False,
+    backend = "openpyxl"
 ):
     """Writes one or more tables to an Excel workbook.
 
@@ -181,15 +182,20 @@ def write_excel(
              that style element.
              In such cases, the default style is determined by the Excel writer engine (the default
              engine is openpyxl).
+        backend:
+            Optional; backend used to write .xlsx file. Supported options: "openpyxl", "xlsxwriter"
     """
-    try:
-        from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
+    if backend == "openpyxl":
+        try:
+            from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
 
-    except ImportError as err:
-        raise ImportError(
-            "Unable to find a usable spreadsheet engine. "
-            "Tried using: 'openpyxl'.\n"
-            "Please install openpyxl for Excel I/O support."
-        ) from err
+        except ImportError as err:
+            raise ImportError(
+                "Unable to find a usable spreadsheet engine. "
+                "Tried using: 'openpyxl'.\n"
+                "Please install openpyxl for Excel I/O support."
+            ) from err
+    else:
+        raise ValueError(f"Invalid backend: {backend}. Valid values are 'openpyxl' and xlsxwriter")
 
     write_excel_func(tables, to, na_rep, styles, sep_lines)
