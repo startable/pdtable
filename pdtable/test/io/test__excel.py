@@ -56,7 +56,7 @@ def test__append_table_to_openpyxl_worksheet():
     assert [ws.cell(r, 4).value for r in range(5, 9)] == [1, 0, 1, 0]
 
 
-@pytest.mark.parametrize("backend", ["openpyxl"])
+@pytest.mark.parametrize("backend", ["openpyxl", "xlsxwriter"])
 def test_write_excel(tmp_path, backend):
     # Make a couple of tables
     t = Table(name="foo")
@@ -77,7 +77,7 @@ def test_write_excel(tmp_path, backend):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2], out_path)
+    write_excel([t, t2], out_path, backend=backend)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 

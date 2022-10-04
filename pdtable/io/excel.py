@@ -185,17 +185,18 @@ def write_excel(
         backend:
             Optional; backend used to write .xlsx file. Supported options: "openpyxl", "xlsxwriter"
     """
-    if backend == "openpyxl":
-        try:
+    try:
+        if backend == "openpyxl":
             from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
-
-        except ImportError as err:
-            raise ImportError(
-                "Unable to find a usable spreadsheet engine. "
-                "Tried using: 'openpyxl'.\n"
-                "Please install openpyxl for Excel I/O support."
-            ) from err
-    else:
-        raise ValueError(f"Invalid backend: {backend}. Valid values are 'openpyxl' and xlsxwriter")
+        elif backend == "xlsxwriter":
+            from ._excel_xlsxwriter import write_excel_xlsxwriter as write_excel_func
+        else:
+            raise ValueError(f"Invalid backend: {backend}. Valid values are 'openpyxl' and 'xlsxwriter'")
+    except ImportError as err:
+        raise ImportError(
+            "Unable to find a usable spreadsheet engine. "
+            f"Tried using: '{backend}'.\n"
+            f"Please install {backend} for Excel I/O support."
+        ) from err
 
     write_excel_func(tables, to, na_rep, styles, sep_lines)
