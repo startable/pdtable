@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Iterable
 
 
-def _represent_row_elements(row: Iterable, units: Iterable, na_rep: str = "-"):
+def _represent_row_elements(row: Iterable, units: Iterable, na_rep: str = "-", convert_datetime=False):
     """Prepares row element representations for writing.
 
     In preparation for writing, coerce row values to representations compliant with
@@ -16,6 +16,7 @@ def _represent_row_elements(row: Iterable, units: Iterable, na_rep: str = "-"):
     - 'text' column values are coerced to strings
     - If the first column is 'text', its empty strings are replaced with an arbitrary but
       reasonable sealant
+    - 'datetime' objects are converted to Python datetime if convert_datetime=True
 
     Values are not, in general, converted to strings. If writing to a string format,
     stringification must be done by the client code.
@@ -40,12 +41,14 @@ def _represent_row_elements(row: Iterable, units: Iterable, na_rep: str = "-"):
             else:
                 # Coerce everything to strings
                 yield str(val)
+        elif unit == "datetime":
+            yield pd.to_datetime(val).to_pydatetime()
         else:
             # Leave everything else be as it is
             yield val
 
 
-def _represent_col_elements(values: Iterable, unit: str, na_rep: str = "-"):
+def _represent_col_elements(values: Iterable, unit: str, na_rep: str = "-", convert_datetime=False):
     """Prepare column value representations for writing"""
     # Let's be lazy and just reuse the row code, sending it the same unit forever
-    yield from _represent_row_elements(values, repeat(unit), na_rep)
+    yield from _represent_row_elements(values, repeat(unit), na_rep, convert_datetime)

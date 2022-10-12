@@ -1,4 +1,5 @@
 import datetime
+from pathlib import Path
 
 import pytest
 import pandas as pd
@@ -114,7 +115,8 @@ def test_write_excel(tmp_path, backend):
     out_path.unlink()
 
 
-def test_write_excel__multiple_sheets(tmp_path):
+@pytest.mark.parametrize("backend", ["openpyxl", "xlsxwriter"])
+def test_write_excel__multiple_sheets(tmp_path, backend):
     """write_excel() can write tables to multiple sheets in a workbook"""
 
     # Make a couple of tables
@@ -134,7 +136,7 @@ def test_write_excel__multiple_sheets(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel({"sheet_one": [t, t2], "sheet_two": t2}, out_path)
+    write_excel({"sheet_one": [t, t2], "sheet_two": t2}, out_path, backend=backend)
     wb = openpyxl.load_workbook(out_path)
 
     # Workbook has the expected sheets
@@ -464,7 +466,8 @@ def test_write_excel__sep_lines(tmp_path):
 def test_read_write_excel__round_trip_with_styles(tmp_path):
     """Round-trip reading and writing and re-reading preserves tables"""
     from pdtable import TableBundle, read_excel
-    bundle = TableBundle(read_excel("pdtable/test/io/input/foo.xlsx"))
+    fn_in = Path(__file__).parent / "input" / "foo.xlsx"
+    bundle = TableBundle(read_excel(fn_in))
     out_path = tmp_path / "foo_styled.xlsx"
     # Doesn't crash on write
     write_excel(bundle, out_path, styles=True)

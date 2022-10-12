@@ -15,10 +15,20 @@ DEFAULT_STYLE_SPEC = {
 }
 
 
-def pack_tables(tables) -> Dict[Table]:
+def _pack_tables(tables) -> Dict[str, Table]:
     if not isinstance(tables, dict):
         # For convenience, pack it in a dict
         return {DEFAULT_SHEET_NAME: tables}
     else:
         return tables
 
+
+def _table_header(table: Table) -> str:
+    if table.metadata.transposed:
+        return f"**{table.name}*"
+    else:
+        return f"**{table.name}"
+
+
+def _table_destinations(table: Table) -> str:
+    return " ".join(str(x) for x in table.metadata.destinations)

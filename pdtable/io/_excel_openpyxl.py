@@ -16,7 +16,8 @@ from openpyxl.utils import get_column_letter
 
 from pdtable import Table
 from pdtable.io._represent import _represent_row_elements, _represent_col_elements
-from pdtable.io._excel_write_helper import DEFAULT_STYLE_SPEC, DEFAULT_SHEET_NAME, pack_tables
+from pdtable.io._excel_write_helper import DEFAULT_STYLE_SPEC, DEFAULT_SHEET_NAME, _pack_tables, _table_header, \
+    _table_destinations
 
 
 def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
@@ -37,7 +38,7 @@ def read_sheets(path: Union[str, PathLike]) -> Iterable[Tuple[str, Iterable[Sequ
 def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines):
     """Write tables to an Excel workbook at the specified path."""
 
-    tables = pack_tables(tables)
+    tables = _pack_tables(tables)
     wb = openpyxl.Workbook()
     wb.remove(wb.active)  # Remove the one sheet that openpyxl creates by default
 
@@ -67,17 +68,16 @@ def _append_table_to_openpyxl_worksheet(
 ) -> None:
     """Write table at end of sheet, leaving sep_lines blank lines before."""
     units = table.units
+    ws.append([_table_header(table)])
+    ws.append([_table_destinations(table)])
+
     if table.metadata.transposed:
-        ws.append([f"**{table.name}*"])
-        ws.append([" ".join(str(x) for x in table.metadata.destinations)])
         for col in table:
             ws.append(
                 [str(col.name), str(col.unit)]
                 + list(_represent_col_elements(col.values, col.unit, na_rep)),
             )
     else:
-        ws.append([f"**{table.name}"])
-        ws.append([" ".join(str(x) for x in table.metadata.destinations)])
         ws.append(table.column_names)
         ws.append(units)
         for row in table.df.itertuples(index=False, name=None):
