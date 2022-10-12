@@ -153,7 +153,8 @@ def test_write_excel__multiple_sheets(tmp_path, backend):
     out_path.unlink()
 
 
-def test_write_excel__style(tmp_path):
+@pytest.mark.parametrize("backend", ["openpyxl", "xlsxwriter"])
+def test_write_excel__style(tmp_path, backend):
     # Make a couple of tables
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
@@ -179,7 +180,7 @@ def test_write_excel__style(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2, t3], out_path, styles=True)
+    write_excel([t, t2, t3], out_path, styles=True, backend=backend)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -192,21 +193,21 @@ def test_write_excel__style(tmp_path):
 
     # Check table formatting
     assert ws["A1"].fill.fill_type == "solid"
-    assert ws["A1"].fill.start_color.value == "00D9D9D9"
-    assert ws["A1"].font.color.value == "001F4E78"
+    assert ws["A1"].fill.start_color.value[2:] == "D9D9D9"  # xlsxwrite prepends hex code with FF
+    assert ws["A1"].font.color.value[2:] == "1F4E78"
     assert ws["A1"].font.bold is True
 
     assert ws["A2"].fill.fill_type == "solid"
-    assert ws["A2"].fill.start_color.value == "00D9D9D9"
-    assert ws["A2"].font.color.value == "00808080"
+    assert ws["A2"].fill.start_color.value[2:] == "D9D9D9"
+    assert ws["A2"].font.color.value[2:] == "808080"
     assert ws["A2"].font.bold is True
 
     assert [ws.cell(3, c).fill.fill_type for c in range(1, 5)] == ["solid"] * 4
-    assert [ws.cell(3, c).fill.start_color.value for c in range(1, 5)] == ["00F2F2F2"] * 4
+    assert [ws.cell(3, c).fill.start_color.value[2:] for c in range(1, 5)] == ["F2F2F2"] * 4
     assert [ws.cell(3, c).font.bold for c in range(1, 5)] == [True] * 4
 
     assert [ws.cell(4, c).fill.fill_type for c in range(1, 5)] == ["solid"] * 4
-    assert [ws.cell(4, c).fill.start_color.value for c in range(1, 5)] == ["00F2F2F2"] * 4
+    assert [ws.cell(4, c).fill.start_color.value[2:] for c in range(1, 5)] == ["F2F2F2"] * 4
     assert [ws.cell(4, c).font.bold for c in range(1, 5)] == [False] * 4
 
     # - table data by column
@@ -233,25 +234,25 @@ def test_write_excel__style(tmp_path):
     # Second table is there as well
     assert ws["A10"].value == "**bar*"
     assert ws["A10"].fill.fill_type == "solid"
-    assert ws["A10"].fill.start_color.value == "00D9D9D9"
-    assert ws["A10"].font.color.value == "001F4E78"
+    assert ws["A10"].fill.start_color.value[2:] == "D9D9D9"
+    assert ws["A10"].font.color.value[2:] == "1F4E78"
     assert ws["A10"].font.bold is True
 
     assert ws["A11"].value == "all"
     assert ws["A11"].fill.fill_type == "solid"
-    assert ws["A11"].fill.start_color.value == "00D9D9D9"
-    assert ws["A11"].font.color.value == "00808080"
+    assert ws["A11"].fill.start_color.value[2:] == "D9D9D9"
+    assert ws["A11"].font.color.value[2:] == "808080"
     assert ws["A11"].font.bold is True
 
     # column headers (transposed)
     assert [ws.cell(r, 1).value for r in range(12, 14)] == ["digit", "spelling"]
     assert [ws.cell(r, 1).fill.fill_type for r in range(12, 14)] == ["solid"] * 2
-    assert [ws.cell(r, 1).fill.start_color.value for r in range(12, 14)] == ["00F2F2F2"] * 2
+    assert [ws.cell(r, 1).fill.start_color.value[2:] for r in range(12, 14)] == ["F2F2F2"] * 2
     assert [ws.cell(r, 1).font.bold for r in range(12, 14)] == [True] * 2
 
     assert [ws.cell(r, 2).value for r in range(12, 14)] == ["-", "text"]
     assert [ws.cell(r, 2).fill.fill_type for r in range(12, 14)] == ["solid"] * 2
-    assert [ws.cell(r, 2).fill.start_color.value for r in range(12, 14)] == ["00F2F2F2"] * 2
+    assert [ws.cell(r, 2).fill.start_color.value[2:] for r in range(12, 14)] == ["F2F2F2"] * 2
     assert [ws.cell(r, 2).font.bold for r in range(12, 14)] == [False] * 2
 
     # column values (transposed)
@@ -266,14 +267,14 @@ def test_write_excel__style(tmp_path):
     # Third table is there as well
     assert ws["A15"].value == "**bas*"
     assert ws["A15"].fill.fill_type == "solid"
-    assert ws["A15"].fill.start_color.value == "00D9D9D9"
-    assert ws["A15"].font.color.value == "001F4E78"
+    assert ws["A15"].fill.start_color.value[2:] == "D9D9D9"
+    assert ws["A15"].font.color.value[2:] == "1F4E78"
     assert ws["A15"].font.bold is True
 
     assert ws["A16"].value == "all"
     assert ws["A16"].fill.fill_type == "solid"
-    assert ws["A16"].fill.start_color.value == "00D9D9D9"
-    assert ws["A16"].font.color.value == "00808080"
+    assert ws["A16"].fill.start_color.value[2:] == "D9D9D9"
+    assert ws["A16"].font.color.value[2:] == "808080"
     assert ws["A16"].font.bold is True
 
     # Teardown
