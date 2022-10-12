@@ -281,7 +281,8 @@ def test_write_excel__style(tmp_path, backend):
     out_path.unlink()
 
 
-def test_write_excel__custom_style(tmp_path):
+@pytest.mark.parametrize("backend", ["openpyxl", "xlsxwriter"])
+def test_write_excel__custom_style(tmp_path, backend):
     # Make a table
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
@@ -299,7 +300,7 @@ def test_write_excel__custom_style(tmp_path):
                 "bold": True,
             },
             "fill": {
-                "color": "00AAAAAA",  # leading 'aa' transparency values are accepted (but unused)
+                "color": "AAAAAA",
             },
         },
         "destinations": {
@@ -337,41 +338,41 @@ def test_write_excel__custom_style(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo_custom_style.xlsx"
-    write_excel([t], out_path, styles=style_spec)
+    write_excel([t], out_path, styles=style_spec, backend=backend)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
     # Check table formatting
     # table name
     assert ws["A1"].fill.fill_type == "solid"
-    assert ws["A1"].fill.start_color.value == "00AAAAAA"
+    assert ws["A1"].fill.start_color.value[2:] == "AAAAAA"
     assert ws["A1"].font.size == 24
-    assert ws["A1"].font.color.value == "00FF0000"
+    assert ws["A1"].font.color.value[2:] == "FF0000"
     assert ws["A1"].font.name == "Times New Roman"
     assert ws["A1"].font.bold is True
 
     # destinations
     assert ws["A2"].fill.fill_type == "solid"
-    assert ws["A2"].fill.start_color.value == "00888888"
-    assert ws["A2"].font.color.value == "000000FF"
+    assert ws["A2"].fill.start_color.value[2:] == "888888"
+    assert ws["A2"].font.color.value[2:] == "0000FF"
     assert ws["A2"].font.bold is False
     assert ws["A2"].font.italic is True
 
     # column names
     assert [ws.cell(3, c).fill.fill_type for c in range(1, nc+1)] == ["solid"] * nc
-    assert [ws.cell(3, c).fill.start_color.value for c in range(1, nc+1)] == ["00777777"] * nc
-    assert [ws.cell(3, c).font.color.value for c in range(1, nc+1)] == ["00444400"] * nc
+    assert [ws.cell(3, c).fill.start_color.value[2:] for c in range(1, nc+1)] == ["777777"] * nc
+    assert [ws.cell(3, c).font.color.value[2:] for c in range(1, nc+1)] == ["444400"] * nc
     assert [ws.cell(3, c).font.bold for c in range(1, nc+1)] == [True] * nc
 
     # column units
     assert [ws.cell(4, c).fill.fill_type for c in range(1, nc+1)] == [None] * nc  # left as default
-    assert [ws.cell(4, c).font.color.value for c in range(1, nc+1)] == ["00440044"] * nc
+    assert [ws.cell(4, c).font.color.value[2:] for c in range(1, nc+1)] == ["440044"] * nc
     assert [ws.cell(4, c).font.bold for c in range(1, nc+1)] == [False] * nc
     assert [ws.cell(4, c).alignment.horizontal for c in range(1, nc+1)] == [None] * nc
 
     # values
     assert [[ws.cell(4 + r, c).fill.fill_type for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["solid"] * nc] * nr
-    assert [[ws.cell(4 + r, c).fill.start_color.value for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["00EEEEEE"] * nc] * nr
+    assert [[ws.cell(4 + r, c).fill.start_color.value[2:] for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["EEEEEE"] * nc] * nr
     assert [[ws.cell(4 + r, c).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["left"] * nc] * nr
 
 
@@ -384,7 +385,7 @@ def test_write_excel__custom_style(tmp_path):
         ("Invalid.*values", {"values": {"alignment": {"horizontal": "FOOBAR!!!"}}}),
     ]
 )
-def test_write_excel__raises_error_on_invalid_style_spec(tmp_path, err_msg_match, style_spec):
+def test_write_excel_openpyxl_raises_error_on_invalid_style_spec(tmp_path, err_msg_match, style_spec):
     # Make a table
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
@@ -395,7 +396,8 @@ def test_write_excel__raises_error_on_invalid_style_spec(tmp_path, err_msg_match
         write_excel([t], tmp_path / "foo_invalid_style.xlsx", styles=style_spec)
 
 
-def test_write_excel__transposed_table_units_and_values_are_centered_by_default(tmp_path):
+@pytest.mark.parametrize("backend", ["openpyxl", "xlsxwriter"])
+def test_write_excel__transposed_table_units_and_values_are_centered_by_default(tmp_path, backend):
     # Make a table
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
@@ -407,7 +409,7 @@ def test_write_excel__transposed_table_units_and_values_are_centered_by_default(
     # DEFAULT ALIGNMENT: CENTER
     # Write tables to workbook with default styles, save, and re-load
     out_path = tmp_path / "foo_custom_style.xlsx"
-    write_excel([t], out_path, styles=True)  # <<< Default style
+    write_excel([t], out_path, styles=True, backend=backend)  # <<< Default style
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -419,7 +421,7 @@ def test_write_excel__transposed_table_units_and_values_are_centered_by_default(
     # Write tables to workbook with custom alignment styles, save, and re-load
     out_path = tmp_path / "foo_custom_style.xlsx"
     left = {"alignment": {"horizontal": "left"}}
-    write_excel([t], out_path, styles={"units": left, "values": left})  # << Custom alignment
+    write_excel([t], out_path, styles={"units": left, "values": left}, backend=backend)  # << Custom alignment
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -428,7 +430,8 @@ def test_write_excel__transposed_table_units_and_values_are_centered_by_default(
     assert [[ws.cell(2 + c, 2 + r).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["left"] * nc] * nr
 
 
-def test_write_excel__sep_lines(tmp_path):
+@pytest.mark.parametrize("backend", ["openpyxl", "xlsxwriter"])
+def test_write_excel__sep_lines(tmp_path, backend):
     # Make a couple of tables
     t = Table(name="foo")
     t["place"] = ["home", "work", "beach", "wonderland"]
@@ -454,7 +457,7 @@ def test_write_excel__sep_lines(tmp_path):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2, t3], out_path, sep_lines=2)
+    write_excel([t, t2, t3], out_path, sep_lines=2, backend=backend)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -464,14 +467,15 @@ def test_write_excel__sep_lines(tmp_path):
     assert ws["A17"].value == "**bas*"
 
 
-def test_read_write_excel__round_trip_with_styles(tmp_path):
+@pytest.mark.parametrize("backend", ["openpyxl", "xlsxwriter"])
+def test_read_write_excel__round_trip_with_styles(tmp_path, backend):
     """Round-trip reading and writing and re-reading preserves tables"""
     from pdtable import TableBundle, read_excel
     fn_in = Path(__file__).parent / "input" / "foo.xlsx"
     bundle = TableBundle(read_excel(fn_in))
     out_path = tmp_path / "foo_styled.xlsx"
     # Doesn't crash on write
-    write_excel(bundle, out_path, styles=True)
+    write_excel(bundle, out_path, styles=True, backend=backend)
     # Re-read bundle is same as first one
     bundle2 = TableBundle(read_excel(out_path))
     for t, t2 in zip(bundle, bundle2):
