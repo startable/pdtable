@@ -7,9 +7,9 @@ from xlsxwriter.worksheet import Worksheet
 
 from pdtable import Table
 from pdtable.io._excel_write_helper import _pack_tables, _table_destinations, _table_header, DEFAULT_STYLE_SPEC
-from pdtable.io._represent import _represent_col_elements, _represent_row_elements
+from pdtable.io._represent import _represent_col_elements
 
-DEFAULT_DATE_FORMAT = "yyyy-mm-dd hh:mm"
+DEFAULT_DATE_FORMAT = "yyyy-mm-dd hh:mm:ss"
 
 def write_excel_xlsxwriter(
         tables: Union[Table, Iterable[Table], Dict[str, Table], Dict[str, Iterable[Table]]],
