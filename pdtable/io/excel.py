@@ -108,7 +108,7 @@ def read_excel(
         )
 
 
-class WriteBackend(Enum):
+class ExcelWriteBackend(Enum):
     OPENPYXL = auto()
     XLSXWRITER = auto()
 
@@ -119,7 +119,7 @@ def write_excel(
     na_rep: str = "-",
     sep_lines: int = 1,
     styles: Union[bool, Dict] = False,
-    backend: WriteBackend = WriteBackend.OPENPYXL
+    backend: ExcelWriteBackend = ExcelWriteBackend.OPENPYXL
 ):
     """Writes one or more tables to an Excel workbook.
 
@@ -189,15 +189,15 @@ def write_excel(
              In such cases, the default style is determined by the Excel writer engine (the default
              engine is openpyxl).
         backend:
-            Optional; backend used to write .xlsx file. Supported options: items in WriteBackend
+            Optional; backend used to write .xlsx file. Supported options: items in ExcelWriteBackend
     """
     try:
-        if backend == WriteBackend.OPENPYXL:
+        if backend == ExcelWriteBackend.OPENPYXL:
             from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
-        elif backend == WriteBackend.XLSXWRITER:
+        elif backend == ExcelWriteBackend.XLSXWRITER:
             from ._excel_xlsxwriter import write_excel_xlsxwriter as write_excel_func
         else:
-            raise ValueError(f"Invalid backend: {backend}. Valid values are items in WriteBackend")
+            raise ValueError(f"Invalid backend: {backend}. Valid values are items in ExcelWriteBackend")
     except ImportError as err:
         raise ImportError(
             "Unable to find a usable spreadsheet engine. "

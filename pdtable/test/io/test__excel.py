@@ -12,7 +12,7 @@ except ImportError:
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet  # noqa: F401
 
 from pdtable import Table
-from pdtable.io.excel import write_excel, WriteBackend
+from pdtable.io.excel import write_excel, ExcelWriteBackend
 from pdtable.io._excel_openpyxl import _append_table_to_openpyxl_worksheet, deep_get
 
 
@@ -57,7 +57,7 @@ def test__append_table_to_openpyxl_worksheet():
     assert [ws.cell(r, 4).value for r in range(5, 9)] == [1, 0, 1, 0]
 
 
-@pytest.mark.parametrize("backend", list(WriteBackend))
+@pytest.mark.parametrize("backend", list(ExcelWriteBackend))
 def test_write_excel(tmp_path, backend):
     # Make a couple of tables
     t = Table(name="foo")
@@ -115,7 +115,7 @@ def test_write_excel(tmp_path, backend):
     out_path.unlink()
 
 
-@pytest.mark.parametrize("backend", list(WriteBackend))
+@pytest.mark.parametrize("backend", list(ExcelWriteBackend))
 def test_write_excel__multiple_sheets(tmp_path, backend):
     """write_excel() can write tables to multiple sheets in a workbook"""
 
@@ -153,7 +153,7 @@ def test_write_excel__multiple_sheets(tmp_path, backend):
     out_path.unlink()
 
 
-@pytest.mark.parametrize("backend", list(WriteBackend))
+@pytest.mark.parametrize("backend", list(ExcelWriteBackend))
 def test_write_excel__style(tmp_path, backend):
     # Make a couple of tables
     t = Table(name="foo")
@@ -281,7 +281,7 @@ def test_write_excel__style(tmp_path, backend):
     out_path.unlink()
 
 
-@pytest.mark.parametrize("backend", list(WriteBackend))
+@pytest.mark.parametrize("backend", list(ExcelWriteBackend))
 def test_write_excel__custom_style(tmp_path, backend):
     # Make a table
     t = Table(name="foo")
@@ -396,7 +396,7 @@ def test_write_excel_openpyxl_raises_error_on_invalid_style_spec(tmp_path, err_m
         write_excel([t], tmp_path / "foo_invalid_style.xlsx", styles=style_spec)
 
 
-@pytest.mark.parametrize("backend", list(WriteBackend))
+@pytest.mark.parametrize("backend", list(ExcelWriteBackend))
 def test_write_excel__transposed_table_units_and_values_are_centered_by_default(tmp_path, backend):
     # Make a table
     t = Table(name="foo")
@@ -430,7 +430,7 @@ def test_write_excel__transposed_table_units_and_values_are_centered_by_default(
     assert [[ws.cell(2 + c, 2 + r).alignment.horizontal for c in range(1, nc + 1)] for r in range(1, nr + 1)] == [["left"] * nc] * nr
 
 
-@pytest.mark.parametrize("backend", list(WriteBackend))
+@pytest.mark.parametrize("backend", list(ExcelWriteBackend))
 def test_write_excel__sep_lines(tmp_path, backend):
     # Make a couple of tables
     t = Table(name="foo")
@@ -467,7 +467,7 @@ def test_write_excel__sep_lines(tmp_path, backend):
     assert ws["A17"].value == "**bas*"
 
 
-@pytest.mark.parametrize("backend", list(WriteBackend))
+@pytest.mark.parametrize("backend", list(ExcelWriteBackend))
 def test_read_write_excel__round_trip_with_styles(tmp_path, backend):
     """Round-trip reading and writing and re-reading preserves tables"""
     from pdtable import TableBundle, read_excel
