@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union, Iterable, Dict, BinaryIO
+from typing import Union, Iterable, Dict, BinaryIO, Any
 import os
 
 import xlsxwriter
@@ -17,11 +17,12 @@ def write_excel_xlsxwriter(
         path: Union[str, os.PathLike, Path, BinaryIO],
         na_rep: str,
         styles: Union[bool, Dict],
-        sep_lines: int
+        sep_lines: int,
+        engine_kwargs: Dict[str, Any]
 ):
     tables = _pack_tables(tables)
 
-    wb = xlsxwriter.Workbook(path)
+    wb = xlsxwriter.Workbook(path, engine_kwargs)
     formats = _create_formats(wb, styles)
 
     for sheet_name, tabs in tables.items():

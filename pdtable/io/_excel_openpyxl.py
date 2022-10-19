@@ -11,12 +11,12 @@ except ImportError:
     # openpyxl < 2.6
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 from openpyxl.cell.cell import Cell
-from openpyxl.styles import Font, PatternFill, Color, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
 from pdtable import Table
 from pdtable.io._represent import _represent_row_elements, _represent_col_elements
-from pdtable.io._excel_write_helper import DEFAULT_STYLE_SPEC, DEFAULT_SHEET_NAME, _pack_tables, _table_header, \
+from pdtable.io._excel_write_helper import DEFAULT_STYLE_SPEC, _pack_tables, _table_header, \
     _table_destinations
 
 
@@ -27,6 +27,7 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         for ws in wb.worksheets:
             yield from ws.iter_rows(values_only=True)
 
+
 def read_sheets(path: Union[str, PathLike]) -> Iterable[Tuple[str, Iterable[Sequence[Any]]]]:
     """Reads from an Excel workbook, yielding (sheet_name, <row iterator>)."""
 
@@ -35,11 +36,11 @@ def read_sheets(path: Union[str, PathLike]) -> Iterable[Tuple[str, Iterable[Sequ
             yield   (ws.title, ws.iter_rows(values_only=True))
 
 
-def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines):
+def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines, engine_kwargs):
     """Write tables to an Excel workbook at the specified path."""
 
     tables = _pack_tables(tables)
-    wb = openpyxl.Workbook()
+    wb = openpyxl.Workbook(**engine_kwargs)
     wb.remove(wb.active)  # Remove the one sheet that openpyxl creates by default
 
     for sheet_name in tables:

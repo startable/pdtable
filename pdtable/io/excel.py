@@ -119,7 +119,8 @@ def write_excel(
     na_rep: str = "-",
     sep_lines: int = 1,
     styles: Union[bool, Dict] = False,
-    backend: ExcelWriteBackend = ExcelWriteBackend.OPENPYXL
+    backend: ExcelWriteBackend = ExcelWriteBackend.OPENPYXL,
+    engine_kwargs: Union[None, Dict] = None,
 ):
     """Writes one or more tables to an Excel workbook.
 
@@ -190,6 +191,9 @@ def write_excel(
              engine is openpyxl).
         backend:
             Optional; backend used to write .xlsx file. Supported options: items in ExcelWriteBackend
+        engine_kwargs:
+            Optional; Arguments to be passed to the engine "Workbook" class. To write large (> 4GB) files with
+            xlsxwriter, set engine_kwargs={'use_zip64': True}
     """
     try:
         if backend == ExcelWriteBackend.OPENPYXL:
@@ -204,5 +208,5 @@ def write_excel(
             f"Tried using: '{backend.name.lower()}'.\n"
             f"Please install {backend.name.lower()} for Excel I/O support."
         ) from err
-
-    write_excel_func(tables, to, na_rep, styles, sep_lines)
+    engine_kwargs = {} if engine_kwargs is None else {}
+    write_excel_func(tables, to, na_rep, styles, sep_lines, engine_kwargs)
