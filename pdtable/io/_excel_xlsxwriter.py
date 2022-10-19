@@ -11,6 +11,7 @@ from pdtable.io._represent import _represent_col_elements
 
 DEFAULT_DATE_FORMAT = "yyyy-mm-dd hh:mm:ss"
 
+
 def write_excel_xlsxwriter(
         tables: Union[Table, Iterable[Table], Dict[str, Table], Dict[str, Iterable[Table]]],
         path: Union[str, os.PathLike, Path, BinaryIO],
@@ -20,7 +21,7 @@ def write_excel_xlsxwriter(
 ):
     tables = _pack_tables(tables)
 
-    wb = xlsxwriter.Workbook(path, {"default_date_format": DEFAULT_DATE_FORMAT})
+    wb = xlsxwriter.Workbook(path)
     formats = _create_formats(wb, styles)
 
     for sheet_name, tabs in tables.items():
