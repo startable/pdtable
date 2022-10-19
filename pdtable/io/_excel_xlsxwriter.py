@@ -23,7 +23,7 @@ def write_excel_xlsxwriter(
     tables = _pack_tables(tables)
 
     wb = xlsxwriter.Workbook(path, engine_kwargs)
-    formats = _create_formats(wb, styles)
+    formats = XlsxwriterCellFormats(wb, styles)
 
     for sheet_name, tabs in tables.items():
         ws = wb.add_worksheet(name=sheet_name)
@@ -39,72 +39,8 @@ def write_excel_xlsxwriter(
     wb.close()
 
 
-def _create_formats(wb, styles):
-    if styles:
-        styles = DEFAULT_STYLE_SPEC if styles is True else styles
-    else:
-        styles = {}
-
-    formats = {cell_type: wb.add_format(_formatting_dict(d)) for cell_type, d in styles.items()}
-
-    unit_transposed_dict = {"align": "center"}
-    unit_transposed_dict.update(_formatting_dict(styles.get("units", {})))
-    formats["units_transposed"] = wb.add_format(unit_transposed_dict)
-
-    values_transposed_dict = {"align": "center"}
-    values_transposed_dict.update(_formatting_dict(styles.get("values", {})))
-    formats["values_transposed"] = wb.add_format(values_transposed_dict)
-
-    datetime_value = {"num_format": DEFAULT_DATE_FORMAT}
-    datetime_value.update(_formatting_dict(styles.get("values", {})))
-    formats["values_datetime"] = wb.add_format(datetime_value)
-
-    datetime_transposed_value = {"align": "center", "num_format": DEFAULT_DATE_FORMAT}
-    datetime_transposed_value.update(_formatting_dict(styles.get("values", {})))
-    formats["values_datetime_transposed"] = wb.add_format(datetime_transposed_value)
-
-    return formats
-
-
-def _append_table_to_xlsxwriter_worksheet(table: Table, ws: Worksheet, sep_lines: int, na_rep: str,
-                                          row_index: int, formats: Dict) -> int:
-    ws.write(row_index, 0, _table_header(table), formats.get("table_name", None))
-    ws.write(row_index + 1, 0, _table_destinations(table), formats.get("destinations", None))
-    if table.metadata.transposed:
-        for i, col in enumerate(table):
-            row_i = row_index + 2 + i
-            ws.write(row_i, 0, col.name, formats.get("column_names", None))
-            ws.write(row_i, 1, col.unit, formats.get("units_transposed", None))
-            if col.unit == "datetime":
-                ft = formats.get("values_datetime_transposed", None)
-            else:
-                ft = formats.get("values_transposed", None)
-            ws.write_row(
-                row_i, 2,
-                _represent_col_elements(col.values, col.unit, na_rep, convert_datetime=True),
-                ft
-            )
-        final_row = row_i + 1
-
-    else:
-        ws.write_row(row_index + 2, 0, table.column_names, formats.get("column_names", None))
-        ws.write_row(row_index + 3, 0, table.units, formats.get("units", None))
-        for i, col in enumerate(table):
-            if col.unit == "datetime":
-                ft = formats.get("values_datetime", None)
-            else:
-                ft = formats.get("values", None)
-            ws.write_column(
-                row_index + 4, i,
-                _represent_col_elements(col.values, col.unit, na_rep, convert_datetime=True),
-                ft
-            )
-        final_row = row_index + 4 + table.df.shape[0]
-
-    return final_row + sep_lines
-
-
 def _formatting_dict(openpyxl_dict: Dict) -> Dict:
+    """ Transforms an openpyxl style configuration to a xlsxwriter one """
     xlsxwriter_dict = {}
     # font stuff
     font = openpyxl_dict.get("font", {})
@@ -129,3 +65,71 @@ def _formatting_dict(openpyxl_dict: Dict) -> Dict:
         xlsxwriter_dict["align"] = alignment["horizontal"]
 
     return xlsxwriter_dict
+
+
+def _with_default_format(wb: xlsxwriter.Workbook, default: Dict, style_def: Dict):
+    default.update(_formatting_dict(style_def))
+    return wb.add_format(default)
+
+
+class XlsxwriterCellFormats:
+    def __init__(self, wb: xlsxwriter.Workbook, styles: Dict[str, Any]):
+        if styles:
+            styles = DEFAULT_STYLE_SPEC if styles is True else styles
+        else:
+            styles = {}
+
+        self.table_name = wb.add_format(_formatting_dict(styles.get("table_name", {})))
+        self.destinations = wb.add_format(_formatting_dict(styles.get("destinations", {})))
+        self.units = wb.add_format(_formatting_dict(styles.get("units", {})))
+        self.column_names = wb.add_format(_formatting_dict(styles.get("column_names", {})))
+        self.values = wb.add_format(_formatting_dict(styles.get("values", {})))
+
+        self.units_transposed = _with_default_format(wb, {"align": "center"}, styles.get("units", {}))
+        self.values_transposed = _with_default_format(wb, {"align": "center"}, styles.get("values", {}))
+        self.values_datetime = _with_default_format(
+            wb, {"num_format": DEFAULT_DATE_FORMAT}, styles.get("values", {})
+        )
+        self.values_datetime_transposed = _with_default_format(
+            wb, {"num_format": DEFAULT_DATE_FORMAT, "align": "center"}, styles.get("values", {})
+        )
+
+
+def _append_table_to_xlsxwriter_worksheet(table: Table, ws: Worksheet, sep_lines: int, na_rep: str,
+                                          row_index: int, formats: XlsxwriterCellFormats) -> int:
+    ws.write(row_index, 0, _table_header(table), formats.table_name)
+    ws.write(row_index + 1, 0, _table_destinations(table), formats.destinations)
+    if table.metadata.transposed:
+        for i, col in enumerate(table):
+            row_i = row_index + 2 + i
+            ws.write(row_i, 0, col.name, formats.column_names)
+            ws.write(row_i, 1, col.unit, formats.units_transposed)
+            if col.unit == "datetime":
+                ft = formats.values_datetime_transposed
+            else:
+                ft = formats.values_transposed
+            ws.write_row(
+                row_i, 2,
+                _represent_col_elements(col.values, col.unit, na_rep, convert_datetime=True),
+                ft
+            )
+        final_row = row_i + 1
+
+    else:
+        ws.write_row(row_index + 2, 0, table.column_names, formats.column_names)
+        ws.write_row(row_index + 3, 0, table.units, formats.units)
+        for i, col in enumerate(table):
+            if col.unit == "datetime":
+                ft = formats.values_datetime
+            else:
+                ft = formats.values
+            ws.write_column(
+                row_index + 4, i,
+                _represent_col_elements(col.values, col.unit, na_rep, convert_datetime=True),
+                ft
+            )
+        final_row = row_index + 4 + table.df.shape[0]
+
+    return final_row + sep_lines
+
+
