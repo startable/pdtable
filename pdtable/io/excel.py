@@ -8,6 +8,7 @@ requiring them (read_excel() or write_excel()) are called for the first time.
 
 """
 import os
+from enum import Enum, auto
 from os import PathLike
 from pathlib import Path
 from typing import Union, Callable, Iterable, BinaryIO, Dict, Optional
@@ -107,12 +108,19 @@ def read_excel(
         )
 
 
+class ExcelWriteBackend(Enum):
+    OPENPYXL = auto()
+    XLSXWRITER = auto()
+
+
 def write_excel(
     tables: Union[Table, Iterable[Table], Dict[str, Table], Dict[str, Iterable[Table]]],
     to: Union[str, os.PathLike, Path, BinaryIO],
     na_rep: str = "-",
     sep_lines: int = 1,
     styles: Union[bool, Dict] = False,
+    backend: ExcelWriteBackend = ExcelWriteBackend.OPENPYXL,
+    engine_kwargs: Union[None, Dict] = None,
 ):
     """Writes one or more tables to an Excel workbook.
 
@@ -181,15 +189,24 @@ def write_excel(
              that style element.
              In such cases, the default style is determined by the Excel writer engine (the default
              engine is openpyxl).
+        backend:
+            Optional; backend used to write .xlsx file. Supported options: items in ExcelWriteBackend
+        engine_kwargs:
+            Optional; Arguments to be passed to the engine "Workbook" class. To write large (> 4GB) files with
+            xlsxwriter, set engine_kwargs={'use_zip64': True}
     """
     try:
-        from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
-
+        if backend == ExcelWriteBackend.OPENPYXL:
+            from ._excel_openpyxl import write_excel_openpyxl as write_excel_func
+        elif backend == ExcelWriteBackend.XLSXWRITER:
+            from ._excel_xlsxwriter import write_excel_xlsxwriter as write_excel_func
+        else:
+            raise ValueError(f"Invalid backend: {backend}. Valid values are items in ExcelWriteBackend")
     except ImportError as err:
         raise ImportError(
             "Unable to find a usable spreadsheet engine. "
-            "Tried using: 'openpyxl'.\n"
-            "Please install openpyxl for Excel I/O support."
+            f"Tried using: '{backend.name.lower()}'.\n"
+            f"Please install {backend.name.lower()} for Excel I/O support."
         ) from err
-
-    write_excel_func(tables, to, na_rep, styles, sep_lines)
+    engine_kwargs = {} if engine_kwargs is None else {}
+    write_excel_func(tables, to, na_rep, styles, sep_lines, engine_kwargs)

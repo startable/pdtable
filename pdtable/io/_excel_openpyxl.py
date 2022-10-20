@@ -11,23 +11,13 @@ except ImportError:
     # openpyxl < 2.6
     from openpyxl.worksheet import Worksheet as OpenpyxlWorksheet
 from openpyxl.cell.cell import Cell
-from openpyxl.styles import Font, PatternFill, Color, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
 from pdtable import Table
 from pdtable.io._represent import _represent_row_elements, _represent_col_elements
-
-DEFAULT_SHEET_NAME = "Sheet1"
-DEFAULT_STYLE_SPEC = {
-    "table_name": {
-        "font": {"color": "1F4E78", "bold": True,},  # hex color code
-        "fill": {"color": "D9D9D9",},  # RGB color code
-    },
-    "destinations": {"font": {"color": "808080", "bold": True,}, "fill": {"color": "D9D9D9",},},
-    "column_names": {"fill": {"color": "F2F2F2",}, "font": {"bold": True,},},
-    "units": {"fill": {"color": "F2F2F2",},},
-    "values": {},
-}
+from pdtable.io._excel_write_helper import DEFAULT_STYLE_SPEC, _pack_tables, _table_header, \
+    _table_destinations
 
 
 def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any]]:
@@ -37,6 +27,7 @@ def read_cell_rows_openpyxl(path: Union[str, PathLike]) -> Iterable[Sequence[Any
         for ws in wb.worksheets:
             yield from ws.iter_rows(values_only=True)
 
+
 def read_sheets(path: Union[str, PathLike]) -> Iterable[Tuple[str, Iterable[Sequence[Any]]]]:
     """Reads from an Excel workbook, yielding (sheet_name, <row iterator>)."""
 
@@ -45,14 +36,11 @@ def read_sheets(path: Union[str, PathLike]) -> Iterable[Tuple[str, Iterable[Sequ
             yield   (ws.title, ws.iter_rows(values_only=True))
 
 
-def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines):
+def write_excel_openpyxl(tables, path, na_rep, styles, sep_lines, engine_kwargs):
     """Write tables to an Excel workbook at the specified path."""
 
-    if not isinstance(tables, Dict):
-        # For convenience, pack it in a dict
-        tables = {DEFAULT_SHEET_NAME: tables}
-
-    wb = openpyxl.Workbook()
+    tables = _pack_tables(tables)
+    wb = openpyxl.Workbook(**engine_kwargs)
     wb.remove(wb.active)  # Remove the one sheet that openpyxl creates by default
 
     for sheet_name in tables:
@@ -81,17 +69,16 @@ def _append_table_to_openpyxl_worksheet(
 ) -> None:
     """Write table at end of sheet, leaving sep_lines blank lines before."""
     units = table.units
+    ws.append([_table_header(table)])
+    ws.append([_table_destinations(table)])
+
     if table.metadata.transposed:
-        ws.append([f"**{table.name}*"])
-        ws.append([" ".join(str(x) for x in table.metadata.destinations)])
         for col in table:
             ws.append(
                 [str(col.name), str(col.unit)]
                 + list(_represent_col_elements(col.values, col.unit, na_rep)),
             )
     else:
-        ws.append([f"**{table.name}"])
-        ws.append([" ".join(str(x) for x in table.metadata.destinations)])
         ws.append(table.column_names)
         ws.append(units)
         for row in table.df.itertuples(index=False, name=None):

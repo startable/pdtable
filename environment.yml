@@ -8,6 +8,7 @@ dependencies:
   - typing_extensions # for typing.Protocol back-port to python 3.7
 # OPTIONAL
   - openpyxl
+  - xlsxwriter
   - pint
 # BUILD+TEST
   - pytest

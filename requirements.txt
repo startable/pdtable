@@ -4,6 +4,7 @@ typing-extensions
 
 # OPTIONAL
 openpyxl
+xlsxwriter
 pint
 
 # BUILD & TEST
