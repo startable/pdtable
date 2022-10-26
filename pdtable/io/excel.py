@@ -208,5 +208,5 @@ def write_excel(
             f"Tried using: '{backend.name.lower()}'.\n"
             f"Please install {backend.name.lower()} for Excel I/O support."
         ) from err
-    engine_kwargs = {} if engine_kwargs is None else {}
+    engine_kwargs = {} if engine_kwargs is None else engine_kwargs
     write_excel_func(tables, to, na_rep, styles, sep_lines, engine_kwargs)

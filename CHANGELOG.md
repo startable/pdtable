@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.16]
+
+### Fixed
+- Bug causing `write_excel` `engine_kwargs` arguments to not be passed on to the engine.
+
 ## [0.0.15]
 
 ### Added
