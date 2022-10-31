@@ -258,3 +258,26 @@ def test_write_csv__with_format_specs():
             
             """
         )
+
+
+def test_write_csv__empty_tables():
+    t1 = Table(name="foo")
+    t2 = Table(name="bar")
+    t2.metadata.transposed = True
+
+    with io.StringIO() as out:
+        write_csv([t1, t2], out)
+        assert out.getvalue() == dedent(
+            """\
+            **foo;
+            all
+            
+            
+            
+            
+            **bar*;
+            all
+            
+            
+            """
+        )
