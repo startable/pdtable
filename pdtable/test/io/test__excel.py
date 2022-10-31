@@ -468,6 +468,19 @@ def test_write_excel__sep_lines(tmp_path, backend):
 
 
 @pytest.mark.parametrize("backend", list(ExcelWriteBackend))
+def test_write_excel__empty_table(tmp_path, backend):
+    t = Table(name="foo")
+    t2 = Table(name="bar")
+    t2.metadata.transposed = True
+    out_path = tmp_path / "foo.xlsx"
+    write_excel([t, t2], out_path, sep_lines=2, backend=backend)
+    wb = openpyxl.load_workbook(out_path)
+    ws = wb.active
+    assert ws["A1"].value == "**foo"
+    assert ws["A7"].value == "**bar*"
+
+
+@pytest.mark.parametrize("backend", list(ExcelWriteBackend))
 def test_read_write_excel__round_trip_with_styles(tmp_path, backend):
     """Round-trip reading and writing and re-reading preserves tables"""
     from pdtable import TableBundle, read_excel
