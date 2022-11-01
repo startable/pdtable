@@ -96,39 +96,40 @@ class XlsxwriterCellFormats:
 
 
 def _append_table_to_xlsxwriter_worksheet(table: Table, ws: Worksheet, sep_lines: int, na_rep: str,
-                                          row_index: int, formats: XlsxwriterCellFormats) -> int:
-    ws.write(row_index, 0, _table_header(table), formats.table_name)
-    ws.write(row_index + 1, 0, _table_destinations(table), formats.destinations)
+                                          row_start: int, formats: XlsxwriterCellFormats) -> int:
+    ws.write(row_start, 0, _table_header(table), formats.table_name)
+    ws.write(row_start + 1, 0, _table_destinations(table), formats.destinations)
     if table.metadata.transposed:
-        for i, col in enumerate(table):
-            row_i = row_index + 2 + i
-            ws.write(row_i, 0, col.name, formats.column_names)
-            ws.write(row_i, 1, col.unit, formats.units_transposed)
+        row = row_start + 1
+        for col in table:
+            row += 1
+            ws.write(row, 0, col.name, formats.column_names)
+            ws.write(row, 1, col.unit, formats.units_transposed)
             if col.unit == "datetime":
                 ft = formats.values_datetime_transposed
             else:
                 ft = formats.values_transposed
             ws.write_row(
-                row_i, 2,
+                row, 2,
                 _represent_col_elements(col.values, col.unit, na_rep, convert_datetime=True),
                 ft
             )
-        final_row = row_i + 1
+        final_row = row + 1
 
     else:
-        ws.write_row(row_index + 2, 0, table.column_names, formats.column_names)
-        ws.write_row(row_index + 3, 0, table.units, formats.units)
+        ws.write_row(row_start + 2, 0, table.column_names, formats.column_names)
+        ws.write_row(row_start + 3, 0, table.units, formats.units)
         for i, col in enumerate(table):
             if col.unit == "datetime":
                 ft = formats.values_datetime
             else:
                 ft = formats.values
             ws.write_column(
-                row_index + 4, i,
+                row_start + 4, i,
                 _represent_col_elements(col.values, col.unit, na_rep, convert_datetime=True),
                 ft
             )
-        final_row = row_index + 4 + table.df.shape[0]
+        final_row = row_start + 4 + table.df.shape[0]
 
     return final_row + sep_lines
 
