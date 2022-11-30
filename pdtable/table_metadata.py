@@ -159,9 +159,11 @@ class ComplementaryTableInfo:
         # update metadata
         for name in df_columns:
             dtype = df[name].dtype
-            if name in columns:
+            # notice that only non-empty columns are changed
+            # this is because empy columns default to float data type
+            if name in columns and len(df[name]) > 0:
                 columns[name].check_dtype(dtype)
-            else:
+            elif len(df[name]) > 0:
                 columns[name] = ColumnMetadata.from_dtype(dtype)
 
     def _check_dataframe(self, df: pd.DataFrame):
