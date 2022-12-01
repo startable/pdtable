@@ -45,8 +45,8 @@ def test_make_pdtable(data_ab):
     assert data.columns["colb"].unit == "text"
 
 
-def test__instantiate_dataframe_with_wrong_dtype__raises(data_ab):
-    with pytest.raises(Exception):
+def test_make_table_dataframe__with_wrong_dtype_raises(data_ab):
+    with pytest.raises(Exception) as ex:
         frame.make_table_dataframe(
             pd.DataFrame({
                 'a': [1, 2, 3],
@@ -54,8 +54,10 @@ def test__instantiate_dataframe_with_wrong_dtype__raises(data_ab):
             }),
             name='test', destinations='abc', units=["-", "-"]
         )
+        assert ex.value.args[0].startswith("Special column unit")
 
-def test__instantiate_dataframe_with_no_units__creates_units():
+
+def test_make_table_dataframe__with_no_units__creates_units():
         table = frame.make_table_dataframe(
             pd.DataFrame({
                 'a': [1, 2, 3],
