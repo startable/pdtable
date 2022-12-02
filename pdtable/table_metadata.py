@@ -159,9 +159,12 @@ class ComplementaryTableInfo:
         # update metadata
         for name in df_columns:
             dtype = df[name].dtype
-            if name in columns:
+            # notice that only non-empty columns are changed
+            # this is because empty columns default to float data type
+            is_empty = df.empty
+            if name in columns and not is_empty:
                 columns[name].check_dtype(dtype)
-            else:
+            elif not is_empty:
                 columns[name] = ColumnMetadata.from_dtype(dtype)
 
     def _check_dataframe(self, df: pd.DataFrame):

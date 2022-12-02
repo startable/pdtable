@@ -45,6 +45,30 @@ def test_make_pdtable(data_ab):
     assert data.columns["colb"].unit == "text"
 
 
+def test_make_table_dataframe__with_wrong_dtype_raises(data_ab):
+    with pytest.raises(Exception) as ex:
+        frame.make_table_dataframe(
+            pd.DataFrame({
+                'a': [1, 2, 3],
+                'b': ["a", "b", "c"]
+            }),
+            name='test', destinations='abc', units=["-", "-"]
+        )
+        assert ex.value.args[0].startswith("Special column unit")
+
+
+def test_make_table_dataframe__with_no_units__creates_units():
+        table = frame.make_table_dataframe(
+            pd.DataFrame({
+                'a': [1, 2, 3],
+                'b': ["a", "b", "c"]
+            }),
+            name='test', destinations='abc'
+        )
+        assert frame.get_table_info(table).columns["a"].unit == "-"
+        assert frame.get_table_info(table).columns["b"].unit == "text"
+
+
 def test_is_pdtable(dft, data_ab):
     df = pd.DataFrame(data_ab)
     assert not frame.is_table_dataframe(df)

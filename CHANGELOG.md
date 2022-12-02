@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Bug causing types of columns in DataFrame not to be checked
+
 ## [0.0.17]
 
 ### Fixed

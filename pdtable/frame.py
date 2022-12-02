@@ -225,17 +225,20 @@ def make_table_dataframe(
         # This is intended to fail if args are insufficient
         table_metadata = TableMetadata(**kwargs)
 
-    df = TableDataFrame.from_table_info(
-        df, table_info=ComplementaryTableInfo(table_metadata=table_metadata)
-    )
-
-    # set units
+    # set units to TableInfo
     if units and unit_map:
         raise Exception("Supply at most one of unit and unit_map")
+    columns = {}
     if units is not None:
-        set_all_units(df, units)
+        columns = {col_name: ColumnMetadata(unit) for col_name, unit in zip(df.columns, units)}
     elif unit_map is not None:
-        set_units(df, unit_map)
+        for col, unit in unit_map.items():
+            columns[col] = ColumnMetadata(unit)
+
+    table_info = ComplementaryTableInfo(table_metadata=table_metadata, columns=columns)
+    df = TableDataFrame.from_table_info(
+        df, table_info=table_info
+    )
 
     return df
 
