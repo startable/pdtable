@@ -32,6 +32,12 @@ class TableMetadata:
             src = f" From {self.origin}"
         return f'Table "{self.name}" {dst}.{src}'
 
+    def __post_init__(self):
+        if type(self.destinations) is str:
+            self.destinations = {self.destinations}
+        else:
+            self.destinations = set(self.destinations)
+
 
 class ColumnFormat:
     def __init__(self, specifier: Union[str, int]):

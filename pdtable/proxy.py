@@ -142,7 +142,7 @@ class Table:
     """
 
     def __init__(self, df: Union[None, TableDataFrame, pd.DataFrame] = None, **kwargs):
-        if not (df is not None and is_table_dataframe(df)):
+        if (df is None) or (not is_table_dataframe(df)):
             # Creating a new table: initialize TableDataFrame
             df = make_table_dataframe(df if df is not None else pd.DataFrame(), **kwargs)
         elif kwargs:
