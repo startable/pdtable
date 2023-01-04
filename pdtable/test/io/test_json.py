@@ -6,7 +6,7 @@ from textwrap import dedent
 import numpy as np
 import pandas as pd
 
-from pdtable import BlockType, ParseFixer
+from pdtable import Table, BlockType, ParseFixer
 from pdtable.io import json_data_to_table, table_to_json_data
 from pdtable.io._json import to_json_serializable
 from pdtable.io.parsers import parse_blocks
@@ -259,3 +259,22 @@ def test_make_table_json_data__empty_table():
     table_from_json = json_data_to_table(table_json_data, fixer=custom_test_fixer())
     table_from_lines = make_table(lines_target, fixer=custom_test_fixer)
     assert table_from_lines.equals(table_from_json)
+
+
+def test__table_is_preserved_when_written_to_and_read_from_json_data():
+    table_write = Table(
+            pd.DataFrame({
+                "a": [1, 2, 3],
+                "b": ["a", "b", "c"]
+            }),
+            name="test",
+            destinations="a b c")
+
+    d = table_to_json_data(table=table_write)
+    table_read = json_data_to_table(table_json_data=d)
+
+    assert table_read.equals(table_write)
+    assert table_read.name == table_write.name
+    assert table_read.column_names == table_write.column_names
+    assert table_read.units == table_write.units
+    assert table_read.destinations == table_write.destinations
