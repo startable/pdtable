@@ -307,6 +307,11 @@ def test_table__handles_destinations_of_type_set():
     assert table.destinations == {"a", "b", "c"}
 
 
-def test_table__handles_destinations_of_type_str():
+def test_table__str_destination_with_no_spaces_results_in_single_destination():
     table = Table(name="test", destinations="abc")
     assert table.destinations == {"abc"}
+
+
+def test_table__str_destination_with_spaces_results_in_multiple_destinations():
+    table = Table(name="test", destinations="a b c")
+    assert table.destinations == {"a", "b", "c"}

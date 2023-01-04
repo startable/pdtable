@@ -34,7 +34,7 @@ class TableMetadata:
 
     def __post_init__(self):
         if type(self.destinations) is str:
-            self.destinations = {self.destinations}
+            self.destinations = set(self.destinations.split(" "))
         else:
             self.destinations = set(self.destinations)
 
