@@ -295,3 +295,23 @@ def test_assign(dft_m):
     t = Table(dft2)
     assert t["col_new"].unit == "-"
     assert t["cola"].unit == "m"
+
+
+def test_table__with_no_destinations_has_correct_default():
+    table = Table(name="name")
+    assert table.destinations == {"all"}
+
+
+def test_table__handles_destinations_of_type_set():
+    table = Table(name="test", destinations={"a", "b", "c"})
+    assert table.destinations == {"a", "b", "c"}
+
+
+def test_table__str_destination_with_no_spaces_results_in_single_destination():
+    table = Table(name="test", destinations="abc")
+    assert table.destinations == {"abc"}
+
+
+def test_table__str_destination_with_spaces_results_in_multiple_destinations():
+    table = Table(name="test", destinations="a b c")
+    assert table.destinations == {"a", "b", "c"}

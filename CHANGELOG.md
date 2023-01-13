@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Bug causing types of columns in DataFrame not to be checked
+- Bug causing types of columns in DataFrame not to be checked.
+
+### Changed
+- `str` destinations in `TableMetadata` constructor will now be transformed into a `set`. This means that `destinations="abc"` is interpreted as destination "abc" instead of destinations "a", "b", and "c". 
 
 ## [0.0.17]
 
