@@ -1,6 +1,6 @@
 # flake8: noqa
 
-__version__ = "0.0.17"
+__version__ = "0.0.18"
 
 CSV_SEP = ";"  # User can overwrite this default
 
