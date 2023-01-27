@@ -142,14 +142,20 @@ class Table:
     """
 
     def __init__(self, df: Union[None, TableDataFrame, pd.DataFrame] = None, **kwargs):
-        if (df is None) or (not is_table_dataframe(df)):
+        if is_table_dataframe(df) and len(kwargs) == 0:
+            pass
+        elif is_table_dataframe(df):
+            table_data = get_table_info(df)
+            kwargs_join = {
+                "units": table_data.units,
+                "name": table_data.name,
+                **table_data.metadata.dict(),
+            }
+            kwargs_join.update(kwargs)
+            df = make_table_dataframe(df, **kwargs_join)
+        else:
             # Creating a new table: initialize TableDataFrame
             df = make_table_dataframe(df if df is not None else pd.DataFrame(), **kwargs)
-        elif kwargs:
-            raise Exception(
-                f"Got unexpected keyword arguments when creating Table object from "
-                f"existing pandas table: {kwargs}"
-            )
         self._df = df
 
     @property
@@ -198,16 +204,15 @@ class Table:
 
     @property
     def units(self) -> List[str]:
-        cols = self.column_metadata
-        return [cols[name].unit for name in self.column_names]
+        return self.table_data.units
 
     @property
     def name(self) -> str:
-        return self.metadata.name
+        return self.table_data.name
 
     @property
     def destinations(self) -> Set[str]:
-        return self.metadata.destinations
+        return self.table_data.destinations
 
     @units.setter
     def units(self, unit_values):
