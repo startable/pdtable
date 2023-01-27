@@ -62,13 +62,13 @@ def test__parse_onoff_column__panics_on_illegal_value():
 
 
 def test__parse_float_column():
-    col = _parse_float_column([-1, 42, "-1", "42", "-", "NaN", "nan"])
-    assert_array_equal(col, np.array([-1, 42, -1, 42, np.nan, np.nan, np.nan]))
+    col = _parse_float_column([-1, 42, "-1", "42", "-", "NaN", "nan", None])
+    assert_array_equal(col, np.array([-1, 42, -1, 42, np.nan, np.nan, np.nan, np.nan]))
     assert col.dtype == float
 
 
 def test__parse_float_column__panics_on_illegal_value():
-    illegal_values = ["foo", "", None]
+    illegal_values = ["foo", ""]
     for x in illegal_values:
         with raises(ValueError):
             _parse_float_column([x])

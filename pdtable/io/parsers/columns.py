@@ -82,8 +82,8 @@ def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
             float_values.append(float(val))
             continue
 
-        # It's something else than a number.
-        if isinstance(val, str):
+        # It's a string.
+        elif isinstance(val, str):
             # It's a string.
             val = normalize_if_str(val)
             try:
@@ -96,6 +96,10 @@ def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
                     float_values.append(fix_value)
                 else:
                     raise ValueError("Illegal value in numerical column", val) from err
+
+        elif val is None:
+            float_values.append(np.nan)
+
         else:
             # It isn't even a string. WTF let the fixer have a shot at it.
             if fixer is not None:
