@@ -159,7 +159,11 @@ def test_fat():
                          i.e. containing None instead of pd.NaT, np.nan &c.
                     """
                     count += 1
-                    assert tt == all_json[fn]
+                    expected = all_json[fn]
+                    assert list(tt.keys()) == list(expected.keys())
+                    assert tt["name"] == expected["name"]
+                    assert tt["destinations"] == expected["destinations"]
+                    pd.testing.assert_frame_equal(pd.DataFrame(tt["columns"]), pd.DataFrame(expected["columns"]))
 
     assert count == all_files
 
@@ -183,7 +187,7 @@ def test_to_json_serializable():
 
     assert js_obj_from_json["k1"] == obj["k1"]
     assert js_obj_from_json["nix"] is None
-    assert js_obj_from_json["no-flt"] is None
+    assert np.isnan(js_obj_from_json["no-flt"])
     assert js_obj_from_json["no-date"] is None
     assert js_obj_from_json["flt"] == obj["flt"]
     assert js_obj_from_json["int"] == obj["int"]

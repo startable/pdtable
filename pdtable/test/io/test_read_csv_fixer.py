@@ -4,6 +4,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import pandas as pd
+import numpy as np
 import pytest
 from pytest import raises
 
@@ -133,7 +134,11 @@ def test_FAT():
                 if tp == BlockType.TABLE:
                     count += 1
                     if fn != "all.csv":
-                        assert tt == all_json[fn]
+                        expected = all_json[fn]
+                        assert list(tt.keys()) == list(expected.keys())
+                        assert tt["name"] == expected["name"]
+                        assert tt["destinations"] == expected["destinations"]
+                        pd.testing.assert_frame_equal(pd.DataFrame(tt["columns"]), pd.DataFrame(expected["columns"]))
 
             if fn == "all.csv":
                 assert count == all_files - 1
@@ -289,7 +294,7 @@ def test_converter():
     cf = custom_test_fixer()
     pandas_pdtab = make_table(table_lines, fixer=cf)
     js_obj = table_to_json_data(pandas_pdtab)
-    assert js_obj["columns"]["a3"]["values"][0] is None
+    assert np.isnan(js_obj["columns"]["a3"]["values"][0])
     assert js_obj["columns"]["a4"]["values"][1] == 3.14
 
     assert cf.fixes == 2  # Nine and Ten

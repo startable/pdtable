@@ -21,9 +21,9 @@
                4.0,
                4.0,
                4.0,
-               null,
+               NaN,
                2.0,
-               null
+               NaN
             ]
          },
          "flt": {
@@ -31,11 +31,11 @@
             "values": [
                3.0,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0,
-               null
+               NaN
             ]
          },
          "dt": {
@@ -102,7 +102,7 @@
                4.0,
                4.0,
                4.0,
-               null,
+               NaN,
                2.0
             ]
          },
@@ -111,8 +111,8 @@
             "values": [
                3.0,
                30.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -144,8 +144,8 @@
                2.0,
                4.0,
                4.0,
-               null,
-               null,
+               NaN,
+               NaN,
                2.0
             ]
          },
@@ -154,8 +154,8 @@
             "values": [
                3.0,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -188,17 +188,17 @@
                4.0,
                4.0,
                4.0,
-               null,
+               NaN,
                2.0
             ]
          },
          "avg_weight": {
             "unit": "kg",
             "values": [
-               null,
+               NaN,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -230,18 +230,18 @@
                2.0,
                4.0,
                4.0,
-               null,
-               null,
+               NaN,
+               NaN,
                2.0
             ]
          },
          "avg_weight": {
             "unit": "kg",
             "values": [
-               null,
+               NaN,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -283,19 +283,19 @@
             "values": [
                2.0,
                4.0,
-               null,
+               NaN,
                4.0,
-               null,
+               NaN,
                2.0
             ]
          },
          "flt": {
             "unit": "kg",
             "values": [
-               null,
+               NaN,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -349,8 +349,8 @@
                2.0,
                4.0,
                4.0,
-               null,
-               null,
+               NaN,
+               NaN,
                2.0
             ]
          },
@@ -359,8 +359,8 @@
             "values": [
                3.0,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -393,7 +393,7 @@
                4.0,
                4.0,
                4.0,
-               null,
+               NaN,
                2.0
             ]
          },
@@ -402,7 +402,7 @@
             "values": [
                3.0,
                39.0,
-               null,
+               NaN,
                3.0,
                200.0,
                9.0
@@ -436,7 +436,7 @@
                4.0,
                4.0,
                4.0,
-               null,
+               NaN,
                2.0
             ]
          },
@@ -445,8 +445,8 @@
             "values": [
                3.0,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -490,7 +490,7 @@
                4.0,
                4.0,
                4.0,
-               null,
+               NaN,
                2.0
             ]
          },
@@ -499,8 +499,8 @@
             "values": [
                3.0,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -553,19 +553,19 @@
             "values": [
                2.0,
                4.0,
-               null,
+               NaN,
                4.0,
-               null,
+               NaN,
                2.0
             ]
          },
          "flt": {
             "unit": "kg",
             "values": [
-               null,
+               NaN,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -595,10 +595,10 @@
          "flt2": {
             "unit": "kg",
             "values": [
-               null,
+               NaN,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0
             ]
@@ -643,9 +643,9 @@
                4.0,
                4.0,
                4.0,
-               null,
+               NaN,
                2.0,
-               null
+               NaN
             ]
          },
          "flt": {
@@ -653,11 +653,11 @@
             "values": [
                3.0,
                39.0,
-               null,
-               null,
+               NaN,
+               NaN,
                200.0,
                9.0,
-               null
+               NaN
             ]
          }
       },
