@@ -278,3 +278,13 @@ def test__table_is_preserved_when_written_to_and_read_from_json_data():
     assert table_read.column_names == table_write.column_names
     assert table_read.units == table_write.units
     assert table_read.destinations == table_write.destinations
+
+
+def test__encode_decode_with_Nans():
+    table_write = Table(pd.DataFrame({
+        'a': np.array([1., np.nan], dtype=float),
+        }), name='tmp', units=['m'])
+
+    json_obj = table_to_json_data(table_write)
+    table_read = json_data_to_table(json_obj)
+    assert table_read.equals(table_write)

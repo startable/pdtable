@@ -21,10 +21,13 @@ JsonDataPrecursor = Union[
     datetime.datetime,
 ]
 
+
+NAN_STRING = "-"
+
 _json_encodable_value_maps = {
     dict: lambda obj: {kk: to_json_serializable(obj[kk]) for kk in obj.keys()},
     list: lambda obj: [to_json_serializable(kk) for kk in obj],
-    float: lambda obj: obj if (not np.isnan(obj)) else None,
+    float: lambda obj: NAN_STRING if np.isnan(obj) else obj,
     int: lambda obj: obj,
     str: lambda obj: obj,
     bool: lambda obj: obj,
@@ -51,8 +54,9 @@ def to_json_serializable(obj: JsonDataPrecursor) -> JsonData:
     # Vanilla JSON encoder will choke on this value type.
     # Represent value as a JSON-encoder-friendly type.
     if isinstance(obj, np.ndarray):
+        breakpoint()
         if f"{obj.dtype}" == "float64":
-            return [val if (not np.isnan(val)) else None for val in obj.tolist()]
+            return [NAN_STRING if np.isnan(val) else val for val in obj.tolist()]
             # Note: would fail for obj.ndim > 1, but this is never the case here (columns are 1 dim)
         else:
             return [to_json_serializable(val) for val in obj.tolist()]
