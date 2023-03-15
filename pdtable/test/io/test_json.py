@@ -68,8 +68,9 @@ def test_json_pdtable():
       "destinations": {"your_farm": None, "my_farm": None, "farms_galore": None}
     }
     # fmt: on
-
-    json_pdtab = json_data_to_table(table_json_data, fixer=custom_test_fixer())
+    fixer = custom_test_fixer()
+    json_pdtab = json_data_to_table(table_json_data, fixer=fixer)
+    assert fixer.fixes == 0
     assert pandas_pdtab.equals(json_pdtab)
 
 
