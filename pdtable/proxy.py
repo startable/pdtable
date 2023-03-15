@@ -1,4 +1,4 @@
-from typing import Union, Dict, List, Optional, Set, Callable, Sequence
+from typing import Iterable, Union, Dict, List, Optional, Set, Callable, Sequence
 
 import pandas as pd
 
@@ -141,9 +141,24 @@ class Table:
     For situations where this is unacceptable for performance, use direct dataframe access methods.
     """
 
-    def __init__(self, df: Union[None, TableDataFrame, pd.DataFrame] = None, **kwargs):
+    def __init__(self, df: Union[None, TableDataFrame, pd.DataFrame] = None, *,
+                 name: Optional[str] = None,
+                 destinations: Optional[Set[str]] = None,
+                 units: Optional[Iterable[str]] = None,
+                 transposed: Optional[bool] = None,
+                 **kwargs):
+        if name is not None:
+            kwargs["name"] = name
+        if destinations is not None:
+            kwargs["destinations"] = destinations
+        if units is not None:
+            kwargs["units"] = units
+        if transposed is not None:
+            kwargs["transposed"] = transposed
+
         if is_table_dataframe(df) and len(kwargs) == 0:
             pass
+
         elif is_table_dataframe(df):
             table_data = get_table_info(df)
             kwargs_join = {
