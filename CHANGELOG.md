@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+- Now allows to write tables with NaNs to JSON
+
 ### Changed
 - Now allows for constructing new Table object with different metadata
 
