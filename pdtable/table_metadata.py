@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Set, List, Optional, Dict, Union
+from typing import Any, Set, List, Optional, Dict, Union
 
 import numpy
 import pandas as pd
@@ -37,6 +37,10 @@ class TableMetadata:
             self.destinations = set(self.destinations.split(" "))
         else:
             self.destinations = set(self.destinations)
+
+    def dict(self) -> Dict[str, Any]:
+        # can't use asdict because it can't parse self.origin
+        return self.__dict__
 
 
 class ColumnFormat:
@@ -182,3 +186,16 @@ class ComplementaryTableInfo:
             return
         self._update_columns(df)
         self._last_dataframe_state = dataframe_state
+
+
+    @property
+    def units(self) -> List[str]:
+        return [col.unit for col in self.columns.values()]
+
+    @property
+    def name(self) -> str:
+        return self.metadata.name
+    
+    @property
+    def destinations(self) -> Set[str]:
+        return self.metadata.destinations

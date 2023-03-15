@@ -1,4 +1,4 @@
-from typing import Union, Dict, List, Optional, Set, Callable, Sequence
+from typing import Iterable, Union, Dict, List, Optional, Set, Callable, Sequence
 
 import pandas as pd
 
@@ -141,15 +141,36 @@ class Table:
     For situations where this is unacceptable for performance, use direct dataframe access methods.
     """
 
-    def __init__(self, df: Union[None, TableDataFrame, pd.DataFrame] = None, **kwargs):
-        if (df is None) or (not is_table_dataframe(df)):
+    def __init__(self, df: Union[None, TableDataFrame, pd.DataFrame] = None, *,
+                 name: Optional[str] = None,
+                 destinations: Optional[Set[str]] = None,
+                 units: Optional[Iterable[str]] = None,
+                 transposed: Optional[bool] = None,
+                 **kwargs):
+        if name is not None:
+            kwargs["name"] = name
+        if destinations is not None:
+            kwargs["destinations"] = destinations
+        if units is not None:
+            kwargs["units"] = units
+        if transposed is not None:
+            kwargs["transposed"] = transposed
+
+        if is_table_dataframe(df) and len(kwargs) == 0:
+            pass
+
+        elif is_table_dataframe(df):
+            table_data = get_table_info(df)
+            kwargs_join = {
+                "units": table_data.units,
+                "name": table_data.name,
+                **table_data.metadata.dict(),
+            }
+            kwargs_join.update(kwargs)
+            df = make_table_dataframe(df, **kwargs_join)
+        else:
             # Creating a new table: initialize TableDataFrame
             df = make_table_dataframe(df if df is not None else pd.DataFrame(), **kwargs)
-        elif kwargs:
-            raise Exception(
-                f"Got unexpected keyword arguments when creating Table object from "
-                f"existing pandas table: {kwargs}"
-            )
         self._df = df
 
     @property
@@ -198,16 +219,15 @@ class Table:
 
     @property
     def units(self) -> List[str]:
-        cols = self.column_metadata
-        return [cols[name].unit for name in self.column_names]
+        return self.table_data.units
 
     @property
     def name(self) -> str:
-        return self.metadata.name
+        return self.table_data.name
 
     @property
     def destinations(self) -> Set[str]:
-        return self.metadata.destinations
+        return self.table_data.destinations
 
     @units.setter
     def units(self, unit_values):

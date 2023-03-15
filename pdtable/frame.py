@@ -194,8 +194,8 @@ class TableDataFrame(pd.DataFrame):
         return df
 
 
-def is_table_dataframe(df: pd.DataFrame) -> bool:
-    return _TABLE_INFO_FIELD_NAME in df._metadata
+def is_table_dataframe(df: Optional[pd.DataFrame]) -> bool:
+    return df is not None and _TABLE_INFO_FIELD_NAME in df._metadata
 
 
 def make_table_dataframe(

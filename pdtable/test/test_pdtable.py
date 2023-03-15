@@ -247,6 +247,19 @@ def test_table_equals():
     assert not t_ref.equals(pd.DataFrame({"c": [1, np.nan, 3], "d": [4, 5, 6]}))
 
 
+def test_table_from_other_table_dataframe_with_different_metadata():
+    t_ref = Table(
+        pd.DataFrame({"c": [1, np.nan, 3], "d": [4, 5, 6]}), name="table1", units=["m", "kg"],
+    )
+
+    t2 = Table(t_ref.df, name="table2", units=["g", "mm"])
+
+    assert t_ref.name == "table1"
+    assert t_ref.units == ["m", "kg"]
+    assert t2.name == "table2"
+    assert t2.units == ["g", "mm"]
+
+
 def test_column_format():
     assert ColumnFormat(2).specifier == ".2f"
     assert ColumnFormat("14.2e").specifier == "14.2e"
