@@ -15,6 +15,9 @@ else:
     TESING_BACKENDS = [PandasBackend.numpy]
 
 
+# This will make all functions calling this fixture be invoked twice
+# once with each backend
+# https://docs.pytest.org/en/6.2.x/fixture.html#fixture-parametrize
 @pytest.fixture(scope="function", params=TESING_BACKENDS)
 def places_table(request):
     # Make a table with content of various units
