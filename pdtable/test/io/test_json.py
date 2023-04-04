@@ -262,6 +262,20 @@ def test_make_table_json_data__empty_table():
     assert table_from_lines.equals(table_from_json)
 
 
+def test__table_to_json(places_table):
+    d = table_to_json_data(places_table)
+    assert d == {
+        'name': 'foo',
+        'destinations': {'all': None},
+        'columns': {
+            'place': {'unit': 'text', 'values': ['home', 'work', 'beach', 'wonderland']},
+            'distance': {'unit': 'km', 'values': [0.0, 1.0, 2.0, None]},
+            'ETA': {'unit': 'datetime', 'values': ['2020-08-04 08:00:00', '2020-08-04 09:00:00', '2020-08-04 17:00:00', None]},
+            'is_hot': {'unit': 'onoff', 'values': [True, False, True, False]},
+        }
+    }
+
+
 def test__table_is_preserved_when_written_to_and_read_from_json_data():
     table_write = Table(
             pd.DataFrame({
@@ -279,3 +293,4 @@ def test__table_is_preserved_when_written_to_and_read_from_json_data():
     assert table_read.column_names == table_write.column_names
     assert table_read.units == table_write.units
     assert table_read.destinations == table_write.destinations
+
