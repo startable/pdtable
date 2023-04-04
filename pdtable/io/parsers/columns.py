@@ -113,7 +113,7 @@ def _parse_float_column(values: Iterable, fixer: ParseFixer = None):
 
 
 def _to_datetime(val):
-    return pd.NaT if val in ["-", "nan"] else pd.to_datetime(val, dayfirst=True)
+    return pd.NaT if val in ["-", "nan"] else pd.to_datetime(val)
 
 
 def _parse_datetime_column(values: Iterable, fixer: ParseFixer = None):
