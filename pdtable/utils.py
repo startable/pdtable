@@ -11,6 +11,14 @@ from pdtable.proxy import UnitConverter, ColumnUnitDispatcher
 TableUnitDispatcher = Union[Dict[str, ColumnUnitDispatcher], Callable[[str], ColumnUnitDispatcher]]
 
 
+# pyarrow is avaliable:
+try:
+    import pyarrow
+    HAS_PYARROW = True
+except ImportError:
+    HAS_PYARROW = False
+
+
 def normalized_table_generator(
     block_gen: Iterable[Tuple[BlockType, Optional[Any]]],
     convert_units_to: TableUnitDispatcher = None,

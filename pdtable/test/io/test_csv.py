@@ -1,3 +1,4 @@
+from enum import Enum
 import io
 from textwrap import dedent
 from typing import List
@@ -5,28 +6,54 @@ from pathlib import Path
 
 from pytest import fixture, raises
 import pandas as pd
+import pytest
 
 import pdtable
-from pdtable import Table, BlockType, read_csv, write_csv
+from pdtable import Table, BlockType, read_csv, write_csv, HAS_PYARROW
 from pdtable.io.csv import _table_to_csv
 from pdtable.table_metadata import ColumnFormat
 
+class PdBackend(Enum):
+    numpy = "NUMPY"
+    pyarrow = "PYARROW"
 
-def test__table_to_csv():
+
+if HAS_PYARROW:
+    TESING_BACKENDS = [PdBackend.numpy, PdBackend.pyarrow]
+else:
+    TESING_BACKENDS = [PdBackend.numpy]
+
+def places_table(backend: PdBackend):
     # Make a table with content of various units
     t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
+    if backend == PdBackend.numpy:
+        t["place"] = ["home", "work", "beach", "wonderland"]
+        t.add_column("distance", list(range(3)) + [float("nan")], "km")
+        t.add_column(
+            "ETA",
+            pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
+            "datetime",
+        )
+        t.add_column("is_hot", [True, False, True, False], "onoff")
+    elif backend == PdBackend.pyarrow:
+        import pyarrow
+        t["place"] = pd.Series(["home", "work", "beach", "wonderland"], dtype="string[pyarrow]")
+        t.add_column("distance", pd.Series(list(range(3)) + [float("nan")], dtype="double[pyarrow]"), "km")
+        t.add_column(
+            "ETA",
+            pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT])
+            .astype(pd.ArrowDtype(pyarrow.timestamp('s'))),
+            "datetime",
+        )
+        t.add_column("is_hot", pd.Series([True, False, True, False], dtype="bool[pyarrow]"), "onoff")
+    return t
 
+
+@pytest.mark.parametrize("backend", TESING_BACKENDS)
+def test__table_to_csv(backend):
     # Write table to stream
     with io.StringIO() as out:
-        _table_to_csv(t, out, ";", "-")
+        _table_to_csv(places_table(backend), out, ";", "-")
         # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
@@ -45,15 +72,7 @@ def test__table_to_csv():
 
 def test__table_to_csv__writes_transposed_table():
     # Make a TRANSPOSED table with content of various units
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
+    t = places_table(PdBackend.numpy)
     t.metadata.transposed = True  # <<<< aha
 
     # Write transposed table to stream
@@ -95,15 +114,7 @@ def test__table_to_csv__writes_empty_table():
 
 def test_write_csv__writes_two_tables():
     # Make a couple of tables
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
+    t = places_table(PdBackend.numpy)
 
     # This table is transposed
     t2 = Table(name="bar")
