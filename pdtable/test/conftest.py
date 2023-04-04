@@ -1,12 +1,20 @@
 from enum import Enum
 import pandas as pd
 import pytest
-from pdtable import Table, HAS_PYARROW
+from pdtable import Table
 
 
 class PandasBackend(Enum):
     numpy = "NUMPY"
     pyarrow = "PYARROW"
+
+
+# pyarrow is avaliable:
+try:
+    import pyarrow
+    HAS_PYARROW = True
+except ImportError:
+    HAS_PYARROW = False
 
 
 if HAS_PYARROW:

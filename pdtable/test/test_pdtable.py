@@ -5,9 +5,10 @@ import numpy as np
 
 import pytest
 
-from .. import Table, frame, HAS_PYARROW
+from .. import Table, frame
 from ..proxy import Column
 from ..table_metadata import ColumnFormat
+from .conftest import HAS_PYARROW
 
 
 @pytest.fixture
