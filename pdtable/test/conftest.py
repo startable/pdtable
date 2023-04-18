@@ -18,15 +18,15 @@ except ImportError:
 
 
 if HAS_PYARROW:
-    TESING_BACKENDS = [PandasBackend.numpy, PandasBackend.pyarrow]
+    _TESTING_BACKENDS = [PandasBackend.numpy, PandasBackend.pyarrow]
 else:
-    TESING_BACKENDS = [PandasBackend.numpy]
+    _TESTING_BACKENDS = [PandasBackend.numpy]
 
 
 # This will make all functions calling this fixture be invoked twice
 # once with each backend
 # https://docs.pytest.org/en/6.2.x/fixture.html#fixture-parametrize
-@pytest.fixture(scope="function", params=TESING_BACKENDS)
+@pytest.fixture(scope="function", params=_TESTING_BACKENDS)
 def places_table(request):
     # Make a table with content of various units
     t = Table(name="foo")
