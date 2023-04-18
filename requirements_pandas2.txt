@@ -1,0 +1,12 @@
+pandas>=2.0
+pyarrow
+numpy
+typing-extensions
+
+# OPTIONAL
+openpyxl
+xlsxwriter
+pint
+
+# BUILD & TEST
+pytest

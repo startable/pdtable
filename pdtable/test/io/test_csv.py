@@ -12,21 +12,10 @@ from pdtable.io.csv import _table_to_csv
 from pdtable.table_metadata import ColumnFormat
 
 
-def test__table_to_csv():
-    # Make a table with content of various units
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
-
+def test__table_to_csv(places_table):
     # Write table to stream
     with io.StringIO() as out:
-        _table_to_csv(t, out, ";", "-")
+        _table_to_csv(places_table, out, ";", "-")
         # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\
@@ -43,17 +32,9 @@ def test__table_to_csv():
         )
 
 
-def test__table_to_csv__writes_transposed_table():
+def test__table_to_csv__writes_transposed_table(places_table):
     # Make a TRANSPOSED table with content of various units
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
+    t = places_table
     t.metadata.transposed = True  # <<<< aha
 
     # Write transposed table to stream
@@ -93,17 +74,8 @@ def test__table_to_csv__writes_empty_table():
         )
 
 
-def test_write_csv__writes_two_tables():
+def test_write_csv__writes_two_tables(places_table):
     # Make a couple of tables
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
 
     # This table is transposed
     t2 = Table(name="bar")
@@ -113,7 +85,7 @@ def test_write_csv__writes_two_tables():
 
     # Write tables to stream
     with io.StringIO() as out:
-        write_csv([t, t2], out)
+        write_csv([places_table, t2], out)
         # Assert stream content is as expected
         assert out.getvalue() == dedent(
             """\

@@ -25,23 +25,12 @@ def test_deep_get():
     assert deep_get(d, ['meta', 'garbage'], default='-') == '-'
 
 
-def test__append_table_to_openpyxl_worksheet():
-    # Make a table with content of various units
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
-
+def test__append_table_to_openpyxl_worksheet(places_table):
     wb = openpyxl.Workbook()
     ws = wb.active
 
     # Act
-    _append_table_to_openpyxl_worksheet(t, ws, sep_lines=1)
+    _append_table_to_openpyxl_worksheet(places_table, ws, sep_lines=1)
 
     # Assert worksheet looks as expected:
     # table header by row
@@ -60,18 +49,7 @@ def test__append_table_to_openpyxl_worksheet():
 
 
 @pytest.mark.parametrize("backend", list(ExcelWriteBackend))
-def test_write_excel(tmp_path, backend):
-    # Make a couple of tables
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
-
+def test_write_excel(tmp_path, places_table, backend):
     # This one is transposed
     t2 = Table(name="bar")
     t2.add_column("digit", [1, 6, 42], "-")
@@ -80,7 +58,7 @@ def test_write_excel(tmp_path, backend):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2], out_path, backend=backend)
+    write_excel([places_table, t2], out_path, backend=backend)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 
@@ -118,27 +96,17 @@ def test_write_excel(tmp_path, backend):
 
 
 @pytest.mark.parametrize("backend", list(ExcelWriteBackend))
-def test_write_excel__multiple_sheets(tmp_path, backend):
+def test_write_excel__multiple_sheets(tmp_path, places_table, backend):
     """write_excel() can write tables to multiple sheets in a workbook"""
 
     # Make a couple of tables
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
-
     t2 = Table(name="bar")
     t2.add_column("digit", [1, 6, 42], "-")
     t2.add_column("spelling", ["one", "six", "forty-two"], "text")
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel({"sheet_one": [t, t2], "sheet_two": t2}, out_path, backend=backend)
+    write_excel({"sheet_one": [places_table, t2], "sheet_two": t2}, out_path, backend=backend)
     wb = openpyxl.load_workbook(out_path)
 
     # Workbook has the expected sheets
@@ -156,18 +124,8 @@ def test_write_excel__multiple_sheets(tmp_path, backend):
 
 
 @pytest.mark.parametrize("backend", list(ExcelWriteBackend))
-def test_write_excel__style(tmp_path, backend):
+def test_write_excel__style(tmp_path, places_table, backend):
     # Make a couple of tables
-    t = Table(name="foo")
-    t["place"] = ["home", "work", "beach", "wonderland"]
-    t.add_column("distance", list(range(3)) + [float("nan")], "km")
-    t.add_column(
-        "ETA",
-        pd.to_datetime(["2020-08-04 08:00", "2020-08-04 09:00", "2020-08-04 17:00", pd.NaT]),
-        "datetime",
-    )
-    t.add_column("is_hot", [True, False, True, False], "onoff")
-
     # This one is transposed
     t2 = Table(name="bar")
     t2.add_column("digit", [1, 6, 42], "-")
@@ -182,7 +140,7 @@ def test_write_excel__style(tmp_path, backend):
 
     # Write tables to workbook, save, and re-load
     out_path = tmp_path / "foo.xlsx"
-    write_excel([t, t2, t3], out_path, styles=True, backend=backend)
+    write_excel([places_table, t2, t3], out_path, styles=True, backend=backend)
     wb = openpyxl.load_workbook(out_path)
     ws = wb.active
 

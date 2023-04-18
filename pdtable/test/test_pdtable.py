@@ -8,6 +8,7 @@ import pytest
 from .. import Table, frame
 from ..proxy import Column
 from ..table_metadata import ColumnFormat
+from .conftest import HAS_PYARROW
 
 
 @pytest.fixture
@@ -58,15 +59,26 @@ def test_make_table_dataframe__with_wrong_dtype_raises(data_ab):
 
 
 def test_make_table_dataframe__with_no_units__creates_units():
-        table = frame.make_table_dataframe(
-            pd.DataFrame({
-                'a': [1, 2, 3],
-                'b': ["a", "b", "c"]
-            }),
-            name='test', destinations='abc'
-        )
-        assert frame.get_table_info(table).columns["a"].unit == "-"
-        assert frame.get_table_info(table).columns["b"].unit == "text"
+    table = frame.make_table_dataframe(
+        pd.DataFrame({
+            'a': [1, 2, 3],
+            'b': ["a", "b", "c"]
+        }),
+        name='test', destinations='abc'
+    )
+    assert frame.get_table_info(table).columns["a"].unit == "-"
+    assert frame.get_table_info(table).columns["b"].unit == "text"
+
+
+@pytest.mark.skipif(not HAS_PYARROW, reason="No pyarrow")
+def test_make_table_dataframe__with_no_units__creates_units_pyarrow():
+    df = pd.DataFrame({
+        'a': pd.Series([1, 2, 3], dtype='uint64[pyarrow]'),
+        'b': pd.Series(["a", "b", "c"], dtype='string[pyarrow]')
+    })
+    table = frame.make_table_dataframe(df, name='test', destinations='abc')
+    assert frame.get_table_info(table).columns["a"].unit == "-"
+    assert frame.get_table_info(table).columns["b"].unit == "text"
 
 
 def test_is_pdtable(dft, data_ab):

@@ -4,6 +4,7 @@ import datetime
 from typing import Union, Dict, List
 
 import numpy as np
+import pandas as pd
 
 # Typing alias:
 # JSON-like data structure of nested dicts ("objects"), lists ("arrays"), and JSON-native values
@@ -60,6 +61,14 @@ def to_json_serializable(obj: JsonDataPrecursor) -> JsonData:
     if isinstance(obj, datetime.datetime):
         jval = str(obj)
         return jval if jval != "NaT" else None
+    
+    # Convert any NA type to None
+    # Need the try/except as this might be a sequence type
+    try:
+        obj[0]
+    except TypeError:
+        if pd.isna(obj):
+            return None
 
     raise NotImplementedError(
         "Converting this type to a JSON-encodable type not yet implemented", type(obj)
