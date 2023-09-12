@@ -20,6 +20,7 @@ class TableMetadata:
     destinations: Set[str] = field(default_factory=lambda: {"all"})
     origin: Optional[TableOrigin] = None
     transposed: bool = False
+    strict_types: bool = True
 
     def __str__(self):
         dst = (
@@ -165,6 +166,9 @@ class ComplementaryTableInfo:
         # remove columns not in dataframe
         for name in set(columns.keys()) - df_cname_set:
             del columns[name]
+
+        if not self.metadata.strict_types:
+            return
 
         # update metadata
         for name in df_columns:

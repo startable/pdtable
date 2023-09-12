@@ -204,7 +204,7 @@ def make_table_json_precursor(cells: CellGrid, origin, fixer:ParseFixer) -> Tupl
     )
 
 
-def _make_table(cells: CellGrid, origin, fixer) -> Table:
+def _make_table(cells: CellGrid, origin, fixer: ParseFixer) -> Table:
     """Parses cell grid into a pdtable-style Table block object."""
     json_precursor, transposed = make_table_json_precursor(
         cells, origin=str(origin.input_location), fixer=fixer,
@@ -218,7 +218,8 @@ def _make_table(cells: CellGrid, origin, fixer) -> Table:
                 destinations=set(json_precursor["destinations"].keys()),
                 origin=origin,
                 transposed=transposed,
-            ),
+                strict_types=fixer.parameters.get('strict_types', True)
+            )
         )
     )
 

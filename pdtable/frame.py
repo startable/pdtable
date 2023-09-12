@@ -106,10 +106,16 @@ def _combine_tables(
         operation=f"Pandas {method}", 
         parents=[d.metadata.origin for d in data]
     )
+    strict_types = True
+    
+    if hasattr(other, '_table_data'):
+        strict_types = other._table_data.metadata.strict_types
+
     meta = TableMetadata(
         name=data[0].metadata.name,
         destinations=data[0].metadata.destinations,
         origin=origin,
+        strict_types=strict_types
     )
 
     # 2: Check that units match for columns that appear in more than one table
