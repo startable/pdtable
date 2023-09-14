@@ -1,4 +1,6 @@
+from copy import deepcopy
 import json
+from math import isnan
 import os
 from pathlib import Path
 from textwrap import dedent
@@ -293,3 +295,55 @@ def test_converter():
     assert js_obj["columns"]["a4"]["values"][1] == 3.14
 
     assert cf.fixes == 2  # Nine and Ten
+
+
+class NotStrictTypesFixer(ParseFixer):
+    def __init__(self):
+        super().__init__()
+        self.stop_on_errors = False
+        self.parameters['strict_types'] = False
+
+    def fix_illegal_cell_value(self, _: str, value: str):
+        return value
+
+
+class TestNotStrictTypesFixer:
+    input_file_path = input_dir().parent / "not_strict_types.csv"
+    
+    def test_fixer_allowing_not_strict_types(self):
+        # Successfull read but a NaN values in the data frame
+        with open(self.input_file_path, "r") as fh:
+            block_iterator = read_csv(fh, fixer=custom_test_fixer())
+            table = [table for _, table in block_iterator][0]
+            assert isnan(table.df.to_dict()['weight'][0])
+        # Failed read since unexpected value for a field with "m" unit
+        with open(self.input_file_path, "r") as fh:
+            fixer = NotStrictTypesFixer()
+            fixer.parameters['strict_types'] = True
+            block_iterator = read_csv(fh, fixer=fixer)
+            
+            with pytest.raises(
+                expected_exception=Exception,
+                match='Column unit m not equal to text expected from data type object'):
+                table = [table for _, table in block_iterator][0]
+
+        # Succesfull read with not strict types
+        with open(self.input_file_path, "r") as fh:
+            block_iterator = read_csv(fh, fixer=NotStrictTypesFixer())
+            table = [table for _, table in block_iterator][0]
+            assert bool(table.df.isnull().values.any()) is False
+
+    def test_overwriten_finilize_method(self):
+        """
+        Copying of a table execute the overwritten __finalize__ pd.DataFrame method.
+        The test checks if the copied table has correct values.
+        """
+        with open(self.input_file_path, "r") as fh:
+            block_iterator = read_csv(fh, fixer=NotStrictTypesFixer())
+            table = [table for _, table in block_iterator][0]
+            table_copy = deepcopy(table)
+            assert {
+                'animal': {0: 'dog', 1: 'fish'},
+                'height': {0: '<<height>>', 1: '<<height>>'},
+                'weight': {0: '<<weight>>', 1: '<<weight>>'}
+            } == table_copy.df.to_dict()

@@ -1,0 +1,6 @@
+**params_table
+all
+animal;height;weight
+text;m;kg
+dog;<<height>>;<<weight>>
+fish;<<height>>;<<weight>>
