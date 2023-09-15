@@ -218,7 +218,7 @@ def _make_table(cells: CellGrid, origin, fixer: ParseFixer) -> Table:
                 destinations=set(json_precursor["destinations"].keys()),
                 origin=origin,
                 transposed=transposed,
-                strict_types=fixer.parameters.get('strict_types', True)
+                strict_types=fixer.strict_types
             )
         )
     )

@@ -297,49 +297,77 @@ def test_converter():
     assert cf.fixes == 2  # Nine and Ten
 
 
-class NotStrictTypesFixer(ParseFixer):
+class StrictTypesFixer(ParseFixer):
     def __init__(self):
         super().__init__()
         self.stop_on_errors = False
-        self.parameters['strict_types'] = False
 
     def fix_illegal_cell_value(self, _: str, value: str):
         return value
 
 
-class TestNotStrictTypesFixer:
-    input_file_path = input_dir().parent / "not_strict_types.csv"
+@pytest.fixture()
+def not_strict_types_fixer() -> ParseFixer:
+    fixer = StrictTypesFixer()
+    fixer.strict_types = False
+    return fixer
+
+
+@pytest.fixture()
+def not_strict_input_file_path() -> Path:
+    return input_dir().parent / "not_strict_types.csv"
+
+
+class TestNotStrictTypes:
     
-    def test_fixer_allowing_not_strict_types(self):
-        # Successfull read but a NaN values in the data frame
-        with open(self.input_file_path, "r") as fh:
+    
+    def test_nan_values_loaded(self, not_strict_input_file_path: Path):
+        """
+        Successfull loading, but a NaN values in the data frame.
+        """
+        with open(not_strict_input_file_path, "r") as fh:
             block_iterator = read_csv(fh, fixer=custom_test_fixer())
             table = [table for _, table in block_iterator][0]
             assert isnan(table.df.to_dict()['weight'][0])
-        # Failed read since unexpected value for a field with "m" unit
-        with open(self.input_file_path, "r") as fh:
-            fixer = NotStrictTypesFixer()
-            fixer.parameters['strict_types'] = True
-            block_iterator = read_csv(fh, fixer=fixer)
-            
-            with pytest.raises(
-                expected_exception=Exception,
-                match='Column unit m not equal to text expected from data type object'):
-                table = [table for _, table in block_iterator][0]
+    
+    def test_strict_types_check(self, not_strict_input_file_path: Path):
+        """
+        Loading fails since unexpected value for a field with "m" unit.
+        """
+        with open(not_strict_input_file_path, "r") as fh:
+            block_iterator = read_csv(fh, fixer=StrictTypesFixer())
+            exc_msg = 'Column unit m not equal to text expected from data type object'
 
-        # Succesfull read with not strict types
-        with open(self.input_file_path, "r") as fh:
-            block_iterator = read_csv(fh, fixer=NotStrictTypesFixer())
+            with pytest.raises(
+                    expected_exception=Exception,
+                    match=exc_msg
+                ):
+                [table for _, table in block_iterator]
+
+    def test_not_strict_types_check(
+            self,
+            not_strict_input_file_path: Path,
+            not_strict_types_fixer: ParseFixer
+        ):
+        """
+        Succesfull loading with not strict types.
+        """
+        with open(not_strict_input_file_path, "r") as fh:
+            block_iterator = read_csv(fh, fixer=not_strict_types_fixer)
             table = [table for _, table in block_iterator][0]
             assert bool(table.df.isnull().values.any()) is False
 
-    def test_overwriten_finilize_method(self):
+    def test_overwriten_finilize_method(
+            self,
+            not_strict_input_file_path: Path,
+            not_strict_types_fixer: ParseFixer
+        ):
         """
         Copying of a table execute the overwritten __finalize__ pd.DataFrame method.
         The test checks if the copied table has correct values.
         """
-        with open(self.input_file_path, "r") as fh:
-            block_iterator = read_csv(fh, fixer=NotStrictTypesFixer())
+        with open(not_strict_input_file_path, "r") as fh:
+            block_iterator = read_csv(fh, fixer=not_strict_types_fixer)
             table = [table for _, table in block_iterator][0]
             table_copy = deepcopy(table)
             assert {

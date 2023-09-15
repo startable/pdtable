@@ -31,7 +31,7 @@ class ParseFixer:
         self.table_name = None
         self.column_name = None
         self.table_row = None
-        self.parameters = dict()
+        self.strict_types = True
 
     @property
     def verbose(self):
