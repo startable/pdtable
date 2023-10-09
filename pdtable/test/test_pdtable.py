@@ -1,9 +1,12 @@
+from pathlib import Path
 from textwrap import dedent
 
 import pandas as pd
 import numpy as np
 
 import pytest
+
+from pdtable.io.csv import read_csv, write_csv
 
 from .. import Table, frame
 from ..proxy import Column
@@ -340,3 +343,28 @@ def test_table__str_destination_with_no_spaces_results_in_single_destination():
 def test_table__str_destination_with_spaces_results_in_multiple_destinations():
     table = Table(name="test", destinations="a b c")
     assert table.destinations == {"a", "b", "c"}
+
+def test_make_table_dataframe_units(tmpdir):
+    data_frame = pd.DataFrame.from_dict({
+        'column_b': ['a', 'b', 'c'],
+        'column_a': [1, 2, 3]
+    })
+    table = Table(
+        df=data_frame,
+        name="ab",
+        unit_map={
+            'column_a': 'deg',
+            'column_b': 'text'
+        },
+        strict_types=False
+    )
+    csv_path = Path(tmpdir) / 'test.csv'
+    write_csv(
+        tables=table,
+        to=csv_path
+    )
+    loaded_tables = read_csv(
+        source=csv_path
+    )
+    loaded_table = next(loaded_tables)[1]
+    assert {'column_b': 'text', 'column_a': 'deg'} == dict(zip(loaded_table.df.columns, loaded_table.units))
