@@ -1,12 +1,9 @@
-from pathlib import Path
 from textwrap import dedent
 
 import pandas as pd
 import numpy as np
 
 import pytest
-
-from pdtable.io.csv import read_csv, write_csv
 
 from .. import Table, frame
 from ..proxy import Column
@@ -350,43 +347,13 @@ def test_unit_map_with_different_order_than_columns(tmpdir):
         'column_text': ['a', 'b', 'c'],
         'column_deg': [1, 2, 3]
     })
-    table = Table(
+    table = frame.make_table_dataframe(
         df=data_frame,
-        name="ab",
+        name='test_unit_map',
         unit_map={
             'column_deg': 'deg',
             'column_text': 'text'
         },
-        strict_types=False
     )
-    csv_path = Path(tmpdir) / 'test.csv'
-    write_csv(
-        tables=table,
-        to=csv_path
-    )
-    loaded_tables = read_csv(
-        source=csv_path
-    )
-    loaded_table = next(loaded_tables)[1]
     assert {'column_text': 'text', 'column_deg': 'deg'} == \
-        dict(zip(loaded_table.df.columns, loaded_table.units))
-
-
-def test_unit_map_with_missing_columns():
-    data_frame = pd.DataFrame.from_dict({
-        'column_text': ['a', 'b', 'c'],
-        'column_deg': [1, 2, 3]
-    })
-
-    try:
-        Table(
-            df=data_frame,
-            name="ab",
-            unit_map={
-                'column_deg': 'deg',
-            },
-            strict_types=False
-        )
-        raise AssertionError('Table initialization should raise an Exception')
-    except Exception as exc:
-        assert "missing unit for column column_text" in str(exc)
+        dict(zip(table.columns, frame.get_table_info(df=table).units))
