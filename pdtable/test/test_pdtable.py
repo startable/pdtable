@@ -344,17 +344,18 @@ def test_table__str_destination_with_spaces_results_in_multiple_destinations():
     table = Table(name="test", destinations="a b c")
     assert table.destinations == {"a", "b", "c"}
 
-def test_make_table_dataframe_units(tmpdir):
+
+def test_unit_map_with_different_order_than_columns(tmpdir):
     data_frame = pd.DataFrame.from_dict({
-        'column_b': ['a', 'b', 'c'],
-        'column_a': [1, 2, 3]
+        'column_text': ['a', 'b', 'c'],
+        'column_deg': [1, 2, 3]
     })
     table = Table(
         df=data_frame,
         name="ab",
         unit_map={
-            'column_a': 'deg',
-            'column_b': 'text'
+            'column_deg': 'deg',
+            'column_text': 'text'
         },
         strict_types=False
     )
@@ -367,4 +368,25 @@ def test_make_table_dataframe_units(tmpdir):
         source=csv_path
     )
     loaded_table = next(loaded_tables)[1]
-    assert {'column_b': 'text', 'column_a': 'deg'} == dict(zip(loaded_table.df.columns, loaded_table.units))
+    assert {'column_text': 'text', 'column_deg': 'deg'} == \
+        dict(zip(loaded_table.df.columns, loaded_table.units))
+
+
+def test_unit_map_with_missing_columns():
+    data_frame = pd.DataFrame.from_dict({
+        'column_text': ['a', 'b', 'c'],
+        'column_deg': [1, 2, 3]
+    })
+
+    try:
+        Table(
+            df=data_frame,
+            name="ab",
+            unit_map={
+                'column_deg': 'deg',
+            },
+            strict_types=False
+        )
+        raise AssertionError('Table initialization should raise an Exception')
+    except Exception as exc:
+        assert "missing unit for column column_text" in str(exc)
