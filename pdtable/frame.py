@@ -47,7 +47,6 @@ It should be possible to maintain column metadata together with the column data 
 `ExtensionArray`. This option was discarded early due to performance concerns, but might be viable
 and would the be preferable to the chosen approach.
 """
-import logging
 from warnings import warn
 
 import pandas as pd
@@ -58,9 +57,6 @@ from .table_metadata import TableMetadata, ColumnMetadata, ComplementaryTableInf
 from .table_origin import TableOrigin
 
 _TABLE_INFO_FIELD_NAME = "_table_data"
-
-
-logger = logging.getLogger(__name__)
 
 
 class UnknownOperationError(Exception):
@@ -249,7 +245,7 @@ def make_table_dataframe(
             if col in unit_map:
                 columns[col] = ColumnMetadata(unit_map[col])
             else:
-                logger.warning(f'Missing unit for column "{col}".')
+                warnings.warn(f'Missing unit for column "{col}".')
 
     table_info = ComplementaryTableInfo(table_metadata=table_metadata, columns=columns)
     df = TableDataFrame.from_table_info(
