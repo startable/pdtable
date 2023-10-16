@@ -241,8 +241,11 @@ def make_table_dataframe(
     if units is not None:
         columns = {col_name: ColumnMetadata(unit) for col_name, unit in zip(df.columns, units)}
     elif unit_map is not None:
-        for col, unit in unit_map.items():
-            columns[col] = ColumnMetadata(unit)
+        for col in df.columns:
+            if col in unit_map:
+                columns[col] = ColumnMetadata(unit_map[col])
+            else:
+                warnings.warn(f'Missing unit for column "{col}".')
 
     table_info = ComplementaryTableInfo(table_metadata=table_metadata, columns=columns)
     df = TableDataFrame.from_table_info(

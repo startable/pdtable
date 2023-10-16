@@ -340,3 +340,20 @@ def test_table__str_destination_with_no_spaces_results_in_single_destination():
 def test_table__str_destination_with_spaces_results_in_multiple_destinations():
     table = Table(name="test", destinations="a b c")
     assert table.destinations == {"a", "b", "c"}
+
+
+def test_unit_map_with_different_order_than_columns(tmpdir):
+    data_frame = pd.DataFrame.from_dict({
+        'column_text': ['a', 'b', 'c'],
+        'column_deg': [1, 2, 3]
+    })
+    table = frame.make_table_dataframe(
+        df=data_frame,
+        name='test_unit_map',
+        unit_map={
+            'column_deg': 'deg',
+            'column_text': 'text'
+        },
+    )
+    assert {'column_text': 'text', 'column_deg': 'deg'} == \
+        dict(zip(table.columns, frame.get_table_info(df=table).units))
