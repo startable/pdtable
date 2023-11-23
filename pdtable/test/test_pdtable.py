@@ -1,4 +1,5 @@
 from textwrap import dedent
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -7,7 +8,7 @@ import pytest
 
 from .. import Table, frame
 from ..proxy import Column
-from ..table_metadata import ColumnFormat
+from ..table_metadata import ColumnFormat, ColumnUnitException
 from .conftest import HAS_PYARROW
 
 
@@ -357,3 +358,109 @@ def test_unit_map_with_different_order_than_columns(tmpdir):
     )
     assert {'column_text': 'text', 'column_deg': 'deg'} == \
         dict(zip(table.columns, frame.get_table_info(df=table).units))
+
+
+@pytest.fixture
+def table_data_frame() -> frame.TableDataFrame:
+    data_frame = pd.DataFrame.from_dict({
+        'A': ['b', 'c', 'a', 'd', 'e'],
+        'B': [1, 2, 3, 4, 5],
+        'C': [True, False, True, False, True]
+    })
+    return frame.make_table_dataframe(
+        data_frame,
+        name='test',
+        destinations='abc',
+        unit_map={
+            'A': 'text',
+            'B': 'kg',
+            'C': 'onoff'
+        }
+    )
+
+
+class TestFinalize:
+    def test_replace_ok(self, table_data_frame: frame.TableDataFrame) -> None:
+        with warnings.catch_warnings(record=True) as w:
+            table_data_frame.replace('a', 'z')
+            assert len(w) == 0
+
+    def test_replace_not_allowed_unit(self, table_data_frame: frame.TableDataFrame) -> None:
+        with pytest.raises(ColumnUnitException):
+            table_data_frame.replace(True, 'a')
+
+    def test_sort_index_ok(self, table_data_frame: frame.TableDataFrame) -> None:
+        table_data_frame.set_index('A', inplace=True)
+
+        with warnings.catch_warnings(record=True) as w:
+            table_data_frame.sort_index()
+            assert len(w) == 0
+
+    def test_transpose_ok(self, table_data_frame: frame.TableDataFrame) -> None:
+        """
+        Columns metadata should be empty after transpose, 
+        since after transposing, we end up with completely new set of columns.
+        """
+        transposed = table_data_frame.transpose()
+        table_data = object.__getattribute__(transposed, frame._TABLE_INFO_FIELD_NAME)
+        assert ['text'] * len(table_data_frame.index) == table_data.units
+
+    def test_astype_ok(self, table_data_frame: frame.TableDataFrame) -> None:
+        assert isinstance(table_data_frame['B'].iloc[0], np.int64)
+        
+        with warnings.catch_warnings(record=True) as w:
+            table_data_frame_new_type = table_data_frame.astype({'B': float})
+            assert len(w) == 0
+
+        assert isinstance(table_data_frame_new_type['B'].iloc[0], np.float64)
+
+    def test_astype_not_allowed_type(self, table_data_frame: frame.TableDataFrame) -> None:
+        with pytest.raises(ColumnUnitException):
+            table_data_frame.astype({'B': str})
+            
+    def test_append_with_loc_ok(self, table_data_frame: frame.TableDataFrame) -> None:
+        """
+        append is executed under the hood while adding a row using loc method.
+        """
+        with warnings.catch_warnings(record=True) as w:
+            table_data_frame.loc[999] = {'A': 'y', 'B': 1, 'C': True}
+            assert len(w) == 0
+        
+        assert 6 == table_data_frame.shape[0]
+
+    def test_append_with_loc_not_allowed_type(self, table_data_frame: frame.TableDataFrame) -> None:
+        with pytest.raises(ColumnUnitException):
+            table_data_frame.loc[999] = {'A': 'y', 'B': 1, 'C': 'no'}
+
+    def test_fillna_ok(self, table_data_frame: frame.TableDataFrame) -> None:
+        table_data_frame_new_type = table_data_frame.astype({'B': float})
+        table_data_frame_new_type.iloc[0, 1] = np.nan
+        
+        with warnings.catch_warnings(record=True) as w:
+            table_data_frame_new_type.fillna(123)
+            assert len(w) == 0
+
+    def test_fillna_not_allowed_type(self, table_data_frame: frame.TableDataFrame) -> None:
+        table_data_frame_new_type = table_data_frame.astype({'B': float})
+        table_data_frame_new_type.iloc[0, 1] = np.nan
+        
+        with pytest.raises(ColumnUnitException):
+            table_data_frame_new_type.fillna('123')
+            
+    def test_rename_columns(self, table_data_frame: frame.TableDataFrame) -> None:
+        """
+        Renaming columns is not suported. It can mess with current units settings.
+        """
+        with pytest.raises(ColumnUnitException):
+            table_data_frame.rename(columns={"A": "B", "B": "C", "C": "A"})
+
+    def test_rename_index(self, table_data_frame: frame.TableDataFrame) -> None:
+        with warnings.catch_warnings(record=True) as w:
+            table_data_frame.rename(index={1: 'a', 2: 'b'})
+            assert len(w) == 0
+
+    def test_unstack():
+        pass  # TODO
+    
+    def test_melt():
+        pass  # TODO

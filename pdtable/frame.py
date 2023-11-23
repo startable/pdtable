@@ -80,7 +80,10 @@ def _combine_tables(
     if metadata is required, or by dropping to bare dataframes otherwise.
     """
 
-    if method is None or method in frozenset({"reindex", "take", "copy", "groupby"}):
+    if method is None or method in frozenset({
+            "reindex", "take", "copy", "groupby", "replace", "sort_index",
+            "transpose", "astype", "append", "fillna", "rename"
+    }):
         # method: None - copy, slicing (pandas <1.1)
         src = [other]
     elif method == "merge":
@@ -188,7 +191,7 @@ class TableDataFrame(pd.DataFrame):
         table_info = _combine_tables(self, other, method, **kwargs)
         if table_info is None:
             warn(
-                f"Unable to establish table metadata (units, origin, etc.). Will fall back to pd.DataFrame."
+                "Unable to establish table metadata (units, origin, etc.). Will fall back to pd.DataFrame."
             )
             return pd.DataFrame(self)
         object.__setattr__(self, _TABLE_INFO_FIELD_NAME, table_info)

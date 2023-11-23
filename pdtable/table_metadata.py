@@ -10,6 +10,10 @@ class InvalidNamingError(Exception):
     pass
 
 
+class ColumnUnitException(Exception):
+    pass
+
+
 @dataclass
 class TableMetadata:
     """
@@ -106,12 +110,12 @@ class ColumnMetadata:
         context_text = " in " + context if context else ""
         if base_unit in _units_special:
             if not base_unit == self.unit:
-                raise Exception(
+                raise ColumnUnitException(
                     f"Column '{col_name}' unit {self.unit} not equal to {base_unit} expected "
                     f"from data type {dtype}{context_text}"
                 )
         elif self.unit in _units_special:
-            raise Exception(
+            raise ColumnUnitException(
                 f"Column '{col_name}' special unit {self.unit} not applicable for "
                 f"data type {dtype}{context_text}"
             )
