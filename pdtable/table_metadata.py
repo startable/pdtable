@@ -202,13 +202,6 @@ class ComplementaryTableInfo:
         return [col.unit for col in self.columns.values()]
 
     @property
-    def unit_map(self) -> Dict[str, str]:
-        return {
-            col_name: col_metadata.unit 
-            for col_name, col_metadata in self.columns.items()
-        }
-
-    @property
     def name(self) -> str:
         return self.metadata.name
     

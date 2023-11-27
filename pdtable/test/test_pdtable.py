@@ -459,8 +459,54 @@ class TestFinalize:
             table_data_frame.rename(index={1: 'a', 2: 'b'})
             assert len(w) == 0
 
-    def test_unstack():
-        pass  # TODO
-    
-    def test_melt():
-        pass  # TODO
+    def test_unstack(self, table_data_frame: frame.TableDataFrame) -> None:
+        """
+        Test check how units of a table data frame change after unstacking.
+        """
+        multi_index = pd.MultiIndex.from_tuples([
+            ("a","1"), 
+            ("a","2"),
+            ("b","1"),
+            ("c","1"),
+            ("c","2")
+        ])
+        table_data_frame.set_index(multi_index, inplace=True)
+        
+        with warnings.catch_warnings(record=True) as w:
+            unstacked_table_data_frame = table_data_frame.unstack()
+            assert len(w) == 0
+
+        unstacked_col_name_to_unit = {
+            name: col.unit for name, col in object.__getattribute__(
+                unstacked_table_data_frame,
+                frame._TABLE_INFO_FIELD_NAME
+            ).columns.items()
+        }
+        assert {
+            ('A', '1'): 'text',
+            ('A', '2'): 'text',
+            ('B', '1'): '-',
+            ('B', '2'): '-',
+            ('C', '1'): 'text',
+            ('C', '2'): 'text'
+        } == unstacked_col_name_to_unit
+
+    def test_melt(self, table_data_frame: frame.TableDataFrame) -> None:
+        """
+        Test check how units of a table data frame change after unstacking.
+        """
+        with warnings.catch_warnings(record=True) as w:
+            melted_table_data_frame = table_data_frame.melt(id_vars=['A'], value_vars=['B', 'C'])
+            assert len(w) == 0
+        
+        melted_col_name_to_unit = {
+            name: col.unit for name, col in object.__getattribute__(
+                melted_table_data_frame,
+                frame._TABLE_INFO_FIELD_NAME
+            ).columns.items()
+        }
+        assert {
+            'A': 'text',
+            'variable': 'text',
+            'value': 'text'
+        } == melted_col_name_to_unit

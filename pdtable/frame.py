@@ -82,7 +82,8 @@ def _combine_tables(
 
     if method is None or method in frozenset({
             "reindex", "take", "copy", "groupby", "replace", "sort_index",
-            "transpose", "astype", "append", "fillna", "rename"
+            "transpose", "astype", "append", "fillna", "rename", "unstack",
+            "melt"
     }):
         # method: None - copy, slicing (pandas <1.1)
         src = [other]
