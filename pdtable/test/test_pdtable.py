@@ -1,3 +1,4 @@
+import sys
 from textwrap import dedent
 import warnings
 
@@ -414,6 +415,10 @@ class TestFinalize:
 
         assert isinstance(table_data_frame_new_type['B'].iloc[0], np.float64)
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="test passes only with python 3.8 or newer"
+    )
     def test_astype_not_allowed_type(self, table_data_frame: frame.TableDataFrame) -> None:
         with pytest.raises(ColumnUnitException):
             table_data_frame.astype({'B': str})
@@ -440,6 +445,10 @@ class TestFinalize:
             table_data_frame_new_type.fillna(123)
             assert len(w) == 0
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="test passes only with python 3.8 or newer"
+    )
     def test_fillna_not_allowed_type(self, table_data_frame: frame.TableDataFrame) -> None:
         table_data_frame_new_type = table_data_frame.astype({'B': float})
         table_data_frame_new_type.iloc[0, 1] = np.nan
@@ -491,6 +500,10 @@ class TestFinalize:
             ('C', '2'): 'text'
         } == unstacked_col_name_to_unit
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="test passes only with python 3.8 or newer"
+    )
     def test_melt(self, table_data_frame: frame.TableDataFrame) -> None:
         """
         Test check how units of a table data frame change after unstacking.
