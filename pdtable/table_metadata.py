@@ -10,6 +10,10 @@ class InvalidNamingError(Exception):
     pass
 
 
+class ColumnUnitException(Exception):
+    pass
+
+
 @dataclass
 class TableMetadata:
     """
@@ -99,18 +103,20 @@ class ColumnMetadata:
     display_unit: Optional[str] = None
     display_format: Optional[ColumnFormat] = None
 
-    def check_dtype(self, dtype, context: Optional[str] = None):
+    def check_dtype(
+        self, dtype: numpy.dtype, col_name: str, context: Optional[str] = None
+    ) -> None:
         base_unit = unit_from_dtype(dtype)
         context_text = " in " + context if context else ""
         if base_unit in _units_special:
             if not base_unit == self.unit:
-                raise Exception(
-                    f"Column unit {self.unit} not equal to {base_unit} expected "
+                raise ColumnUnitException(
+                    f"Column '{col_name}' unit {self.unit} not equal to {base_unit} expected "
                     f"from data type {dtype}{context_text}"
                 )
         elif self.unit in _units_special:
-            raise Exception(
-                f"Special column unit {self.unit} not applicable for "
+            raise ColumnUnitException(
+                f"Column '{col_name}' special unit {self.unit} not applicable for "
                 f"data type {dtype}{context_text}"
             )
 
@@ -177,7 +183,7 @@ class ComplementaryTableInfo:
             # this is because empty columns default to float data type
             is_empty = df.empty
             if name in columns and not is_empty:
-                columns[name].check_dtype(dtype)
+                columns[name].check_dtype(dtype=dtype, col_name=name)
             elif not is_empty:
                 columns[name] = ColumnMetadata.from_dtype(dtype)
 
@@ -190,7 +196,6 @@ class ComplementaryTableInfo:
             return
         self._update_columns(df)
         self._last_dataframe_state = dataframe_state
-
 
     @property
     def units(self) -> List[str]:

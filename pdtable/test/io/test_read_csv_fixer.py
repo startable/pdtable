@@ -336,7 +336,8 @@ class TestNotStrictTypes:
         """
         with open(not_strict_input_file_path, "r") as fh:
             block_iterator = read_csv(fh, fixer=StrictTypesFixer())
-            exc_msg = 'Column unit m not equal to text expected from data type object'
+            exc_msg = \
+                "Column 'height' unit m not equal to text expected from data type object"
 
             with pytest.raises(
                     expected_exception=Exception,
