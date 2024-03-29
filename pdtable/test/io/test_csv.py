@@ -5,10 +5,12 @@ from pathlib import Path
 
 from pytest import fixture, raises
 import pandas as pd
+import pytest
 
 import pdtable
 from pdtable import Table, BlockType, read_csv, write_csv
 from pdtable.io.csv import _table_to_csv
+from pdtable.io.parsers.blocks import EncodingException
 from pdtable.table_metadata import ColumnFormat
 
 
@@ -417,3 +419,15 @@ def test__table_is_preserved_when_written_to_and_read_from_csv():
     assert table_read.column_names == table_write.column_names
     assert table_read.units == table_write.units
     assert table_read.destinations == table_write.destinations
+
+
+def test_read_csv_starting_with_bom():
+    only_tables_path = Path(__file__).parent / "input" / "only_tables.csv"
+    
+    with pytest.raises(EncodingException):
+        list(read_csv(source=only_tables_path))
+    
+    source = open(only_tables_path, mode='r', encoding='utf-8-sig')
+    bls = list(read_csv(source=source))
+    tables = [bl for ty, bl in bls if ty == BlockType.TABLE]
+    assert tables[0].name == "generic_inf"
