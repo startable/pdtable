@@ -67,6 +67,10 @@ class InvalidTableCombineError(Exception):
     pass
 
 
+class UnknownMethodWarning(Warning):
+    pass
+
+
 def _combine_tables(
     obj: "TableDataFrame", other, method, **kwargs
 ) -> Optional[ComplementaryTableInfo]:
@@ -97,7 +101,8 @@ def _combine_tables(
         warnings.warn(
             f'While combining pdTable metadata an unknown __finalize__ method "{method}" was encountered. '
             f"Will try to propagate metadata with generic methods, but please check outcome of this "
-            f"and notify pdTable maintainers."
+            f"and notify pdTable maintainers.",
+            category=UnknownMethodWarning
         )
 
     data = [d for d in (getattr(s, _TABLE_INFO_FIELD_NAME, None) for s in src) if d is not None]

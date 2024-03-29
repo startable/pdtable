@@ -380,11 +380,17 @@ def table_data_frame() -> frame.TableDataFrame:
     )
 
 
+def unknown_method_warnings(warnings_list: list[Warning]) -> list[frame.UnknownMethodWarning]:
+    return [
+        warning for warning in warnings_list
+        if issubclass(warning.category, frame.UnknownMethodWarning)
+    ]
+
 class TestFinalize:
     def test_replace_ok(self, table_data_frame: frame.TableDataFrame) -> None:
         with warnings.catch_warnings(record=True) as w:
             table_data_frame.replace('a', 'z')
-            assert len(w) == 0
+            assert len(unknown_method_warnings(warnings_list=w)) == 0
 
     def test_replace_not_allowed_unit(self, table_data_frame: frame.TableDataFrame) -> None:
         with pytest.raises(ColumnUnitException):
@@ -395,7 +401,7 @@ class TestFinalize:
 
         with warnings.catch_warnings(record=True) as w:
             table_data_frame.sort_index()
-            assert len(w) == 0
+            assert len(unknown_method_warnings(warnings_list=w)) == 0
 
     def test_transpose_ok(self, table_data_frame: frame.TableDataFrame) -> None:
         """
@@ -411,7 +417,7 @@ class TestFinalize:
         
         with warnings.catch_warnings(record=True) as w:
             table_data_frame_new_type = table_data_frame.astype({'B': float})
-            assert len(w) == 0
+            assert len(unknown_method_warnings(warnings_list=w)) == 0
 
         assert isinstance(table_data_frame_new_type['B'].iloc[0], np.float64)
 
@@ -429,7 +435,7 @@ class TestFinalize:
         """
         with warnings.catch_warnings(record=True) as w:
             table_data_frame.loc[999] = {'A': 'y', 'B': 1, 'C': True}
-            assert len(w) == 0
+            assert len(unknown_method_warnings(warnings_list=w)) == 0
         
         assert 6 == table_data_frame.shape[0]
 
@@ -443,7 +449,7 @@ class TestFinalize:
         
         with warnings.catch_warnings(record=True) as w:
             table_data_frame_new_type.fillna(123)
-            assert len(w) == 0
+            assert len(unknown_method_warnings(warnings_list=w)) == 0
 
     @pytest.mark.skipif(
         sys.version_info < (3, 8),
@@ -466,7 +472,7 @@ class TestFinalize:
     def test_rename_index(self, table_data_frame: frame.TableDataFrame) -> None:
         with warnings.catch_warnings(record=True) as w:
             table_data_frame.rename(index={1: 'a', 2: 'b'})
-            assert len(w) == 0
+            assert len(unknown_method_warnings(warnings_list=w)) == 0
 
     def test_unstack(self, table_data_frame: frame.TableDataFrame) -> None:
         """
@@ -483,7 +489,7 @@ class TestFinalize:
         
         with warnings.catch_warnings(record=True) as w:
             unstacked_table_data_frame = table_data_frame.unstack()
-            assert len(w) == 0
+            assert len(unknown_method_warnings(warnings_list=w)) == 0
 
         unstacked_col_name_to_unit = {
             name: col.unit for name, col in object.__getattribute__(
@@ -510,7 +516,7 @@ class TestFinalize:
         """
         with warnings.catch_warnings(record=True) as w:
             melted_table_data_frame = table_data_frame.melt(id_vars=['A'], value_vars=['B', 'C'])
-            assert len(w) == 0
+            assert len(unknown_method_warnings(warnings_list=w)) == 0
         
         melted_col_name_to_unit = {
             name: col.unit for name, col in object.__getattribute__(
