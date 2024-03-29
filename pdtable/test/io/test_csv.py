@@ -335,15 +335,18 @@ def test_read_csv__sep_is_comma(csv_data):
     assert len(template_rows) == 1
 
 
+_input_dir = Path(__file__).parent / "input"
+
+
 def test_read_csv__from_stream():
-    with open(Path(__file__).parent / "input" / "bundle.csv", "r") as fh:
+    with open(_input_dir / "bundle.csv", "r") as fh:
         bls = list(read_csv(fh))
         tables = [bl for ty, bl in bls if ty == BlockType.TABLE]
         assert tables[1].name == "spelling_numbers"
 
     # raises exception on common error if not text stream
     with raises(Exception):
-        with open(Path(__file__).parent / "input" / "bundle.csv", "rb") as fh:  # binary stream!
+        with open(_input_dir / "bundle.csv", "rb") as fh:  # binary stream!
             bls = list(read_csv(fh))
             tables = [bl for ty, bl in bls if ty == BlockType.TABLE]
 
@@ -421,13 +424,19 @@ def test__table_is_preserved_when_written_to_and_read_from_csv():
     assert table_read.destinations == table_write.destinations
 
 
-def test_read_csv_starting_with_bom():
-    only_tables_path = Path(__file__).parent / "input" / "only_tables.csv"
+def test_read_csv_only_tables_starting_with_bom():
+    only_tables_starts_with_bom_path = _input_dir / "only_tables_starts_with_bom.csv"
     
     with pytest.raises(EncodingException):
-        list(read_csv(source=only_tables_path))
+        list(read_csv(source=only_tables_starts_with_bom_path))
     
-    source = open(only_tables_path, mode='r', encoding='utf-8-sig')
-    bls = list(read_csv(source=source))
-    tables = [bl for ty, bl in bls if ty == BlockType.TABLE]
-    assert tables[0].name == "generic_inf"
+    source = open(only_tables_starts_with_bom_path, mode='r', encoding='utf-8-sig')
+    tables = list(read_csv(source=source))
+    assert tables[0][1].name == "generic_inf"
+
+
+def test_read_csv_only_tables_no_bom():
+    only_tables_no_bom_path = _input_dir / "only_tables_no_bom.csv"
+    source = open(only_tables_no_bom_path, mode='r', encoding='utf-8-sig')
+    tables = list(read_csv(source=source))
+    assert tables[0][1].name == "generic_inf"

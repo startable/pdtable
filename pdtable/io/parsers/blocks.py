@@ -60,6 +60,9 @@ def check_encoding(cell_rows: Iterable[Sequence]) -> Iterable[Sequence]:
     This function checks if we loaded the file content with a correct encoding 
     and raise an EncodingException if not.
     """
+    if isinstance(cell_rows, list):
+      cell_rows = iter(cell_rows)
+
     first_cell_row = next(cell_rows)
 
     if first_cell_row is not None and len(first_cell_row) > 0 and len(first_cell_row[0]) > 0:
