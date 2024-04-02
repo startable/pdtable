@@ -24,11 +24,9 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
-from abc import abstractmethod
 import itertools
 import re
 from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union, Dict
-from collections import defaultdict
 import pandas as pd
 import warnings
 
@@ -39,7 +37,6 @@ from pdtable.table_origin import (
     LocationSheet,
     NullLocationFile,
     TableOrigin,
-    InputIssue,
     InputIssueTracker,
     NullInputIssueTracker,
 )
@@ -48,6 +45,43 @@ from .fixer import ParseFixer
 from ... import frame
 from ...auxiliary import MetadataBlock, Directive
 from ...table_metadata import TableMetadata
+
+
+class EncodingException(Exception):
+    pass
+
+
+def check_encoding(cell_rows: Iterable[Sequence]) -> Iterable[Sequence]:
+    """
+    CSV file can have a BOM character at the start.
+    Reading file with a default encoding does not raise an issue, 
+    but in such a case we ignore the first line 
+    (and the whole table if the file starts with a table block).
+    This function checks if we loaded the file content with a correct encoding 
+    and raise an EncodingException if not.
+    """
+    if isinstance(cell_rows, list):
+      cell_rows = iter(cell_rows)
+
+    try:
+        first_cell_row = next(cell_rows)
+    except StopIteration:
+        return  # generator is empty, do not yield anything
+
+    if first_cell_row and len(first_cell_row) > 0 and first_cell_row[0]:
+        first_sign = first_cell_row[0][0]
+
+        try:
+            first_sign.encode("ascii")
+        except UnicodeEncodeError:
+            raise EncodingException(
+                f'File starts with no ascii character "{first_sign}". '
+                'Please verify the file encoding.'
+            )
+
+    yield first_cell_row
+    yield from cell_rows
+
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
@@ -451,7 +485,8 @@ def parse_blocks_stable(
     state = BlockType.METADATA
     next_state = None
     this_block_1st_row = 0
-    for row_number_0based, row in enumerate(cell_rows):
+
+    for row_number_0based, row in enumerate(check_encoding(cell_rows)):
         if row is None or len(row) == 0 or _is_cell_blank(row[0]):
             if state != BlockType.BLANK:
                 next_state = BlockType.BLANK

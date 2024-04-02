@@ -1,0 +1,13 @@
+**generic_inf;;;;;;;;;;;;;
+all;;;;;;;;;;;;;
+FATIMA_alias;node;constraint_alias;symmetry;sn_curve;sectional_force_modification;pristrco;signco;alpha;cutpoint_tol;file_name;transformation;IO;detail_type
+text;text;text;text;text;text;text;-;-;mm;text;text;text;-
+C00001;B0C066;C00001;rotate;F3;-;0;3;0.8;2000;..\..\..\inputs\INF\J_tube\CHW2204_INF_Swan_Neck_a30_root_V2.txt;;I;1
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+**generic_inf_constraints;;;;;;;;;;;;;
+all;;;;;;;;;;;;;
+constraint_alias;element;symmetry;cut_point_name;node;cut_distance;;;;;;;;
+text;text;text;text;text;m;;;;;;;;
+C00001;C660L;rotate;BRACE1;B0C066;3.091;;;;;;;;
+C00001;CJT1V;rotate;BRACE2;B0C066;1.5319;;;;;;;;
