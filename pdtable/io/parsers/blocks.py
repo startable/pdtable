@@ -63,7 +63,10 @@ def check_encoding(cell_rows: Iterable[Sequence]) -> Iterable[Sequence]:
     if isinstance(cell_rows, list):
       cell_rows = iter(cell_rows)
 
-    first_cell_row = next(cell_rows)
+    try:
+        first_cell_row = next(cell_rows)
+    except StopIteration:
+        return  # generator is empty, do not yield anything
 
     if first_cell_row and len(first_cell_row) > 0 and first_cell_row[0]:
         first_sign = first_cell_row[0][0]
