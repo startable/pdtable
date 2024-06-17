@@ -1,6 +1,6 @@
 pandas>=2.0
 pyarrow
-numpy
+numpy<2.0
 typing-extensions
 
 # OPTIONAL
