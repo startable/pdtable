@@ -24,8 +24,8 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
+import datetime
 import itertools
-import logging
 import re
 from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union, Dict
 import pandas as pd
@@ -49,7 +49,6 @@ from ...table_metadata import TableMetadata
 
 # Typing alias: 2D grid of cells with rows and cols. Intended indexing: cell_grid[row][col]
 CellGrid = Sequence[Sequence]
-logger = logging.getLogger(__name__)
 
 
 def make_metadata_block(cells: CellGrid, origin: Optional[str] = None, **_) -> MetadataBlock:
@@ -95,12 +94,18 @@ def parse_column_names(column_names_raw: Sequence[Union[str, None]]) -> List[str
     ]
 
 
-def _safe_strip(input_data: Any) -> str:
+def _get_destinations_safely_stripped(input_data: Any) -> str:
     """
     Save strip in cases where the input is not a string type.
     """
     # Data Validation
-    if not isinstance(input_data, str):
+    if isinstance(input_data, datetime.datetime):
+        input_data = str(input_data).replace(' ', '_')
+        warnings.warn(
+            f"Found destination with a datetime format ({str(input_data)}). " \
+            f"Converting to {input_data}."
+        )
+    elif not isinstance(input_data, str):
         # Data Conversion
         input_data = str(input_data)
 
@@ -129,7 +134,7 @@ def make_table_json_precursor(cells: CellGrid, origin, fixer:ParseFixer) -> Tupl
     fixer.table_name = table_name
 
     # internally hold destinations as json-compatible dict
-    destinations = {dest: None for dest in _safe_strip(cells[1][0]).split(" ")}
+    destinations = {dest: None for dest in _get_destinations_safely_stripped(cells[1][0]).split(" ")}
     table_is_empty = len(cells) < 3
     if table_is_empty:
         column_names = []
