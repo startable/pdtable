@@ -100,11 +100,12 @@ def _get_destinations_safely_stripped(input_data: Any) -> str:
     """
     # Data Validation
     if isinstance(input_data, datetime.datetime):
-        input_data = str(input_data).replace(' ', '_')
+        fixed_input_data = str(input_data).replace(' ', '_')
         warnings.warn(
             f"Found destination with a datetime format ({str(input_data)}). " \
-            f"Converting to {input_data}."
+            f"Converting to {fixed_input_data}."
         )
+        input_data = fixed_input_data
     elif not isinstance(input_data, str):
         # Data Conversion
         input_data = str(input_data)
