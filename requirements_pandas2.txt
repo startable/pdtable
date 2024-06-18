@@ -1,5 +1,5 @@
 pandas>=2.0
-numpy
+numpy<2.0  # numpy 2 does not work for pint library on python3.9
 typing-extensions
 pyarrow
 
