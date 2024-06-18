@@ -1,7 +1,7 @@
 pandas>=2.0
-pyarrow
-numpy<2.0
+numpy
 typing-extensions
+pyarrow
 
 # OPTIONAL
 openpyxl
