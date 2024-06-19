@@ -24,11 +24,10 @@ For each of these:
   - The original, raw cell grid, in case the user wants to do some low-level processing.
 
 """
-from abc import abstractmethod
+import datetime
 import itertools
 import re
 from typing import Sequence, Optional, Tuple, Any, Iterable, List, Union, Dict
-from collections import defaultdict
 import pandas as pd
 import warnings
 
@@ -39,7 +38,6 @@ from pdtable.table_origin import (
     LocationSheet,
     NullLocationFile,
     TableOrigin,
-    InputIssue,
     InputIssueTracker,
     NullInputIssueTracker,
 )
@@ -96,6 +94,25 @@ def parse_column_names(column_names_raw: Sequence[Union[str, None]]) -> List[str
     ]
 
 
+def _get_destinations_safely_stripped(input_data: Any) -> str:
+    """
+    Save strip in cases where the input is not a string type.
+    """
+    # Data Validation
+    if isinstance(input_data, datetime.datetime):
+        fixed_input_data = str(input_data).replace(' ', '_')
+        warnings.warn(
+            f"Found destination with a datetime format ({str(input_data)}). " \
+            f"Converting to {fixed_input_data}."
+        )
+        input_data = fixed_input_data
+    elif not isinstance(input_data, str):
+        # Data Conversion
+        input_data = str(input_data)
+
+    return input_data.strip()
+
+
 def make_table_json_precursor(cells: CellGrid, origin, fixer:ParseFixer) -> Tuple[JsonDataPrecursor, bool]:
     """Parses cell grid into a JSON-like data structure but with some non-JSON-native values
 
@@ -118,7 +135,7 @@ def make_table_json_precursor(cells: CellGrid, origin, fixer:ParseFixer) -> Tupl
     fixer.table_name = table_name
 
     # internally hold destinations as json-compatible dict
-    destinations = {dest: None for dest in cells[1][0].strip().split(" ")}
+    destinations = {dest: None for dest in _get_destinations_safely_stripped(cells[1][0]).split(" ")}
     table_is_empty = len(cells) < 3
     if table_is_empty:
         column_names = []

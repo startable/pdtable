@@ -1,5 +1,5 @@
 pandas<2.0
-numpy
+numpy<2.0
 typing-extensions
 
 # OPTIONAL
