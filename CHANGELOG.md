@@ -5,63 +5,89 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.19] 
+## [Unreleased]
 
 ### Fixed
+- Handle num destinations 
+
+## [1.0.0] - 2024-01-04
+
+- `TableDataFrame` now produces less warning messages when pandas methods are called.
+
+## [0.0.20] - 2023-09-15
+
+### Changed
+
+- [#139](https://github.com/startable/pdtable/issues/139) `ParseFixer` has new option to allow for non-strict types.
+
+## [0.0.19] - 2023-08-18
+
+### Fixed
+
 - Now allows to write tables with NaNs to JSON
 
 ### Changed
+
 - Support for Pandas 2.0.
     *  Important: this changes how dates are interpreted by default! Now strings in the format AA/BB/YYYY will be interpreted as MM/DD/YYYY, following the Pandas default.
 - Now allows for constructing new Table object with different metadata
 
-
-## [0.0.18]
+## [0.0.18] - 2023-01-17
 
 ### Fixed
+
 - Bug causing types of columns in DataFrame not to be checked.
 
 ### Changed
+
 - `str` destinations in `TableMetadata` constructor will now be transformed into a `set`. This means that `destinations="abc"` is interpreted as destination "abc" instead of destinations "a", "b", and "c". 
 
-## [0.0.17]
+## [0.0.17] - 2022-11-01
 
 ### Fixed
+
 - Bug causing `write_excel` with xlsxwriter crashing when writing empty transposed tables.
 
-## [0.0.16]
+## [0.0.16] - 2022-10-26
 
 ### Fixed
+
 - Bug causing `write_excel` `engine_kwargs` arguments to not be passed on to the engine.
 
-## [0.0.15]
+## [0.0.15] - 2022-10-20
 
 ### Added
+
 - Support for writing Excel files with `xlsxwriter`.
 
-## [0.0.14]
+## [0.0.14] - 2022-09-08
 
 ### Fixed
+
 - Can now read empty tables (tables with only name and origin, no column or unit information).
 - Fixes deprecation warning related to numpy type
 - Fixes warning when calling `groupby` method
 
-## [0.0.13]
+## [0.0.13] - 2021-10-28
 
 ### Fixed
+
 - Issue in `make_table_dataframe` when using `unit_map`.
 
-## [0.0.11]
+## [0.0.11] - 2021-10-08
 
 ### Added
+
 - [#106] Support for detailed origin information in table metadata.
 - [#106] Support for loading complete input sets.
 
 ### Changed
+
 - Table origin information has been moved from `TableMetadata` to an aggregate object.
 - The error type raised by the `fixer` has been changed to integrate with `load` framework.
 
 ### Fixed
+
 - In response to a Numpy deprecation warning, changed one `dtype` argument from deprecated `numpy.str` to its designated successor, built-in `str`.
 
 ## [0.0.10] - 2021-03-16
@@ -74,28 +100,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `write_excel()` parameter `num_blank_rows_between_tables` renamed to `sep_lines` for conciseness.
 
 ### Fixed
+
 - Replaced the one remaining reference to `numpy.bool` (now deprecated from numpy) with its designated successor, plain ol' built-in `bool`.
 
 ## [0.0.9] - 2021-02-23
 
 ### Added
+
 - [PR #95](https://github.com/startable/pdtable/pull/95) `write_excel()` with new parameter `style=True` applies hard-coded styles to table blocks in output workbook.  
 
 ## [0.0.8] - 2021-02-15
 
 ### Added
+
 - [#92](https://github.com/startable/pdtable/issues/92) `write_excel()` can write to multiple sheets in a workbook. 
 - [#85](https://github.com/startable/pdtable/issues/85) CSV and Excel writers can write transposed tables.
 
 ### Changed
+
 - [#42](https://github.com/startable/pdtable/issues/42) Don't show dummy index when Table rendered as string.
 
 ## [0.0.7] - 2021-01-18
 
 ### Fixed
+
 - Invalid attribute access to `TableBundle` (e.g. `bundle["nonexistent_table"]`) raised a dubious `KeyError`; now raises a more appropriate `AttributeError`.
 
 ### Added
+
 - Enable `in`-operator for TableBundle. Example: `assert "some_table_name" in bundle`
 
 ## [0.0.6] - 2021-01-06
@@ -129,7 +161,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 77: Harmful assert in `read_excel()` prevented reading from certain kinds of streams; now removed.
 
-
 ## [0.0.3] - 2020-11-13
 
 ### Added
@@ -143,4 +174,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.2] - 2020-10-30
 
 First public release. 
-
