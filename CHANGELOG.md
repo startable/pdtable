@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Handle num destinations 
+
+- Handle non-string destinations when reading e.g. Excel.
 
 ## [1.0.0] - 2024-01-04
 
